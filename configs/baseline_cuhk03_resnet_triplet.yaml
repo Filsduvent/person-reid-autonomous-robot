@@ -1,0 +1,65 @@
+experiment:
+  name: baseline_cuhk03_resnet50_triplet
+  seed: 42
+  output_dir: exp/${experiment.name}
+
+system:
+  device: auto
+  gpu_id: 0
+  amp: false
+  num_workers: 4
+  pin_memory: true
+
+dataset:
+  name: cuhk03
+  part: trainval
+  root: ~/Dataset
+  image_size: [256, 128]
+  scale: true
+  mean: [0.486, 0.459, 0.408]
+  std:  [0.229, 0.224, 0.225]
+  mirror_type: random
+  crop_prob: 0.0
+  crop_ratio: 1.0
+  batch_dims: NCHW
+  prefetch_threads: 2
+  final_batch: true
+  shuffle: true
+
+sampler:
+  ids_per_batch: 16
+  ims_per_id: 4
+
+model:
+  backbone: resnet50
+  pretrained: true
+  last_conv_stride: 1
+  pooling: gap
+  normalize_feature: true
+
+loss:
+  type: triplet
+  margin: 0.3
+  hard_mining: true
+
+optimizer:
+  type: adam
+  lr: 0.0003
+  weight_decay: 0.0005
+
+scheduler:
+  type: step
+  milestones: [40, 70]
+  gamma: 0.1
+
+training:
+  epochs: 120
+  log_interval: 20
+  eval_interval: 10
+  save_best: true
+  resume_ckpt: ""
+
+evaluation:
+  normalize_feat: true
+  use_rerank: false
+  topk: [1, 5, 10]

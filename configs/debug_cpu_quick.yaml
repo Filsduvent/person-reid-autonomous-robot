@@ -1,0 +1,65 @@
+experiment:
+  name: debug_cpu_quick
+  seed: 123
+  output_dir: exp/${experiment.name}
+
+system:
+  device: cpu
+  gpu_id: 0
+  amp: false
+  num_workers: 0
+  pin_memory: false
+
+dataset:
+  name: market1501
+  part: trainval
+  root: ~/Dataset
+  image_size: [128, 64]
+  scale: true
+  mean: [0.486, 0.459, 0.408]
+  std:  [0.229, 0.224, 0.225]
+  mirror_type: None
+  crop_prob: 0.0
+  crop_ratio: 1.0
+  batch_dims: NCHW
+  prefetch_threads: 1
+  final_batch: true
+  shuffle: true
+
+sampler:
+  ids_per_batch: 4
+  ims_per_id: 2
+
+model:
+  backbone: resnet50
+  pretrained: true
+  last_conv_stride: 2
+  pooling: gap
+  normalize_feature: true
+
+loss:
+  type: triplet
+  margin: 0.3
+  hard_mining: true
+
+optimizer:
+  type: adam
+  lr: 0.0003
+  weight_decay: 0.0005
+
+scheduler:
+  type: step
+  milestones: [2]
+  gamma: 0.1
+
+training:
+  epochs: 3
+  log_interval: 1
+  eval_interval: 1
+  save_best: false
+  resume_ckpt: ""
+
+evaluation:
+  normalize_feat: true
+  use_rerank: false
+  topk: [1, 5, 10]
