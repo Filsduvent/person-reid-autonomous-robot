@@ -1,34 +1,53 @@
-import logging
+# reid/utils/device.py
+from __future__ import annotations
 
 import torch
-
-
-def select_device(device_policy: str, gpu_id: int = 0) -> torch.device:
-    """
-    device_policy: 'auto' | 'cpu' | 'cuda'
-    """
-    device_policy = device_policy.lower()
-    if device_policy not in ("auto", "cpu", "cuda"):
-        raise ValueError(f"Invalid device policy: {device_policy}")
-
-    if device_policy == "cpu":
-        return torch.device("cpu")
-
-    if device_policy == "cuda":
-        if not torch.cuda.is_available():
-            logging.warning("CUDA requested but unavailable; falling back to CPU.")
-            return torch.device("cpu")
-        return torch.device(f"cuda:{gpu_id}")
-
-    # auto
-    if torch.cuda.is_available():
-        return torch.device(f"cuda:{gpu_id}")
-    return torch.device("cpu")
+from typing import Any, Dict, Tuple
 
 
 def device_summary(device: torch.device) -> str:
     if device.type == "cuda":
         idx = device.index if device.index is not None else 0
         name = torch.cuda.get_device_name(idx)
-        return f"CUDA:{idx} ({name})"
-    return "CPU"
+        cap = torch.cuda.get_device_capability(idx)
+        return f"cuda:{idx} | {name} | capability={cap}"
+    return "cpu"
+
+
+def _force_cpu_policy(cfg: Dict[str, Any]) -> None:
+    # CPU policy: no AMP, no pin_memory
+    cfg.setdefault("system", {})
+    cfg["system"]["amp"] = False
+
+    # Option-3 schema: data.pin_memory (global)
+    data = cfg.get("data", {})
+    if isinstance(data, dict):
+        data["pin_memory"] = False
+        cfg["data"] = data
+
+
+def select_device(device_str: str, gpu_id: int, cfg: Dict[str, Any] | None = None) -> Tuple[torch.device, Dict[str, Any] | None]:
+    """
+    device_str: auto|cpu|cuda
+    If cfg is provided, apply device policy in-place (safe modifications).
+    """
+    device_str = (device_str or "auto").lower()
+
+    if device_str == "auto":
+        use_cuda = torch.cuda.is_available()
+        device = torch.device(f"cuda:{gpu_id}" if use_cuda else "cpu")
+    elif device_str == "cuda":
+        if not torch.cuda.is_available():
+            # hard fallback to cpu
+            device = torch.device("cpu")
+        else:
+            device = torch.device(f"cuda:{gpu_id}")
+    elif device_str == "cpu":
+        device = torch.device("cpu")
+    else:
+        raise ValueError(f"Unsupported system.device='{device_str}' (use auto|cpu|cuda)")
+
+    if cfg is not None and device.type == "cpu":
+        _force_cpu_policy(cfg)
+
+    return device, cfg
