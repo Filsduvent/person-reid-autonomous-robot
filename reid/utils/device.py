@@ -1,4 +1,5 @@
-from typing import Tuple
+import logging
+
 import torch
 
 
@@ -15,7 +16,8 @@ def select_device(device_policy: str, gpu_id: int = 0) -> torch.device:
 
     if device_policy == "cuda":
         if not torch.cuda.is_available():
-            raise RuntimeError("CUDA requested but torch.cuda.is_available() is False.")
+            logging.warning("CUDA requested but unavailable; falling back to CPU.")
+            return torch.device("cpu")
         return torch.device(f"cuda:{gpu_id}")
 
     # auto

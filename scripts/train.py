@@ -1,8 +1,8 @@
 import argparse
 import torch
 
-from utils.config import load_config
-from utils.device import select_device, device_summary
+from reid.utils.config import load_config
+from reid.utils.device import select_device, device_summary
 
 def main():
     parser = argparse.ArgumentParser()
