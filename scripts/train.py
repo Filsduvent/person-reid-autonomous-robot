@@ -1,74 +1,92 @@
-# scripts/train.py
 import argparse
-import os
+import os.path as osp
 import torch
 
-from reid.utils.config import load_config, save_yaml
+from reid.utils.config import load_config
 from reid.utils.device import select_device, device_summary
+from reid.utils.io import ensure_dir
+from reid.utils.seed import set_seed
 
+from reid.data.build import build_train_loader
+from reid.models.build import build_model
+from reid.losses.build import build_criterion
+from reid.engine.train_loop import train_one_epoch
 
-def set_seed(seed: int, device: torch.device, deterministic: bool = False, benchmark: bool = True):
-    import random
-    import numpy as np
-
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-
-    if device.type == "cuda":
-        torch.cuda.manual_seed_all(seed)
-
-    # reproducibility flags
-    torch.backends.cudnn.benchmark = bool(benchmark) if device.type == "cuda" else False
-    torch.backends.cudnn.deterministic = bool(deterministic) if device.type == "cuda" else False
-
+def build_optimizer(cfg, model):
+    ocfg = cfg["optim"]
+    name = ocfg["name"].lower()
+    lr = float(ocfg["lr"])
+    wd = float(ocfg["weight_decay"])
+    if name == "adam":
+        return torch.optim.Adam(model.parameters(), lr=lr, weight_decay=wd)
+    if name == "adamw":
+        return torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=wd)
+    if name == "sgd":
+        return torch.optim.SGD(model.parameters(), lr=lr, weight_decay=wd, momentum=0.9, nesterov=True)
+    raise ValueError(f"Unknown optimizer: {name}")
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--config", type=str, required=True)
-    parser.add_argument(
-        "--override", "-o",
-        action="append",
-        default=[],
-        help="Dotpath overrides. Example: -o system.device=cuda -o train.epochs=60"
-    )
+    parser.add_argument("--config", type=str, required=True)
     args = parser.parse_args()
 
-    cfg = load_config(args.config, overrides=args.override)
+    cfg = load_config(args.config)
 
-    # Backward compatibility: if user still has experiment.seed, map it into repro.seed if missing
-    if "repro" not in cfg:
-        cfg["repro"] = {}
-    if "seed" not in cfg["repro"]:
-        cfg["repro"]["seed"] = cfg.get("experiment", {}).get("seed", 42)
+    exp_dir = cfg["experiment"]["output_dir"]
+    ensure_dir(exp_dir)
 
-    sys_cfg = cfg.get("system", {})
-    device_str = sys_cfg.get("device", "auto")
-    gpu_id = int(sys_cfg.get("gpu_id", 0))
-
-    device, cfg = select_device(device_str, gpu_id, cfg=cfg)
+    device = select_device(cfg["system"]["device"], cfg["system"].get("gpu_id", 0))
     print(f"[Device] {device_summary(device)}")
 
-    # Ensure output dir exists
-    exp = cfg.get("experiment", {})
-    out_dir = exp.get("output_dir", "exp/run")
-    os.makedirs(out_dir, exist_ok=True)
+    set_seed(
+        seed=int(cfg["repro"]["seed"]),
+        deterministic=bool(cfg["repro"]["deterministic"]),
+        benchmark=bool(cfg["repro"]["benchmark"]),
+    )
 
-    # Save resolved config (after device policy)
-    save_yaml(cfg, os.path.join(out_dir, "config.resolved.yaml"))
+    # TensorBoard (optional)
+    tb = None
+    if cfg["logging"]["tensorboard"]:
+        from torch.utils.tensorboard import SummaryWriter
+        tb_dir = osp.join(exp_dir, "tb")
+        ensure_dir(tb_dir)
+        tb = SummaryWriter(tb_dir)
 
-    # Seed + deterministic flags
-    repro = cfg.get("repro", {})
-    seed = int(repro.get("seed", 42))
-    deterministic = bool(repro.get("deterministic", False))
-    benchmark = bool(repro.get("benchmark", True))
-    set_seed(seed, device, deterministic=deterministic, benchmark=benchmark)
-    print(f"[Repro] seed={seed} deterministic={deterministic} benchmark={benchmark}")
+    train_loader, batch_size = build_train_loader(cfg)
+    print(f"[Data] Train batch size = {batch_size}")
 
-    # From here: build dataset/model/loss/optimizer using cfg (Phase A Step 2+)
-    # - data loaders should use cfg["data"]["num_workers"], cfg["data"]["pin_memory"]
-    # - amp should follow cfg["system"]["amp"] (already forced off on CPU)
+    model = build_model(cfg).to(device)
+    criterion = build_criterion(cfg).to(device)
+    optimizer = build_optimizer(cfg, model)
 
+    amp = bool(cfg["system"]["amp"])
+    log_interval = int(cfg["system"]["log_interval"])
+    epochs = int(cfg["train"]["epochs"])
+
+    # Step 2.1: keep epoch length bounded (later we make it precise)
+    steps_per_epoch = 200
+
+    for ep in range(1, epochs + 1):
+        avg_loss = train_one_epoch(
+            model=model,
+            loader=train_loader,
+            criterion=criterion,
+            optimizer=optimizer,
+            device=device,
+            amp=amp,
+            log_interval=log_interval,
+            tb_writer=tb,
+            epoch=ep,
+            steps_per_epoch=steps_per_epoch,
+        )
+        print(f"[Epoch {ep}] avg_loss={avg_loss:.4f}")
+
+        # ckpt_last
+        ckpt_path = osp.join(exp_dir, "ckpt_last.pth")
+        torch.save({"epoch": ep, "model": model.state_dict(), "optim": optimizer.state_dict()}, ckpt_path)
+
+    if tb is not None:
+        tb.close()
 
 if __name__ == "__main__":
     main()
