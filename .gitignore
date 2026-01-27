@@ -58,7 +58,7 @@ local.yaml
 
 # Checkpoints
 checkpoints/
-models/
+
 weights/
 
 # Large data files
@@ -115,7 +115,6 @@ images/            # Ignore entire images folder
 
 # Checkpoints and model outputs
 checkpoints/
-models/
 weights/
 outputs/
 results/
