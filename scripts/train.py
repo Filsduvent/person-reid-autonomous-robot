@@ -35,7 +35,7 @@ def main():
     exp_dir = cfg["experiment"]["output_dir"]
     ensure_dir(exp_dir)
 
-    device = select_device(cfg["system"]["device"], cfg["system"].get("gpu_id", 0))
+    device, _ = select_device(cfg["system"]["device"], cfg["system"].get("gpu_id", 0), cfg)
     print(f"[Device] {device_summary(device)}")
 
     set_seed(
