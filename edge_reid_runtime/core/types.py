@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 
 @dataclass(frozen=True)
@@ -10,7 +10,7 @@ class RunConfig:
     source: Literal["webcam", "video", "robot"]
     device: Literal["cpu", "cuda", "auto"]
     output_dir: Path
-    video_path: Optional[Path] = None
+    video_path: Optional[Union[Path, str]] = None
     webcam_index: int = 0
     max_frames: int = 0         # 0 => unlimited
     print_every: int = 10

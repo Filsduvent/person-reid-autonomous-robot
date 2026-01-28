@@ -60,7 +60,7 @@ def build_config(args: argparse.Namespace) -> RunConfig:
         source=args.source,
         device=args.device,
         output_dir=Path(args.output_dir),
-        video_path=Path(args.video_path) if args.video_path else None,
+        video_path=args.video_path if args.video_path else None,
         webcam_index=args.webcam_index,
         max_frames=args.max_frames,
         print_every=args.print_every,

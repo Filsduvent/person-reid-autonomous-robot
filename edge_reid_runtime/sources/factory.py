@@ -15,7 +15,7 @@ def create_source(cfg: RunConfig) -> BaseSource:
     if cfg.source == "video":
         if cfg.video_path is None:
             raise ValueError("video_path is required when --source=video")
-        return VideoFileSource(path=Path(cfg.video_path), max_frames=cfg.max_frames)
+        return VideoFileSource(path=cfg.video_path, max_frames=cfg.max_frames)
     if cfg.source == "robot":
         return RobotStubSource(max_frames=(cfg.max_frames if cfg.max_frames > 0 else 300))
     raise ValueError(f"Unknown source: {cfg.source}")

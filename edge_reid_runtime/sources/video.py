@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any, Dict, Iterator
+from typing import Any, Dict, Iterator, Union
+from urllib.parse import urlparse
 
 from edge_reid_runtime.core.interfaces import Frame
 from edge_reid_runtime.sources.base import BaseSource
@@ -14,17 +15,22 @@ except Exception:  # pragma: no cover
 
 
 class VideoFileSource(BaseSource):
-    def __init__(self, path: Path, max_frames: int = 0):
+    def __init__(self, path: Union[Path, str], max_frames: int = 0):
         if cv2 is None:
             raise ImportError("OpenCV not installed. Install with: pip install opencv-python")
-        self.path = Path(path)
-        if not self.path.exists():
-            raise FileNotFoundError(f"Video file not found: {self.path}")
+        self.path = Path(path) if not isinstance(path, str) else path
+        if not _is_url(self.path):
+            path_obj = Path(self.path)
+            if not path_obj.exists():
+                raise FileNotFoundError(f"Video file not found: {path_obj}")
+            self._capture_src = str(path_obj)
+        else:
+            self._capture_src = str(self.path)
         self.max_frames = max_frames
 
-        self.cap = cv2.VideoCapture(str(self.path))
+        self.cap = cv2.VideoCapture(self._capture_src)
         if not self.cap.isOpened():
-            raise RuntimeError(f"Could not open video: {self.path}")
+            raise RuntimeError(f"Could not open video: {self._capture_src}")
 
         self._closed = False
 
@@ -38,7 +44,7 @@ class VideoFileSource(BaseSource):
                 break
 
             ts = time.time()
-            meta: Dict[str, Any] = {"source": "video", "path": str(self.path)}
+            meta: Dict[str, Any] = {"source": "video", "path": str(self._capture_src)}
             yield Frame(frame_id=frame_id, timestamp_s=ts, image=img, meta=meta)
 
             frame_id += 1
@@ -53,3 +59,8 @@ class VideoFileSource(BaseSource):
             self.cap.release()
         except Exception:
             pass
+
+
+def _is_url(path: Union[Path, str]) -> bool:
+    value = str(path)
+    return urlparse(value).scheme in ("http", "https", "rtsp", "rtsps")
