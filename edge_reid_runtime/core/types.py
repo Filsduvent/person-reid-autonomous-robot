@@ -16,6 +16,15 @@ class RunConfig:
     print_every: int = 10
     reid_backbone: Optional[str] = None
     weights: Optional[Union[Path, str]] = None
+    detector: str = "yolov8"
+    yolo_model: str = "yolov8n.pt"
+    det_conf: float = 0.35
+    det_iou: float = 0.70
+    imgsz: int = 640
+    max_det: int = 100
+    save_video: bool = False
+    display: bool = False
+    output_video: Optional[Path] = None
 
 
 def validate_run_config(cfg: RunConfig) -> None:

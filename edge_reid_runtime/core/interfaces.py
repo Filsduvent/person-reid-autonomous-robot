@@ -16,10 +16,11 @@ class Frame:
 
 @dataclass(frozen=True)
 class Detection:
-    """Person detection output (placeholder for later phases)."""
+    """Person detection output (bbox in xyxy pixel coords, conf [0,1], cls id/name)."""
     bbox_xyxy: Tuple[float, float, float, float]
     conf: float
     cls: int = 0
+    cls_name: Optional[str] = None
 
 
 @dataclass(frozen=True)

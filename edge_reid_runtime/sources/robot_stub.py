@@ -24,7 +24,7 @@ class RobotStubSource(BaseSource):
             if self._closed:
                 break
             ts = time.time()
-            meta: Dict[str, Any] = {"source": "robot_stub"}
+            meta: Dict[str, Any] = {"source": "robot_stub", "fps": 30.0}
             yield Frame(frame_id=frame_id, timestamp_s=ts, image=None, meta=meta)
             time.sleep(1.0 / 30.0)  # simulate ~30 FPS stream
 

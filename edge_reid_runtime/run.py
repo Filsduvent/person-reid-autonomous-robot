@@ -7,15 +7,22 @@ from pathlib import Path
 from typing import Any, Dict
 
 from edge_reid_runtime.core.types import RunConfig
-from edge_reid_runtime.detectors import NullDetector
+from edge_reid_runtime.detectors import NullDetector, YoloV8Config, YoloV8PersonDetector
 from edge_reid_runtime.sources.factory import create_source
-from edge_reid_runtime.trackers import NullTracker
 from edge_reid_runtime.utils.log import setup_logger, JsonlWriter
 from edge_reid_runtime.utils.profiler import StageProfiler
+from edge_reid_runtime.utils.video_io import VideoWriter
+from edge_reid_runtime.visualization import draw_detections
+
+try:
+    import cv2
+except Exception:  # pragma: no cover
+    cv2 = None
 
 
 VALID_SOURCES = ("webcam", "video", "robot")
 VALID_DEVICES = ("cpu", "cuda", "auto")
+VALID_DETECTORS = ("yolov8", "null")
 
 
 def parse_args(argv=None) -> argparse.Namespace:
@@ -41,6 +48,24 @@ def parse_args(argv=None) -> argparse.Namespace:
                    help="ReID backbone name (e.g., osnet_x0_25, mobilenetv3).")
     p.add_argument("--weights", default=None,
                    help="Path or URL to model weights (optional for now).")
+    p.add_argument("--detector", default="yolov8", choices=VALID_DETECTORS,
+                   help="Detector backend (yolo or null).")
+    p.add_argument("--yolo_model", default="yolov8n.pt",
+                   help="Ultralytics YOLO model path/name (e.g., yolov8n.pt).")
+    p.add_argument("--det_conf", type=float, default=0.35,
+                   help="Detector confidence threshold.")
+    p.add_argument("--det_iou", type=float, default=0.70,
+                   help="Detector NMS IoU threshold.")
+    p.add_argument("--imgsz", type=int, default=640,
+                   help="YOLO inference image size.")
+    p.add_argument("--max_det", type=int, default=100,
+                   help="Maximum detections per frame.")
+    p.add_argument("--save_video", action="store_true",
+                   help="Save visualization video to output_dir.")
+    p.add_argument("--display", action="store_true",
+                   help="If set, show a live window (requires OpenCV). Press 'q' to quit.")
+    p.add_argument("--output_video", default=None,
+                   help="Optional output video path (default: output_dir/detections.mp4).")
     return p.parse_args(argv)
 
 
@@ -72,7 +97,33 @@ def build_config(args: argparse.Namespace) -> RunConfig:
         print_every=args.print_every,
         reid_backbone=args.reid_backbone,
         weights=args.weights if args.weights else None,
+        detector=args.detector,
+        yolo_model=args.yolo_model,
+        det_conf=args.det_conf,
+        det_iou=args.det_iou,
+        imgsz=args.imgsz,
+        max_det=args.max_det,
+        save_video=args.save_video,
+        display=args.display,
+        output_video=Path(args.output_video) if args.output_video else None,
     )
+
+
+def resolve_device(device_flag: str) -> str:
+    """
+    Returns device string for Ultralytics:
+    - "cpu"
+    - "cuda" (or "0" etc.)
+    """
+    if device_flag == "cpu":
+        return "cpu"
+    if device_flag == "cuda":
+        return "cuda"
+    try:
+        import torch
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    except Exception:
+        return "cpu"
 
 
 def run_minimal_loop(cfg: RunConfig) -> int:
@@ -80,14 +131,43 @@ def run_minimal_loop(cfg: RunConfig) -> int:
     logger.info(
         "Starting EDGE pipeline scaffold (Phase 3.2+3.3: null detector/tracker + stage profiling)."
     )
-    logger.info(f"source={cfg.source} device={cfg.device} output_dir={cfg.output_dir}")
+    logger.info(
+        f"source={cfg.source} device={cfg.device} detector={cfg.detector} output_dir={cfg.output_dir}"
+    )
 
     profiler = StageProfiler(fps_window=30)
-    detector = NullDetector(mode="empty")
-    tracker = NullTracker()
+    device_resolved = resolve_device(cfg.device)
+    logger.info(f"resolved_device={device_resolved}")
+
+    detector_name = getattr(cfg, "detector", "yolov8")
+    if detector_name == "null":
+        detector = NullDetector(mode="empty")
+        cls_name_fn = None
+    else:
+        try:
+            if "/" in cfg.yolo_model or cfg.yolo_model.endswith(".pt"):
+                model_path = Path(cfg.yolo_model)
+                if not model_path.exists():
+                    logger.warning(
+                        f"YOLO model not found at {model_path}; Ultralytics may download it."
+                    )
+            ycfg = YoloV8Config(
+                model=cfg.yolo_model,
+                conf=cfg.det_conf,
+                iou=cfg.det_iou,
+                imgsz=cfg.imgsz,
+                max_det=cfg.max_det,
+                half=(device_resolved != "cpu"),
+            )
+            detector = YoloV8PersonDetector(device=device_resolved, cfg=ycfg)
+            cls_name_fn = detector.cls_name
+        except Exception as e:
+            logger.error(f"Failed to create detector: {e}")
+            return 2
 
     src = None
     jsonl = None
+    writer = None
     try:
         src = create_source(cfg)
     except Exception as e:
@@ -95,6 +175,7 @@ def run_minimal_loop(cfg: RunConfig) -> int:
         return 2
 
     jsonl = JsonlWriter(cfg.output_dir / "frames.jsonl")
+    output_path = cfg.output_video or (cfg.output_dir / "detections.mp4")
 
     frames = 0
     t_start = time.time()
@@ -111,8 +192,25 @@ def run_minimal_loop(cfg: RunConfig) -> int:
             with profiler.stage("detector"):
                 detections = detector.detect(frame)
 
-            with profiler.stage("tracker"):
-                tracks = tracker.update(frame, detections)
+            annotated = frame.image
+            if annotated is not None and (cfg.save_video or cfg.display):
+                annotated = annotated.copy()
+                draw_detections(annotated, detections, cls_name_fn=cls_name_fn)
+
+            with profiler.stage("video_write"):
+                if cfg.save_video and annotated is not None:
+                    if writer is None:
+                        fps = frame.meta.get("fps", 30.0) if isinstance(frame.meta, dict) else 30.0
+                        writer = VideoWriter(output_path, fps=float(fps))
+                    writer.write(annotated)
+
+            if cfg.display and annotated is not None:
+                if cv2 is None:
+                    logger.warning("--display requested but OpenCV not installed.")
+                else:
+                    cv2.imshow("EDGE-ReID: detections", annotated)
+                    if cv2.waitKey(1) & 0xFF == ord("q"):
+                        break
 
             stats = profiler.on_frame_end(
                 frame_id=frame.frame_id,
@@ -127,7 +225,6 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                 "rss_mb": stats.rss_mb,
                 "source": frame.meta.get("source"),
                 "num_det": len(detections),
-                "num_tracks": len(tracks),
                 "stages_ms": stats.stages_ms,
             }
             jsonl.write(record)
@@ -137,8 +234,8 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                 st = stats.stages_ms
                 msg = (
                     f"frame={stats.frame_id} total={stats.dt_ms:.2f}ms "
-                    f"det={st.get('detector', 0.0):.2f}ms trk={st.get('tracker', 0.0):.2f}ms "
-                    f"fps(roll)={stats.fps_rolling:.2f} dets={len(detections)} tracks={len(tracks)}"
+                    f"det={st.get('detector', 0.0):.2f}ms "
+                    f"fps(roll)={stats.fps_rolling:.2f} dets={len(detections)}"
                 )
                 if stats.rss_mb is not None:
                     msg += f" rss={stats.rss_mb:.1f}MB"
@@ -159,6 +256,16 @@ def run_minimal_loop(cfg: RunConfig) -> int:
         if src is not None:
             try:
                 src.close()
+            except Exception:
+                pass
+        if writer is not None:
+            try:
+                writer.close()
+            except Exception:
+                pass
+        if cfg.display and cv2 is not None:
+            try:
+                cv2.destroyAllWindows()
             except Exception:
                 pass
         if jsonl is not None:

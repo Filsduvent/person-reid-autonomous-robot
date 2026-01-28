@@ -33,6 +33,8 @@ class VideoFileSource(BaseSource):
             raise RuntimeError(f"Could not open video: {self._capture_src}")
 
         self._closed = False
+        fps = self.cap.get(cv2.CAP_PROP_FPS)
+        self._fps = float(fps) if fps and fps > 0 else None
 
     def __iter__(self) -> Iterator[Frame]:
         frame_id = 0
@@ -45,6 +47,8 @@ class VideoFileSource(BaseSource):
 
             ts = time.time()
             meta: Dict[str, Any] = {"source": "video", "path": str(self._capture_src)}
+            if self._fps is not None:
+                meta["fps"] = self._fps
             yield Frame(frame_id=frame_id, timestamp_s=ts, image=img, meta=meta)
 
             frame_id += 1
