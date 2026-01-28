@@ -4,12 +4,14 @@ import argparse
 import sys
 import time
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 from edge_reid_runtime.core.types import RunConfig
+from edge_reid_runtime.detectors import NullDetector
 from edge_reid_runtime.sources.factory import create_source
+from edge_reid_runtime.trackers import NullTracker
 from edge_reid_runtime.utils.log import setup_logger, JsonlWriter
-from edge_reid_runtime.utils.profiler import SimpleProfiler
+from edge_reid_runtime.utils.profiler import StageProfiler
 
 
 VALID_SOURCES = ("webcam", "video", "robot")
@@ -69,12 +71,15 @@ def build_config(args: argparse.Namespace) -> RunConfig:
 
 def run_minimal_loop(cfg: RunConfig) -> int:
     logger = setup_logger("edge_reid", cfg.output_dir)
-    logger.info("Starting EDGE pipeline scaffold.")
+    logger.info(
+        "Starting EDGE pipeline scaffold (Phase 3.2+3.3: null detector/tracker + stage profiling)."
+    )
     logger.info(f"source={cfg.source} device={cfg.device} output_dir={cfg.output_dir}")
 
-    profiler = SimpleProfiler(fps_window=30)
+    profiler = StageProfiler(fps_window=30)
+    detector = NullDetector(mode="empty")
+    tracker = NullTracker()
 
-    # Source
     src = None
     jsonl = None
     try:
@@ -83,7 +88,6 @@ def run_minimal_loop(cfg: RunConfig) -> int:
         logger.error(f"Failed to create source: {e}")
         return 2
 
-    # JSONL per-frame logs
     jsonl = JsonlWriter(cfg.output_dir / "frames.jsonl")
 
     frames = 0
@@ -98,10 +102,16 @@ def run_minimal_loop(cfg: RunConfig) -> int:
             except StopIteration:
                 break
 
-            # Phase 2: No detection/tracking yet. This loop is the timing scaffold.
-            # Later you will add: detections = detector.detect(frame), tracks = tracker.update(...), etc.
+            with profiler.stage("detector"):
+                detections = detector.detect(frame)
 
-            stats = profiler.on_frame_end(frame_id=frame.frame_id, timestamp_s=frame.timestamp_s)
+            with profiler.stage("tracker"):
+                tracks = tracker.update(frame, detections)
+
+            stats = profiler.on_frame_end(
+                frame_id=frame.frame_id,
+                timestamp_s=frame.timestamp_s,
+            )
 
             record: Dict[str, Any] = {
                 "frame_id": stats.frame_id,
@@ -110,17 +120,23 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                 "fps_rolling": stats.fps_rolling,
                 "rss_mb": stats.rss_mb,
                 "source": frame.meta.get("source"),
+                "num_det": len(detections),
+                "num_tracks": len(tracks),
+                "stages_ms": stats.stages_ms,
             }
             jsonl.write(record)
 
             frames += 1
             if cfg.print_every > 0 and (frames % cfg.print_every == 0):
-                if stats.rss_mb is None:
-                    logger.info(f"frame={stats.frame_id} dt={stats.dt_ms:.2f}ms fps(roll)={stats.fps_rolling:.2f}")
-                else:
-                    logger.info(
-                        f"frame={stats.frame_id} dt={stats.dt_ms:.2f}ms fps(roll)={stats.fps_rolling:.2f} rss={stats.rss_mb:.1f}MB"
-                    )
+                st = stats.stages_ms
+                msg = (
+                    f"frame={stats.frame_id} total={stats.dt_ms:.2f}ms "
+                    f"det={st.get('detector', 0.0):.2f}ms trk={st.get('tracker', 0.0):.2f}ms "
+                    f"fps(roll)={stats.fps_rolling:.2f} dets={len(detections)} tracks={len(tracks)}"
+                )
+                if stats.rss_mb is not None:
+                    msg += f" rss={stats.rss_mb:.1f}MB"
+                logger.info(msg)
 
         t_total = time.time() - t_start
         fps_avg = frames / t_total if t_total > 0 else 0.0
