@@ -14,6 +14,8 @@ class RunConfig:
     webcam_index: int = 0
     max_frames: int = 0         # 0 => unlimited
     print_every: int = 10
+    reid_backbone: Optional[str] = None
+    weights: Optional[Union[Path, str]] = None
 
 
 def validate_run_config(cfg: RunConfig) -> None:

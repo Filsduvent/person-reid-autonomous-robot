@@ -37,6 +37,10 @@ def parse_args(argv=None) -> argparse.Namespace:
                    help="Stop after N frames (0 = unlimited).")
     p.add_argument("--print_every", type=int, default=10,
                    help="Print stats every N frames.")
+    p.add_argument("--reid_backbone", default=None,
+                   help="ReID backbone name (e.g., osnet_x0_25, mobilenetv3).")
+    p.add_argument("--weights", default=None,
+                   help="Path or URL to model weights (optional for now).")
     return p.parse_args(argv)
 
 
@@ -66,6 +70,8 @@ def build_config(args: argparse.Namespace) -> RunConfig:
         webcam_index=args.webcam_index,
         max_frames=args.max_frames,
         print_every=args.print_every,
+        reid_backbone=args.reid_backbone,
+        weights=args.weights if args.weights else None,
     )
 
 
