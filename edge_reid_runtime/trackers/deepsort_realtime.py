@@ -67,6 +67,15 @@ class DeepSortRealtimeTracker(Tracker):
         h = max(0.0, y2 - y1)
         return [float(x1), float(y1), float(w), float(h)]
 
+    @staticmethod
+    def _track_meta(track) -> Optional[dict]:
+        meta = {}
+        for key in ("age", "hits", "time_since_update", "state"):
+            value = getattr(track, key, None)
+            if value is not None:
+                meta[key] = value
+        return meta or None
+
     def update(self, frame: Frame, detections: List[Detection]) -> List[Track]:
         # Convert to deep-sort-realtime expected format:
         raw = []
@@ -100,6 +109,13 @@ class DeepSortRealtimeTracker(Tracker):
             conf_raw = getattr(t, "det_conf", 1.0)
             conf = float(conf_raw) if conf_raw is not None else 1.0
 
-            tracks_out.append(Track(track_id=tid, bbox_xyxy=(x1, y1, x2, y2), conf=conf))
+            tracks_out.append(
+                Track(
+                    track_id=tid,
+                    bbox_xyxy=(x1, y1, x2, y2),
+                    conf=conf,
+                    meta=self._track_meta(t),
+                )
+            )
 
         return tracks_out

@@ -29,6 +29,7 @@ class Track:
     track_id: int
     bbox_xyxy: Tuple[float, float, float, float]
     conf: float
+    meta: Optional[Dict[str, Any]] = None
 
 
 class InputSource(ABC):
