@@ -9,10 +9,12 @@ from typing import Any, Dict
 from edge_reid_runtime.core.types import RunConfig
 from edge_reid_runtime.detectors import NullDetector, YoloV8Config, YoloV8PersonDetector
 from edge_reid_runtime.sources.factory import create_source
+from edge_reid_runtime.trackers import DeepSortConfig, DeepSortRealtimeTracker, NullTracker
 from edge_reid_runtime.utils.log import setup_logger, JsonlWriter
 from edge_reid_runtime.utils.profiler import StageProfiler
 from edge_reid_runtime.utils.video_io import VideoWriter
 from edge_reid_runtime.visualization import draw_detections
+from edge_reid_runtime.visualization.draw_tracks import draw_tracks
 
 try:
     import cv2
@@ -60,6 +62,12 @@ def parse_args(argv=None) -> argparse.Namespace:
                    help="YOLO inference image size.")
     p.add_argument("--max_det", type=int, default=100,
                    help="Maximum detections per frame.")
+    p.add_argument("--max_age", type=int, default=30,
+                   help="DeepSORT: frames to keep lost tracks before deletion.")
+    p.add_argument("--n_init", type=int, default=3,
+                   help="DeepSORT: hits before a track is confirmed.")
+    p.add_argument("--max_iou_distance", type=float, default=0.7,
+                   help="DeepSORT: association gate (IoU distance).")
     p.add_argument("--save_video", action="store_true",
                    help="Save visualization video to output_dir.")
     p.add_argument("--display", action="store_true",
@@ -103,6 +111,9 @@ def build_config(args: argparse.Namespace) -> RunConfig:
         det_iou=args.det_iou,
         imgsz=args.imgsz,
         max_det=args.max_det,
+        max_age=args.max_age,
+        n_init=args.n_init,
+        max_iou_distance=args.max_iou_distance,
         save_video=args.save_video,
         display=args.display,
         output_video=Path(args.output_video) if args.output_video else None,
@@ -129,7 +140,7 @@ def resolve_device(device_flag: str) -> str:
 def run_minimal_loop(cfg: RunConfig) -> int:
     logger = setup_logger("edge_reid", cfg.output_dir)
     logger.info(
-        "Starting EDGE pipeline scaffold (Phase 3.2+3.3: null detector/tracker + stage profiling)."
+        "Starting EDGE pipeline scaffold (Phase 3.2+3.3: detector/tracker + stage profiling)."
     )
     logger.info(
         f"source={cfg.source} device={cfg.device} detector={cfg.detector} output_dir={cfg.output_dir}"
@@ -165,6 +176,25 @@ def run_minimal_loop(cfg: RunConfig) -> int:
             logger.error(f"Failed to create detector: {e}")
             return 2
 
+    try:
+        ts_cfg = DeepSortConfig(
+            max_age=cfg.max_age,
+            n_init=cfg.n_init,
+            max_iou_distance=cfg.max_iou_distance,
+            nms_max_overlap=1.0,
+            embedder="mobilenet",
+            embedder_gpu=False,
+        )
+        tracker = DeepSortRealtimeTracker(cfg=ts_cfg)
+        tracker_name = "deepsort"
+    except Exception as e:
+        logger.warning(f"Failed to init DeepSortRealtimeTracker: {e}; falling back to NullTracker.")
+        tracker = NullTracker()
+        tracker_name = "null"
+    logger.info(
+        f"tracker={tracker_name} max_age={cfg.max_age} n_init={cfg.n_init} max_iou_distance={cfg.max_iou_distance}"
+    )
+
     src = None
     jsonl = None
     writer = None
@@ -178,6 +208,7 @@ def run_minimal_loop(cfg: RunConfig) -> int:
     output_path = cfg.output_video or (cfg.output_dir / "detections.mp4")
 
     frames = 0
+    prev_ids = set()
     t_start = time.time()
 
     try:
@@ -192,10 +223,19 @@ def run_minimal_loop(cfg: RunConfig) -> int:
             with profiler.stage("detector"):
                 detections = detector.detect(frame)
 
+            with profiler.stage("tracker"):
+                tracks = tracker.update(frame, detections)
+
+            active_ids = {t.track_id for t in tracks}
+            created_ids = sorted(list(active_ids - prev_ids))
+            deleted_ids = sorted(list(prev_ids - active_ids))
+            prev_ids = active_ids
+
             annotated = frame.image
             if annotated is not None and (cfg.save_video or cfg.display):
                 annotated = annotated.copy()
                 draw_detections(annotated, detections, cls_name_fn=cls_name_fn)
+                draw_tracks(annotated, tracks)
 
             with profiler.stage("video_write"):
                 if cfg.save_video and annotated is not None:
@@ -225,6 +265,10 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                 "rss_mb": stats.rss_mb,
                 "source": frame.meta.get("source"),
                 "num_det": len(detections),
+                "num_tracks": len(tracks),
+                "tracks_active_ids": sorted(list(active_ids)),
+                "tracks_created_ids": created_ids,
+                "tracks_deleted_ids": deleted_ids,
                 "stages_ms": stats.stages_ms,
             }
             jsonl.write(record)
@@ -235,7 +279,8 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                 msg = (
                     f"frame={stats.frame_id} total={stats.dt_ms:.2f}ms "
                     f"det={st.get('detector', 0.0):.2f}ms "
-                    f"fps(roll)={stats.fps_rolling:.2f} dets={len(detections)}"
+                    f"trk={st.get('tracker', 0.0):.2f}ms "
+                    f"fps(roll)={stats.fps_rolling:.2f} dets={len(detections)} tracks={len(tracks)}"
                 )
                 if stats.rss_mb is not None:
                     msg += f" rss={stats.rss_mb:.1f}MB"

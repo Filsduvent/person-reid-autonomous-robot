@@ -22,6 +22,9 @@ class RunConfig:
     det_iou: float = 0.70
     imgsz: int = 640
     max_det: int = 100
+    max_age: int = 30
+    n_init: int = 3
+    max_iou_distance: float = 0.7
     save_video: bool = False
     display: bool = False
     output_video: Optional[Path] = None
@@ -36,3 +39,9 @@ def validate_run_config(cfg: RunConfig) -> None:
         raise ValueError("max_frames must be >= 0 (0 means unlimited)")
     if cfg.print_every <= 0:
         raise ValueError("print_every must be > 0")
+    if cfg.max_age < 0:
+        raise ValueError("max_age must be >= 0")
+    if cfg.n_init < 1:
+        raise ValueError("n_init must be >= 1")
+    if cfg.max_iou_distance < 0:
+        raise ValueError("max_iou_distance must be >= 0")
