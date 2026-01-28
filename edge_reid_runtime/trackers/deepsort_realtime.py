@@ -85,6 +85,12 @@ class DeepSortRealtimeTracker(Tracker):
 
         # deep-sort-realtime can compute embeddings from the frame if embedder is enabled.
         frame_image = frame.image if frame is not None else None
+        if frame_image is None:
+            if raw:
+                raise ValueError(
+                    "DeepSORT requires a frame (for embedder) or precomputed embeddings when detections are present."
+                )
+            return []
         tracks = self._tracker.update_tracks(raw, frame=frame_image)
 
         # Collect confirmed tracks
