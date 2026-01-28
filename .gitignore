@@ -121,6 +121,7 @@ results/
 exp/
 Dataset/
 EXPERIMENTS_DIRECTORY/
+person_reid_auto_robot_offline/edge_reid_runtime/outputs/
 
 # Environment and IDE files
 venv/
