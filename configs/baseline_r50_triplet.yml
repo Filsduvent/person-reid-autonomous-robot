@@ -1,0 +1,169 @@
+# =========================
+# Experiment identity
+# =========================
+exp:
+  name: "baseline_r50_triplet"
+  output_dir: "runs"          # root folder where runs are written
+  run_name: ""                # optional; if empty we auto-generate from time+git
+  notes: ""
+
+# =========================
+# Repro / determinism
+# =========================
+repro:
+  seed: 42
+  deterministic: false        # if true: enforce deterministic ops (slower)
+  benchmark: true             # cudnn benchmark (only meaningful on GPU)
+
+# =========================
+# Device policy (CPU/CUDA)
+# =========================
+device:
+  accelerator: "auto"         # "auto" | "cuda" | "cpu"
+  cuda:
+    device_id: 0              # used if accelerator is "cuda" or auto picks cuda
+    amp: true                 # mixed precision (cuda only)
+  compile:
+    enabled: false            # torch.compile (optional later)
+    mode: "default"
+
+# =========================
+# Dataset / dataloading
+# =========================
+data:
+  dataset: "market1501"       # "market1501" | "duke" | "cuhk03"
+  root: "~/Dataset"           # root folder; dataset builders resolve actual paths
+  image_size: [256, 128]      # [H, W]
+  num_workers: 4
+  pin_memory: true            # auto-disabled on CPU policy
+  persistent_workers: true
+  prefetch_factor: 2
+
+  splits:
+    train: "train"            # could be train/trainval depending on dataset
+    val: "val"
+    test: "test"
+
+# =========================
+# Sampling (metric learning)
+# =========================
+sampler:
+  type: "pk"                  # "pk" | "random"
+  pk:
+    P: 16                     # identities per batch
+    K: 4                      # images per identity
+  random:
+    batch_size: 64            # used only if type="random"
+
+# =========================
+# Augmentations / preprocessing
+# =========================
+aug:
+  train:
+    random_crop:
+      enabled: true
+      padding: 10
+    random_horizontal_flip: true
+    color_jitter:
+      enabled: false
+      brightness: 0.2
+      contrast: 0.2
+      saturation: 0.2
+      hue: 0.1
+    random_erasing:
+      enabled: true
+      p: 0.5
+      scale: [0.02, 0.4]
+      ratio: [0.3, 3.3]
+  test:
+    resize_only: true
+
+  normalize:
+    mean: [0.486, 0.459, 0.408]
+    std:  [0.229, 0.224, 0.225]
+
+# =========================
+# Model
+# =========================
+model:
+  name: "resnet50"
+  pretrained: true
+  last_conv_stride: 1         # matches baseline option; 1 is common for ReID
+  embedding_dim: 2048         # baseline returns pooled resnet channels
+  bnneck:
+    enabled: true             # recommended baseline practice
+    bias_freeze: true
+  dropout: 0.0
+
+# =========================
+# Losses
+# =========================
+loss:
+  id_loss:
+    enabled: true
+    type: "cross_entropy"
+    label_smoothing: 0.1
+    weight: 1.0
+
+  metric_loss:
+    enabled: true
+    type: "triplet"
+    mining: "batch_hard"      # batch-hard like your baseline
+    margin: 0.3               # if null/none => soft margin
+    normalize_feat: true
+    weight: 1.0
+
+# =========================
+# Optimizer / LR schedule
+# =========================
+optim:
+  optimizer: "adamw"          # "sgd" | "adamw"
+  lr: 0.00035
+  weight_decay: 0.0005
+  momentum: 0.9               # used only for SGD
+
+  scheduler:
+    name: "cosine"            # "step" | "cosine"
+    warmup_epochs: 10
+    min_lr: 1.0e-6
+    step:
+      milestones: [40, 70]
+      gamma: 0.1
+
+# =========================
+# Training loop
+# =========================
+train:
+  epochs: 120
+  log_every: 50               # iterations
+  eval_every: 1               # epochs
+  checkpoint_every: 1         # epochs
+  grad_clip_norm: 0.0         # 0 disables
+  resume:
+    enabled: false
+    path: ""                  # ckpt path
+
+# =========================
+# Evaluation protocol
+# =========================
+eval:
+  normalize_feat: true
+  distance: "euclidean"       # "euclidean" | "cosine"
+  metrics:
+    cmc_topk: [1, 5, 10]
+    compute_minp: true
+  rerank:
+    enabled: false
+    k1: 20
+    k2: 6
+    lambda_value: 0.3
+
+# =========================
+# Logging / tracking
+# =========================
+logging:
+  to_file: true
+  tensorboard: true
+  wandb:
+    enabled: false
+    project: ""
