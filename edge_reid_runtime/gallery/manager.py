@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+import json
 import time
 
 import numpy as np
@@ -26,6 +28,9 @@ class GalleryManager:
         self.cfg = cfg or GalleryConfig()
         self._entries: Dict[str, IdentityRecord] = {}
         self._next_id = 1
+
+    def __len__(self) -> int:
+        return len(self._entries)
 
     def _new_identity_id(self) -> str:
         identity_id = f"{self.cfg.id_prefix}{self._next_id:0{self.cfg.id_width}d}"
@@ -97,3 +102,64 @@ class GalleryManager:
 
     def get_entry(self, identity: str) -> Optional[IdentityRecord]:
         return self._entries.get(identity)
+
+    def save(self, path: Path) -> None:
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        data = {
+            "config": {
+                "known_threshold": self.cfg.known_threshold,
+                "unknown_threshold": self.cfg.unknown_threshold,
+                "ema_alpha": self.cfg.ema_alpha,
+                "topk": self.cfg.topk,
+                "max_identities": self.cfg.max_identities,
+                "id_prefix": self.cfg.id_prefix,
+                "id_width": self.cfg.id_width,
+            },
+            "entries": [],
+        }
+        for entry in self._entries.values():
+            data["entries"].append(
+                {
+                    "identity_id": entry.identity_id,
+                    "prototype": entry.prototype.tolist(),
+                    "label": entry.label,
+                    "created_ts": entry.created_ts,
+                    "updated_ts": entry.updated_ts,
+                    "num_updates": entry.num_updates,
+                    "num_observations": entry.num_observations,
+                    "meta": entry.meta,
+                }
+            )
+        path.write_text(json.dumps(data), encoding="utf-8")
+
+    def load(self, path: Path) -> None:
+        path = Path(path)
+        if not path.exists():
+            return
+        raw = json.loads(path.read_text(encoding="utf-8"))
+        entries = raw.get("entries", [])
+        self._entries = {}
+        for e in entries:
+            rec = IdentityRecord(
+                identity_id=e["identity_id"],
+                prototype=np.asarray(e["prototype"], dtype=np.float32),
+                label=e.get("label"),
+                created_ts=float(e.get("created_ts", time.time())),
+                updated_ts=float(e.get("updated_ts", time.time())),
+                num_updates=int(e.get("num_updates", 0)),
+                num_observations=int(e.get("num_observations", 0)),
+                meta=e.get("meta", {}) or {},
+            )
+            self._entries[rec.identity_id] = rec
+        # ensure new identities don't overwrite old ones
+        if self._entries:
+            max_id = 0
+            for key in self._entries.keys():
+                if key.startswith(self.cfg.id_prefix):
+                    suffix = key[len(self.cfg.id_prefix):]
+                    try:
+                        max_id = max(max_id, int(suffix))
+                    except ValueError:
+                        continue
+            self._next_id = max_id + 1 if max_id > 0 else 1

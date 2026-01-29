@@ -43,6 +43,8 @@ class RunConfig:
     aspect_ratio_max: float = 0.9
     ema_alpha: float = 0.1
     reacquire_cooldown_frames: int = 15
+    gallery_path: Optional[Path] = None
+    reset_gallery: bool = False
 
 
 def validate_run_config(cfg: RunConfig) -> None:

@@ -103,6 +103,10 @@ def parse_args(argv=None) -> argparse.Namespace:
                    help="Gallery: EMA update rate for prototype.")
     p.add_argument("--reacquire_cooldown_frames", type=int, default=15,
                    help="Gallery: cooldown frames after track reacquired.")
+    p.add_argument("--gallery_path", type=str, default=None,
+                   help="Path to save/load gallery state (JSON).")
+    p.add_argument("--reset_gallery", action="store_true",
+                   help="If set, ignore any existing gallery file and start fresh.")
     p.add_argument("--save_video", action="store_true",
                    help="Save visualization video to output_dir.")
     p.add_argument("--display", action="store_true",
@@ -167,6 +171,8 @@ def build_config(args: argparse.Namespace) -> RunConfig:
         aspect_ratio_max=args.aspect_ratio_max,
         ema_alpha=args.ema_alpha,
         reacquire_cooldown_frames=args.reacquire_cooldown_frames,
+        gallery_path=Path(args.gallery_path) if args.gallery_path else None,
+        reset_gallery=args.reset_gallery,
     )
 
 
@@ -271,6 +277,12 @@ def run_minimal_loop(cfg: RunConfig) -> int:
         id_width=cfg.id_width,
     )
     gallery = GalleryManager(cfg=gallery_cfg)
+    if cfg.gallery_path and not cfg.reset_gallery:
+        try:
+            gallery.load(cfg.gallery_path)
+            logger.info(f"gallery_loaded path={cfg.gallery_path} size={len(gallery)}")
+        except Exception as e:
+            logger.warning(f"Failed to load gallery from {cfg.gallery_path}: {e}")
     assigner_cfg = AssignerConfig(
         stable_age=cfg.stable_age,
         stable_hits=cfg.stable_hits,
@@ -419,7 +431,7 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                 "num_crops": num_crops,
                 "embed_dim": embed_dim,
                 "num_assignments": len(assignments),
-                "gallery_size": len(gallery._entries),
+                "gallery_size": len(gallery),
                 "num_known": sum(1 for a in assignments if a.label == "Known" and a.identity_id != "unknown"),
                 "num_unknown": sum(1 for a in assignments if a.identity_id == "unknown"),
                 "stages_ms": stats.stages_ms,
@@ -507,6 +519,12 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                 emb_jsonl.close()
             except Exception:
                 pass
+        if cfg.gallery_path:
+            try:
+                gallery.save(cfg.gallery_path)
+                logger.info(f"gallery_saved path={cfg.gallery_path} size={len(gallery)}")
+            except Exception as e:
+                logger.warning(f"Failed to save gallery to {cfg.gallery_path}: {e}")
         if id_jsonl is not None:
             try:
                 id_jsonl.close()
