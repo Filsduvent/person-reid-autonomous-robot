@@ -32,6 +32,15 @@ class Track:
     meta: Optional[Dict[str, Any]] = None
 
 
+@dataclass(frozen=True)
+class TrackEmbedding:
+    """Embedding output associated with a track."""
+    track_id: int
+    embedding: Any
+    embedding_dim: int
+    quality: Optional[float] = None
+
+
 class InputSource(ABC):
     """Unified frame iterator interface for webcam/video/robot streams."""
 

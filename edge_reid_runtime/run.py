@@ -8,6 +8,8 @@ from typing import Any, Dict
 
 from edge_reid_runtime.core.types import RunConfig
 from edge_reid_runtime.detectors import NullDetector, YoloV8Config, YoloV8PersonDetector
+from edge_reid_runtime.embedders import create_embedder, EmbedderConfig
+from edge_reid_runtime.embedders.cropper_extraction import extract_track_crops
 from edge_reid_runtime.sources.factory import create_source
 from edge_reid_runtime.trackers import DeepSortConfig, DeepSortRealtimeTracker, NullTracker
 from edge_reid_runtime.utils.log import setup_logger, JsonlWriter
@@ -47,7 +49,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--print_every", type=int, default=10,
                    help="Print stats every N frames.")
     p.add_argument("--reid_backbone", default=None,
-                   help="ReID backbone name (e.g., osnet_x0_25, mobilenetv3).")
+                   help="ReID backbone (e.g., osnet_x0_25, osnet_x0_5, mobilenetv3_small, "
+                        "mobilenetv3_large, shufflenetv2_x0_5, shufflenetv2_x1_0, efficientnet_lite0).")
     p.add_argument("--weights", default=None,
                    help="Path or URL to model weights (optional for now).")
     p.add_argument("--detector", default="yolov8", choices=VALID_DETECTORS,
@@ -195,8 +198,26 @@ def run_minimal_loop(cfg: RunConfig) -> int:
         f"tracker={tracker_name} max_age={cfg.max_age} n_init={cfg.n_init} max_iou_distance={cfg.max_iou_distance}"
     )
 
+    embedder = None
+    embedder_name = None
+    if cfg.reid_backbone:
+        try:
+            embedder_cfg = EmbedderConfig(
+                backbone=cfg.reid_backbone,
+                device=device_resolved,
+                weights=str(cfg.weights) if cfg.weights else None,
+            )
+            embedder = create_embedder(embedder_cfg)
+            embedder_name = cfg.reid_backbone
+            logger.info(
+                f"embedder={embedder_name} input_size={embedder.cfg.input_size} dim={embedder.embedding_dim}"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to init embedder '{cfg.reid_backbone}': {e}. Embedding disabled.")
+
     src = None
     jsonl = None
+    emb_jsonl = None
     writer = None
     try:
         src = create_source(cfg)
@@ -205,6 +226,7 @@ def run_minimal_loop(cfg: RunConfig) -> int:
         return 2
 
     jsonl = JsonlWriter(cfg.output_dir / "frames.jsonl")
+    emb_jsonl = JsonlWriter(cfg.output_dir / "embeddings.jsonl")
     output_path = cfg.output_video or (cfg.output_dir / "detections.mp4")
 
     frames = 0
@@ -230,6 +252,26 @@ def run_minimal_loop(cfg: RunConfig) -> int:
             created_ids = sorted(list(active_ids - prev_ids))
             deleted_ids = sorted(list(prev_ids - active_ids))
             prev_ids = active_ids
+
+            embeddings = []
+            num_crops = 0
+            embed_dim = 0
+            if embedder is not None and frame.image is not None and tracks:
+                with profiler.stage("embedder"):
+                    crops, crop_ids = extract_track_crops(frame.image, tracks)
+                    num_crops = len(crops)
+                    if crops:
+                        feats = embedder.embed(crops)
+                        embed_dim = int(feats.shape[1]) if feats.ndim == 2 else 0
+                        embeddings = [
+                            {
+                                "track_id": int(crop_ids[i]),
+                                "embedding": feats[i].tolist(),
+                                "embedding_dim": embed_dim,
+                                "quality": None,
+                            }
+                            for i in range(len(crop_ids))
+                        ]
 
             annotated = frame.image
             if annotated is not None and (cfg.save_video or cfg.display):
@@ -269,9 +311,23 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                 "tracks_active_ids": sorted(list(active_ids)),
                 "tracks_created_ids": created_ids,
                 "tracks_deleted_ids": deleted_ids,
+                "num_crops": num_crops,
+                "embed_dim": embed_dim,
                 "stages_ms": stats.stages_ms,
             }
             jsonl.write(record)
+            if embeddings:
+                for emb in embeddings:
+                    emb_jsonl.write(
+                        {
+                            "frame_id": stats.frame_id,
+                            "timestamp_s": stats.timestamp_s,
+                            "track_id": emb["track_id"],
+                            "embedding": emb["embedding"],
+                            "embedding_dim": emb["embedding_dim"],
+                            "quality": emb["quality"],
+                        }
+                    )
 
             frames += 1
             if cfg.print_every > 0 and (frames % cfg.print_every == 0):
@@ -280,7 +336,9 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                     f"frame={stats.frame_id} total={stats.dt_ms:.2f}ms "
                     f"det={st.get('detector', 0.0):.2f}ms "
                     f"trk={st.get('tracker', 0.0):.2f}ms "
-                    f"fps(roll)={stats.fps_rolling:.2f} dets={len(detections)} tracks={len(tracks)}"
+                    f"emb={st.get('embedder', 0.0):.2f}ms "
+                    f"fps(roll)={stats.fps_rolling:.2f} dets={len(detections)} tracks={len(tracks)} "
+                    f"crops={num_crops}"
                 )
                 if stats.rss_mb is not None:
                     msg += f" rss={stats.rss_mb:.1f}MB"
@@ -316,6 +374,11 @@ def run_minimal_loop(cfg: RunConfig) -> int:
         if jsonl is not None:
             try:
                 jsonl.close()
+            except Exception:
+                pass
+        if emb_jsonl is not None:
+            try:
+                emb_jsonl.close()
             except Exception:
                 pass
 

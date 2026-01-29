@@ -7,6 +7,7 @@ from edge_reid_runtime.core.interfaces import (
     InputSource,
     Profiler,
     Tracker,
+    TrackEmbedding,
     Visualizer,
 )
 from edge_reid_runtime.core.types import RunConfig, validate_run_config
@@ -24,6 +25,7 @@ __all__ = [
     "Profiler",
     "RunConfig",
     "Tracker",
+    "TrackEmbedding",
     "Visualizer",
     "validate_run_config",
 ]
