@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import sys
 import time
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Dict
 
@@ -24,6 +25,10 @@ try:
     import cv2
 except Exception:  # pragma: no cover
     cv2 = None
+try:
+    import yaml
+except Exception:  # pragma: no cover
+    yaml = None
 
 
 VALID_SOURCES = ("webcam", "video", "robot")
@@ -31,16 +36,18 @@ VALID_DEVICES = ("cpu", "cuda", "auto")
 VALID_DETECTORS = ("yolov8", "null")
 
 
-def parse_args(argv=None) -> argparse.Namespace:
+def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="edge_reid",
         description="EDGE ReID real-time pipeline (Phase 1+2 scaffold).",
     )
-    p.add_argument("--source", required=True, choices=VALID_SOURCES,
+    p.add_argument("--config", default=None,
+                   help="Path to YAML config file.")
+    p.add_argument("--source", default=None, choices=VALID_SOURCES,
                    help="Input source type.")
     p.add_argument("--device", default="auto", choices=VALID_DEVICES,
                    help="Compute device selection (placeholder for later).")
-    p.add_argument("--output_dir", required=True,
+    p.add_argument("--output_dir", default=None,
                    help="Directory to write logs/artifacts.")
     p.add_argument("--video_path", default=None,
                    help="Path to video file (required if --source=video).")
@@ -113,7 +120,42 @@ def parse_args(argv=None) -> argparse.Namespace:
                    help="If set, show a live window (requires OpenCV). Press 'q' to quit.")
     p.add_argument("--output_video", default=None,
                    help="Optional output video path (default: output_dir/detections.mp4).")
-    return p.parse_args(argv)
+    return p
+
+
+def _load_yaml_config(path: str) -> Dict[str, Any]:
+    if yaml is None:
+        raise ImportError("PyYAML is not installed. Install with: pip install pyyaml")
+    cfg_path = Path(path)
+    if not cfg_path.exists():
+        raise FileNotFoundError(f"Config file not found: {cfg_path}")
+    data = yaml.safe_load(cfg_path.read_text(encoding="utf-8"))
+    if data is None:
+        return {}
+    if not isinstance(data, dict):
+        raise ValueError("Config file must be a YAML mapping at the top level.")
+    return data
+
+
+def _apply_config_defaults(args: argparse.Namespace, parser: argparse.ArgumentParser, cfg: Dict[str, Any]) -> None:
+    for key, value in cfg.items():
+        if not hasattr(args, key):
+            continue
+        if getattr(args, key) == parser.get_default(key):
+            setattr(args, key, value)
+
+
+def parse_args(argv=None) -> argparse.Namespace:
+    parser = _build_parser()
+    args = parser.parse_args(argv)
+    if args.config:
+        cfg = _load_yaml_config(args.config)
+        _apply_config_defaults(args, parser, cfg)
+    if args.source is None:
+        parser.error("--source is required (or provide it in --config)")
+    if args.output_dir is None:
+        parser.error("--output_dir is required (or provide it in --config)")
+    return args
 
 
 def validate_args(args: argparse.Namespace) -> None:
@@ -201,6 +243,20 @@ def run_minimal_loop(cfg: RunConfig) -> int:
     logger.info(
         f"source={cfg.source} device={cfg.device} detector={cfg.detector} output_dir={cfg.output_dir}"
     )
+
+    # Save the resolved config for reproducibility
+    try:
+        if yaml is not None:
+            cfg_dict = asdict(cfg)
+            for k, v in list(cfg_dict.items()):
+                if isinstance(v, Path):
+                    cfg_dict[k] = str(v)
+            (cfg.output_dir / "config_used.yaml").write_text(
+                yaml.safe_dump(cfg_dict, sort_keys=False),
+                encoding="utf-8",
+            )
+    except Exception as e:
+        logger.warning(f"Failed to write config_used.yaml: {e}")
 
     profiler = StageProfiler(fps_window=30)
     device_resolved = resolve_device(cfg.device)

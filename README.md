@@ -57,3 +57,26 @@ PYTHONPATH=.. python -m edge_reid_runtime.run \
   --weights /path/to/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth \
   --save_video --display
 ```
+
+## YAML config support
+
+You can run with a YAML config file to keep experiments reproducible:
+
+```
+python -m edge_reid_runtime.run --config configs/run.yaml
+```
+
+CLI flags override YAML values. The resolved config is saved to `output_dir/config_used.yaml`.
+
+Example `configs/run.yaml`:
+```
+source: webcam
+device: cpu
+output_dir: outputs/reid_gallery_webcam
+reid_backbone: osnet_x0_25
+weights: /path/to/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
+save_video: true
+display: true
+known_threshold: 0.65
+unknown_threshold: 0.45
+```
