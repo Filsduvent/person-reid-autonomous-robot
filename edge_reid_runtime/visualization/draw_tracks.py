@@ -44,6 +44,7 @@ def draw_tracks(
     tracks: List[Track],
     show_trajectory: bool = False,
     trajectory_length: int = 30,
+    identities: Dict[int, Dict[str, object]] | None = None,
 ) -> None:
     if cv2 is None:
         raise ImportError("OpenCV not installed. Install with: pip install opencv-python")
@@ -67,9 +68,20 @@ def draw_tracks(
                 age = int(tr.meta["age"])
             except Exception:
                 age = None
-        label = f"ID {tr.track_id} | {tr.conf:.2f}"
+        label = f"T{tr.track_id} | {tr.conf:.2f}"
         if age is not None:
             label += f" | age {age}"
+        if identities:
+            ident = identities.get(int(tr.track_id))
+            if ident:
+                identity_id = str(ident.get("identity_id", "unknown"))
+                score = ident.get("score")
+                status = ident.get("status")
+                label += f" | {identity_id}"
+                if score is not None:
+                    label += f" {float(score):.2f}"
+                if status:
+                    label += f" | {status}"
         (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
         pad = 4
         box_top = y1 - th - (2 * pad)

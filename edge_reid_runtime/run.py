@@ -11,6 +11,7 @@ from edge_reid_runtime.core.interfaces import TrackEmbedding
 from edge_reid_runtime.detectors import NullDetector, YoloV8Config, YoloV8PersonDetector
 from edge_reid_runtime.embedders import create_embedder, EmbedderConfig
 from edge_reid_runtime.embedders.cropper_extraction import extract_track_crops
+from edge_reid_runtime.gallery import GalleryConfig, GalleryManager, AssignerConfig, IdentityAssigner
 from edge_reid_runtime.sources.factory import create_source
 from edge_reid_runtime.trackers import DeepSortConfig, DeepSortRealtimeTracker, NullTracker
 from edge_reid_runtime.utils.log import setup_logger, JsonlWriter
@@ -72,6 +73,36 @@ def parse_args(argv=None) -> argparse.Namespace:
                    help="DeepSORT: hits before a track is confirmed.")
     p.add_argument("--max_iou_distance", type=float, default=0.7,
                    help="DeepSORT: association gate (IoU distance).")
+    p.add_argument("--known_threshold", type=float, default=0.55,
+                   help="Gallery: similarity >= known_threshold => Known.")
+    p.add_argument("--unknown_threshold", type=float, default=0.45,
+                   help="Gallery: below this similarity => Unknown.")
+    p.add_argument("--max_identities", type=int, default=500,
+                   help="Gallery: maximum identities to store.")
+    p.add_argument("--id_prefix", type=str, default="person_",
+                   help="Gallery: identity id prefix.")
+    p.add_argument("--id_width", type=int, default=4,
+                   help="Gallery: identity id zero-pad width.")
+    p.add_argument("--update_threshold", type=float, default=0.65,
+                   help="Gallery: minimum similarity to update prototype.")
+    p.add_argument("--margin_threshold", type=float, default=0.15,
+                   help="Gallery: minimum top1-top2 gap to update.")
+    p.add_argument("--stable_age", type=int, default=10,
+                   help="Gallery: minimum track age for enrollment/update.")
+    p.add_argument("--stable_hits", type=int, default=5,
+                   help="Gallery: minimum hits for enrollment/update.")
+    p.add_argument("--min_det_conf", type=float, default=0.35,
+                   help="Gallery: minimum detection confidence to update.")
+    p.add_argument("--area_drop_ratio", type=float, default=0.5,
+                   help="Gallery: area drop ratio to block updates (occlusion).")
+    p.add_argument("--aspect_ratio_min", type=float, default=0.2,
+                   help="Gallery: min aspect ratio to allow update.")
+    p.add_argument("--aspect_ratio_max", type=float, default=0.9,
+                   help="Gallery: max aspect ratio to allow update.")
+    p.add_argument("--ema_alpha", type=float, default=0.1,
+                   help="Gallery: EMA update rate for prototype.")
+    p.add_argument("--reacquire_cooldown_frames", type=int, default=15,
+                   help="Gallery: cooldown frames after track reacquired.")
     p.add_argument("--save_video", action="store_true",
                    help="Save visualization video to output_dir.")
     p.add_argument("--display", action="store_true",
@@ -121,6 +152,21 @@ def build_config(args: argparse.Namespace) -> RunConfig:
         save_video=args.save_video,
         display=args.display,
         output_video=Path(args.output_video) if args.output_video else None,
+        unknown_threshold=args.unknown_threshold,
+        known_threshold=args.known_threshold,
+        max_identities=args.max_identities,
+        id_prefix=args.id_prefix,
+        id_width=args.id_width,
+        update_threshold=args.update_threshold,
+        margin_threshold=args.margin_threshold,
+        stable_age=args.stable_age,
+        stable_hits=args.stable_hits,
+        min_det_conf=args.min_det_conf,
+        area_drop_ratio=args.area_drop_ratio,
+        aspect_ratio_min=args.aspect_ratio_min,
+        aspect_ratio_max=args.aspect_ratio_max,
+        ema_alpha=args.ema_alpha,
+        reacquire_cooldown_frames=args.reacquire_cooldown_frames,
     )
 
 
@@ -216,9 +262,34 @@ def run_minimal_loop(cfg: RunConfig) -> int:
         except Exception as e:
             logger.warning(f"Failed to init embedder '{cfg.reid_backbone}': {e}. Embedding disabled.")
 
+    gallery_cfg = GalleryConfig(
+        known_threshold=cfg.known_threshold,
+        unknown_threshold=cfg.unknown_threshold,
+        ema_alpha=cfg.ema_alpha,
+        max_identities=cfg.max_identities,
+        id_prefix=cfg.id_prefix,
+        id_width=cfg.id_width,
+    )
+    gallery = GalleryManager(cfg=gallery_cfg)
+    assigner_cfg = AssignerConfig(
+        stable_age=cfg.stable_age,
+        stable_hits=cfg.stable_hits,
+        unknown_threshold=cfg.unknown_threshold,
+        known_threshold=cfg.known_threshold,
+        update_threshold=cfg.update_threshold,
+        margin_threshold=cfg.margin_threshold,
+        min_det_conf=cfg.min_det_conf,
+        area_drop_ratio=cfg.area_drop_ratio,
+        aspect_ratio_min=cfg.aspect_ratio_min,
+        aspect_ratio_max=cfg.aspect_ratio_max,
+        reacquire_cooldown_frames=cfg.reacquire_cooldown_frames,
+    )
+    assigner = IdentityAssigner(gallery, cfg=assigner_cfg)
+
     src = None
     jsonl = None
     emb_jsonl = None
+    id_jsonl = None
     writer = None
     try:
         src = create_source(cfg)
@@ -228,6 +299,7 @@ def run_minimal_loop(cfg: RunConfig) -> int:
 
     jsonl = JsonlWriter(cfg.output_dir / "frames.jsonl")
     emb_jsonl = JsonlWriter(cfg.output_dir / "embeddings.jsonl")
+    id_jsonl = JsonlWriter(cfg.output_dir / "identities.jsonl")
     output_path = cfg.output_video or (cfg.output_dir / "detections.mp4")
 
     frames = 0
@@ -253,6 +325,7 @@ def run_minimal_loop(cfg: RunConfig) -> int:
             created_ids = sorted(list(active_ids - prev_ids))
             deleted_ids = sorted(list(prev_ids - active_ids))
             prev_ids = active_ids
+            assigner.mark_missed_tracks(frame.frame_id, active_ids)
 
             embeddings: list[TrackEmbedding] = []
             num_crops = 0
@@ -274,11 +347,31 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                             for i in range(len(crop_ids))
                         ]
 
+            assignments = []
+            identity_info: Dict[int, Dict[str, object]] = {}
+            if embeddings:
+                with profiler.stage("gallery"):
+                    emb_map = {emb.track_id: emb for emb in embeddings}
+                    for tr in tracks:
+                        emb = emb_map.get(int(tr.track_id))
+                        if emb is None:
+                            continue
+                        assign = assigner.assign(frame.frame_id, tr, emb.embedding, frame.timestamp_s)
+                        assignments.append(assign)
+                        status = "ENROLL" if assign.enrolled else ("UPDATE" if assign.updated else "")
+                        if assign.skip_reason:
+                            status = f"NO-UPDATE:{assign.skip_reason}"
+                        identity_info[int(tr.track_id)] = {
+                            "identity_id": assign.identity_id,
+                            "score": assign.score,
+                            "status": status,
+                        }
+
             annotated = frame.image
             if annotated is not None and (cfg.save_video or cfg.display):
                 annotated = annotated.copy()
                 draw_detections(annotated, detections, cls_name_fn=cls_name_fn)
-                draw_tracks(annotated, tracks)
+                draw_tracks(annotated, tracks, identities=identity_info)
                 if embedder is not None and cv2 is not None:
                     label = f"embeddings: {num_crops} | dim: {embed_dim}"
                     cv2.putText(
@@ -325,6 +418,10 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                 "tracks_deleted_ids": deleted_ids,
                 "num_crops": num_crops,
                 "embed_dim": embed_dim,
+                "num_assignments": len(assignments),
+                "gallery_size": len(gallery._entries),
+                "num_known": sum(1 for a in assignments if a.label == "Known" and a.identity_id != "unknown"),
+                "num_unknown": sum(1 for a in assignments if a.identity_id == "unknown"),
                 "stages_ms": stats.stages_ms,
             }
             jsonl.write(record)
@@ -340,6 +437,22 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                             "quality": emb.quality,
                         }
                     )
+            if assignments:
+                for assign in assignments:
+                    id_jsonl.write(
+                        {
+                            "frame_id": stats.frame_id,
+                            "timestamp_s": stats.timestamp_s,
+                            "track_id": assign.track_id,
+                            "identity_id": assign.identity_id,
+                            "label": assign.label,
+                            "score": assign.score,
+                            "margin": assign.margin,
+                            "enrolled": assign.enrolled,
+                            "updated": assign.updated,
+                            "skip_reason": assign.skip_reason,
+                        }
+                    )
 
             frames += 1
             if cfg.print_every > 0 and (frames % cfg.print_every == 0):
@@ -349,8 +462,9 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                     f"det={st.get('detector', 0.0):.2f}ms "
                     f"trk={st.get('tracker', 0.0):.2f}ms "
                     f"emb={st.get('embedder', 0.0):.2f}ms "
+                    f"gal={st.get('gallery', 0.0):.2f}ms "
                     f"fps(roll)={stats.fps_rolling:.2f} dets={len(detections)} tracks={len(tracks)} "
-                    f"crops={num_crops}"
+                    f"crops={num_crops} assigns={len(assignments)}"
                 )
                 if stats.rss_mb is not None:
                     msg += f" rss={stats.rss_mb:.1f}MB"
@@ -391,6 +505,11 @@ def run_minimal_loop(cfg: RunConfig) -> int:
         if emb_jsonl is not None:
             try:
                 emb_jsonl.close()
+            except Exception:
+                pass
+        if id_jsonl is not None:
+            try:
+                id_jsonl.close()
             except Exception:
                 pass
 
