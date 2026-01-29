@@ -68,39 +68,48 @@ def draw_tracks(
                 age = int(tr.meta["age"])
             except Exception:
                 age = None
-        label = f"T{tr.track_id} | {tr.conf:.2f}"
+        lines = [f"T{tr.track_id} | {tr.conf:.2f}"]
         if age is not None:
-            label += f" | age {age}"
+            lines[0] += f" | age {age}"
         if identities:
             ident = identities.get(int(tr.track_id))
             if ident:
                 identity_id = str(ident.get("identity_id", "unknown"))
                 score = ident.get("score")
                 status = ident.get("status")
-                label += f" | {identity_id}"
+                lines.append(identity_id)
                 if score is not None:
-                    label += f" {float(score):.2f}"
+                    lines.append(f"score {float(score):.2f}")
                 if status:
-                    label += f" | {status}"
-        (tw, th), _ = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+                    lines.append(str(status))
+
         pad = 4
-        box_top = y1 - th - (2 * pad)
+        line_height = 0
+        max_w = 0
+        for line in lines:
+            (tw, th), _ = cv2.getTextSize(line, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+            max_w = max(max_w, tw)
+            line_height = max(line_height, th)
+        box_h = (line_height * len(lines)) + (2 * pad) + (pad * (len(lines) - 1))
+        box_top = y1 - box_h
         box_bottom = y1
-        text_y = y1 - pad
         if box_top < 0:
             box_top = y1
-            box_bottom = y1 + th + (2 * pad)
-            text_y = y1 + th + pad
-        cv2.rectangle(image, (x1, box_top), (x1 + tw + (2 * pad), box_bottom), color, -1)
-        cv2.putText(
-            image,
-            label,
-            (x1 + pad, text_y),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.6,
-            text_color,
-            2,
-        )
+            box_bottom = y1 + box_h
+        cv2.rectangle(image, (x1, box_top), (x1 + max_w + (2 * pad), box_bottom), color, -1)
+
+        text_y = box_top + pad + line_height
+        for line in lines:
+            cv2.putText(
+                image,
+                line,
+                (x1 + pad, text_y),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                text_color,
+                2,
+            )
+            text_y += line_height + pad
 
         if show_trajectory:
             tid = int(tr.track_id)
