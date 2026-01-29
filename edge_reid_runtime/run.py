@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from edge_reid_runtime.core.types import RunConfig
+from edge_reid_runtime.core.interfaces import TrackEmbedding
 from edge_reid_runtime.detectors import NullDetector, YoloV8Config, YoloV8PersonDetector
 from edge_reid_runtime.embedders import create_embedder, EmbedderConfig
 from edge_reid_runtime.embedders.cropper_extraction import extract_track_crops
@@ -253,7 +254,7 @@ def run_minimal_loop(cfg: RunConfig) -> int:
             deleted_ids = sorted(list(prev_ids - active_ids))
             prev_ids = active_ids
 
-            embeddings = []
+            embeddings: list[TrackEmbedding] = []
             num_crops = 0
             embed_dim = 0
             if embedder is not None and frame.image is not None and tracks:
@@ -264,12 +265,12 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                         feats = embedder.embed(crops)
                         embed_dim = int(feats.shape[1]) if feats.ndim == 2 else 0
                         embeddings = [
-                            {
-                                "track_id": int(crop_ids[i]),
-                                "embedding": feats[i].tolist(),
-                                "embedding_dim": embed_dim,
-                                "quality": None,
-                            }
+                            TrackEmbedding(
+                                track_id=int(crop_ids[i]),
+                                embedding=feats[i],
+                                embedding_dim=embed_dim,
+                                quality=None,
+                            )
                             for i in range(len(crop_ids))
                         ]
 
@@ -278,6 +279,17 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                 annotated = annotated.copy()
                 draw_detections(annotated, detections, cls_name_fn=cls_name_fn)
                 draw_tracks(annotated, tracks)
+                if embedder is not None and cv2 is not None:
+                    label = f"embeddings: {num_crops} | dim: {embed_dim}"
+                    cv2.putText(
+                        annotated,
+                        label,
+                        (10, 25),
+                        cv2.FONT_HERSHEY_SIMPLEX,
+                        0.7,
+                        (0, 255, 255),
+                        2,
+                    )
 
             with profiler.stage("video_write"):
                 if cfg.save_video and annotated is not None:
@@ -322,10 +334,10 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                         {
                             "frame_id": stats.frame_id,
                             "timestamp_s": stats.timestamp_s,
-                            "track_id": emb["track_id"],
-                            "embedding": emb["embedding"],
-                            "embedding_dim": emb["embedding_dim"],
-                            "quality": emb["quality"],
+                            "track_id": emb.track_id,
+                            "embedding": emb.embedding.tolist(),
+                            "embedding_dim": emb.embedding_dim,
+                            "quality": emb.quality,
                         }
                     )
 
