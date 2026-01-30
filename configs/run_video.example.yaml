@@ -1,7 +1,7 @@
 source: video
-video_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/test_video/test_video.mp4
-device: cuda
-output_dir: exp/outputs_runtime/run_video
+video_path: exp/test_video/test_video.mp4
+device: cpu
+output_dir: exp/realtime_reid_demo/test_video_reid_output_test
 webcam_index: 0
 max_frames: 0
 print_every: 10
@@ -19,27 +19,27 @@ n_init: 3
 max_iou_distance: 0.7
 
 reid_backbone: osnet_x0_25
-weights:  edge_reid_runtime/weights/models--kaiyangzhou--osnet/snapshots/a5c5cc037c24235cda3b21085b93ad77c9616224/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
+weights: edge_reid_runtime/weights/models--kaiyangzhou--osnet/snapshots/a5c5cc037c24235cda3b21085b93ad77c9616224/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
 
-save_video: False
-display: False
-output_video: exp/output_runtime/run_video/testVideoReidGpuOsx0_25.mp4
+save_video: true
+display: true
+output_video: exp/realtime_reid_demo/test_video_reid_output_test/test_video_reid_output_result.mp4
 
-known_threshold: 0.55
+known_threshold: 0.75
 unknown_threshold: 0.45
 max_identities: 500
 id_prefix: person_
 id_width: 4
-update_threshold: 0.65
-margin_threshold: 0.15
-stable_age: 10
-stable_hits: 5
-min_det_conf: 0.35
+update_threshold: 1.0
+margin_threshold: 0.30
+stable_age: 25
+stable_hits: 15
+min_det_conf: 0.6
 area_drop_ratio: 0.5
 aspect_ratio_min: 0.2
 aspect_ratio_max: 0.9
 ema_alpha: 0.1
 reacquire_cooldown_frames: 15
 
-gallery_path: null
-reset_gallery: false
+gallery_path: exp/realtime_reid_demo/video_reid_output_test/gallery_state.json
+reset_gallery: true

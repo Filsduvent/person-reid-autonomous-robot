@@ -1,9 +1,9 @@
 common:
   source: video
   device: cpu
-  output_root: exp/outputs_runtime/benchmarks
-  video_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/test_video/test_video.mp4
-  max_frames: 400
+  output_root: exp/benchmarks/video_reid_results
+  video_path: exp/test_video/test_video.mp4
+  max_frames: 300
   warmup_frames: 30
   print_every: 0
   cuda_sync: true
@@ -17,7 +17,7 @@ common:
   n_init: 3
   max_iou_distance: 0.7
   reid_backbone: osnet_x0_25
-  weights:  edge_reid_runtime/weights/models--kaiyangzhou--osnet/snapshots/a5c5cc037c24235cda3b21085b93ad77c9616224/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
+  weights: edge_reid_runtime/weights/models--kaiyangzhou--osnet/snapshots/a5c5cc037c24235cda3b21085b93ad77c9616224/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
   known_threshold: 0.65
   unknown_threshold: 0.45
   update_threshold: 0.75
@@ -30,22 +30,22 @@ common:
   aspect_ratio_max: 0.9
   ema_alpha: 0.1
   reacquire_cooldown_frames: 20
-  save_video: False
-  display: False
+  save_video: true
+  display: true
 
 runs:
   - name: osnet_x0_25_cpu
     device: cpu
     reid_backbone: osnet_x0_25
-    weights:  edge_reid_runtime/weights/models--kaiyangzhou--osnet/snapshots/a5c5cc037c24235cda3b21085b93ad77c9616224/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
+    weights: edge_reid_runtime/weights/models--kaiyangzhou--osnet/snapshots/a5c5cc037c24235cda3b21085b93ad77c9616224/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
   - name: osnet_x0_25_cuda
     device: cuda
     reid_backbone: osnet_x0_25
-    weights:  edge_reid_runtime/weights/models--kaiyangzhou--osnet/snapshots/a5c5cc037c24235cda3b21085b93ad77c9616224/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
+    weights: edge_reid_runtime/weights/models--kaiyangzhou--osnet/snapshots/a5c5cc037c24235cda3b21085b93ad77c9616224/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
   - name: osnet_x0_5_cpu
     device: cpu
     reid_backbone: osnet_x0_5
-    weights:  edge_reid_runtime/weights/models--kaiyangzhou--osnet/snapshots/a5c5cc037c24235cda3b21085b93ad77c9616224/osnet_x0_5_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
+    weights: edge_reid_runtime/weights/models--kaiyangzhou--osnet/snapshots/a5c5cc037c24235cda3b21085b93ad77c9616224/osnet_x0_5_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
   - name: osnet_x0_5_cuda
     device: cuda
     reid_backbone: osnet_x0_5
