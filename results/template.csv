@@ -1,0 +1,1 @@
+model,device,weights_path,model_size_mb,param_count,fps,latency_ms_mean,latency_ms_p95,rss_mb_mean,rss_mb_p95,vram_mb_mean,vram_mb_p95,detector_ms_mean,tracker_ms_mean,embedder_ms_mean,gallery_ms_mean,visualization_ms_mean,input_ms_mean,total_ms_mean,notes
