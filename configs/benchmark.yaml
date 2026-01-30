@@ -1,0 +1,41 @@
+common:
+  source: video
+  device: cpu
+  output_root: outputs/benchmarks
+  video_path: /path/to/video.mp4
+  max_frames: 300
+  warmup_frames: 30
+  print_every: 0
+  detector: yolov8
+  yolo_model: yolov8n.pt
+  det_conf: 0.35
+  det_iou: 0.7
+  imgsz: 640
+  max_det: 100
+  max_age: 30
+  n_init: 3
+  max_iou_distance: 0.7
+  reid_backbone: osnet_x0_25
+  weights: /path/to/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
+  known_threshold: 0.65
+  unknown_threshold: 0.45
+  update_threshold: 0.75
+  margin_threshold: 0.2
+  stable_age: 20
+  stable_hits: 12
+  min_det_conf: 0.5
+  area_drop_ratio: 0.6
+  aspect_ratio_min: 0.2
+  aspect_ratio_max: 0.9
+  ema_alpha: 0.1
+  reacquire_cooldown_frames: 20
+  save_video: false
+  display: false
+
+runs:
+  - name: osnet_x0_25_cpu
+    device: cpu
+    reid_backbone: osnet_x0_25
+  - name: osnet_x0_25_cuda
+    device: cuda
+    reid_backbone: osnet_x0_25

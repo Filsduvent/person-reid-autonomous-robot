@@ -379,7 +379,8 @@ def run_minimal_loop(cfg: RunConfig) -> int:
         while True:
             profiler.on_frame_start()
             try:
-                frame = next(it)
+                with profiler.stage("input"):
+                    frame = next(it)
             except StopIteration:
                 break
 
@@ -437,20 +438,21 @@ def run_minimal_loop(cfg: RunConfig) -> int:
 
             annotated = frame.image
             if annotated is not None and (cfg.save_video or cfg.display):
-                annotated = annotated.copy()
-                draw_detections(annotated, detections, cls_name_fn=cls_name_fn)
-                draw_tracks(annotated, tracks, identities=identity_info)
-                if embedder is not None and cv2 is not None:
-                    label = f"embeddings: {num_crops} | dim: {embed_dim}"
-                    cv2.putText(
-                        annotated,
-                        label,
-                        (10, 25),
-                        cv2.FONT_HERSHEY_SIMPLEX,
-                        0.7,
-                        (0, 255, 255),
-                        2,
-                    )
+                with profiler.stage("visualization"):
+                    annotated = annotated.copy()
+                    draw_detections(annotated, detections, cls_name_fn=cls_name_fn)
+                    draw_tracks(annotated, tracks, identities=identity_info)
+                    if embedder is not None and cv2 is not None:
+                        label = f"embeddings: {num_crops} | dim: {embed_dim}"
+                        cv2.putText(
+                            annotated,
+                            label,
+                            (10, 25),
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.7,
+                            (0, 255, 255),
+                            2,
+                        )
 
             with profiler.stage("video_write"):
                 if cfg.save_video and annotated is not None:
@@ -478,6 +480,7 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                 "dt_ms": stats.dt_ms,
                 "fps_rolling": stats.fps_rolling,
                 "rss_mb": stats.rss_mb,
+                "vram_mb": stats.vram_mb,
                 "source": frame.meta.get("source"),
                 "num_det": len(detections),
                 "num_tracks": len(tracks),

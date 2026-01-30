@@ -3,12 +3,16 @@ from __future__ import annotations
 import time
 from collections import deque
 from dataclasses import dataclass
-from typing import Deque, Dict, Optional
+from typing import Deque, Dict, List, Optional
 
 try:
     import psutil  # optional
 except Exception:  # pragma: no cover
     psutil = None
+try:
+    import torch  # optional
+except Exception:  # pragma: no cover
+    torch = None
 
 
 @dataclass
@@ -18,6 +22,7 @@ class FrameStats:
     dt_ms: float
     fps_rolling: float
     rss_mb: Optional[float]
+    vram_mb: Optional[float]
     stages_ms: Dict[str, float]
 
 
@@ -52,11 +57,14 @@ class StageProfiler:
     - rolling FPS
     - optional RSS via psutil
     """
-    def __init__(self, fps_window: int = 30):
+    def __init__(self, fps_window: int = 30, collect_history: bool = False):
         self._t_frame0: Optional[float] = None
         self._dt_window: Deque[float] = deque(maxlen=fps_window)
         self._stages_ms: Dict[str, float] = {}
         self._proc = psutil.Process() if psutil is not None else None
+        self._collect_history = collect_history
+        self._history: List[FrameStats] = []
+        self._cuda_available = bool(torch is not None and torch.cuda.is_available())
 
     def stage(self, name: str) -> StageTimer:
         return StageTimer(self, name)
@@ -82,15 +90,49 @@ class StageProfiler:
                 rss_mb = self._proc.memory_info().rss / (1024.0 * 1024.0)
             except Exception:
                 rss_mb = None
+        vram_mb = None
+        if self._cuda_available:
+            try:
+                vram_mb = torch.cuda.memory_allocated() / (1024.0 * 1024.0)
+            except Exception:
+                vram_mb = None
 
         if "total" not in self._stages_ms:
             self._stages_ms["total"] = dt_ms
 
-        return FrameStats(
+        stats = FrameStats(
             frame_id=frame_id,
             timestamp_s=timestamp_s,
             dt_ms=dt_ms,
             fps_rolling=fps,
             rss_mb=rss_mb,
+            vram_mb=vram_mb,
             stages_ms=dict(self._stages_ms),
         )
+        if self._collect_history:
+            self._history.append(stats)
+        return stats
+
+    @staticmethod
+    def _summarize(values: List[float]) -> Dict[str, float]:
+        if not values:
+            return {"mean": 0.0, "median": 0.0, "p95": 0.0}
+        vals = sorted(values)
+        n = len(vals)
+        mean = sum(vals) / n
+        median = vals[n // 2] if n % 2 == 1 else 0.5 * (vals[n // 2 - 1] + vals[n // 2])
+        p95_idx = int(0.95 * (n - 1))
+        p95 = vals[p95_idx]
+        return {"mean": mean, "median": median, "p95": p95}
+
+    def summarize(self) -> Dict[str, Dict[str, float]]:
+        if not self._history:
+            return {}
+        totals = [h.dt_ms for h in self._history]
+        out: Dict[str, Dict[str, float]] = {"total": self._summarize(totals)}
+        stage_keys = set()
+        for h in self._history:
+            stage_keys.update(h.stages_ms.keys())
+        for k in sorted(stage_keys):
+            out[k] = self._summarize([h.stages_ms.get(k, 0.0) for h in self._history])
+        return out
