@@ -1,6 +1,6 @@
 source: webcam
 device: cpu
-output_dir: outputs/run_full
+output_dir: exp/realtime_reid_demo/webcam_reid_with_gallery_test2
 video_path: null
 webcam_index: 0
 max_frames: 0
@@ -19,7 +19,7 @@ n_init: 3
 max_iou_distance: 0.7
 
 reid_backbone: osnet_x0_25
-weights: /path/to/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
+weights: edge_reid_runtime/weights/models--kaiyangzhou--osnet/snapshots/a5c5cc037c24235cda3b21085b93ad77c9616224/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
 
 save_video: false
 display: false
@@ -41,5 +41,5 @@ aspect_ratio_max: 0.9
 ema_alpha: 0.1
 reacquire_cooldown_frames: 15
 
-gallery_path: null
+gallery_path: exp/realtime_reid_demo/webcam_reid_test1/gallery_state.json
 reset_gallery: false
