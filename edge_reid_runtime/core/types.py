@@ -16,6 +16,7 @@ class RunConfig:
     print_every: int = 10
     reid_backbone: Optional[str] = None
     weights: Optional[Union[Path, str]] = None
+    embedder_backend: str = "torch"
     detector: str = "yolov8"
     yolo_model: str = "yolov8n.pt"
     det_conf: float = 0.35
@@ -62,6 +63,8 @@ def validate_run_config(cfg: RunConfig) -> None:
         raise ValueError("n_init must be >= 1")
     if cfg.max_iou_distance < 0:
         raise ValueError("max_iou_distance must be >= 0")
+    if cfg.embedder_backend not in ("torch", "onnx"):
+        raise ValueError("embedder_backend must be 'torch' or 'onnx'")
     if not (0.0 <= cfg.known_threshold <= 1.0):
         raise ValueError("known_threshold must be in [0,1]")
     if not (0.0 <= cfg.unknown_threshold <= 1.0):

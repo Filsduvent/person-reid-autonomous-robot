@@ -108,3 +108,28 @@ Notes:
 - `name`, `device`, `backbone`, `model_size_mb`, `param_count`, `frames`, `fps`
 - Per-stage latency (mean/p95): `detector`, `tracker`, `embedder`, `gallery`, `visualization`, `input`, `total`
 - Memory: `rss_mb_mean/p95`, `vram_mb_mean/p95`
+
+## Edge deployment (Phase 9 - ONNX)
+
+### Export OSNet to ONNX
+```
+python scripts/export_onnx.py \
+  --backbone osnet_x0_25 \
+  --weights /path/to/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth \
+  --output exports/osnet_x0_25.onnx
+```
+
+### Run with ONNX embedder (CPU)
+```
+PYTHONPATH=.. python -m edge_reid_runtime.run \
+  --source video --video_path /path/to/video.mp4 \
+  --output_dir outputs/onnx_run \
+  --reid_backbone osnet_x0_25 \
+  --embedder_backend onnx \
+  --weights exports/osnet_x0_25.onnx
+```
+
+### Pi install (CPU-only)
+```
+pip install -r deploy/requirements_pi.txt
+```

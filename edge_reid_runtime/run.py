@@ -62,6 +62,9 @@ def _build_parser() -> argparse.ArgumentParser:
                         "mobilenetv3_large, shufflenetv2_x0_5, shufflenetv2_x1_0, efficientnet_lite0).")
     p.add_argument("--weights", default=None,
                    help="Path or URL to model weights (optional for now).")
+    p.add_argument("--embedder_backend", default="torch",
+                   choices=("torch", "onnx"),
+                   help="Embedder backend: torch or onnx.")
     p.add_argument("--detector", default="yolov8", choices=VALID_DETECTORS,
                    help="Detector backend (yolo or null).")
     p.add_argument("--yolo_model", default="yolov8n.pt",
@@ -186,6 +189,7 @@ def build_config(args: argparse.Namespace) -> RunConfig:
         print_every=args.print_every,
         reid_backbone=args.reid_backbone,
         weights=args.weights if args.weights else None,
+        embedder_backend=args.embedder_backend,
         detector=args.detector,
         yolo_model=args.yolo_model,
         det_conf=args.det_conf,
@@ -315,6 +319,7 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                 backbone=cfg.reid_backbone,
                 device=device_resolved,
                 weights=str(cfg.weights) if cfg.weights else None,
+                backend=cfg.embedder_backend,
             )
             embedder = create_embedder(embedder_cfg)
             embedder_name = cfg.reid_backbone

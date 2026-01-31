@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Optional, Tuple
 
 from edge_reid_runtime.embedders.torch_embedder import TorchEmbedderConfig, TorchReidEmbedder
+from edge_reid_runtime.embedders.onnx_embedder import OnnxEmbedderConfig, OnnxReidEmbedder
 
 
 SUPPORTED_BACKBONES = (
@@ -24,6 +25,7 @@ class EmbedderConfig:
     device: str = "cpu"
     weights: Optional[str] = None
     input_size: Optional[Tuple[int, int]] = None  # (H, W)
+    backend: str = "torch"
 
 
 def _default_input_size(backbone: str) -> Tuple[int, int]:
@@ -33,7 +35,7 @@ def _default_input_size(backbone: str) -> Tuple[int, int]:
     return (224, 224)
 
 
-def create_embedder(cfg: EmbedderConfig) -> TorchReidEmbedder:
+def create_embedder(cfg: EmbedderConfig):
     name = cfg.backbone.lower()
     if name == "mobilenetv3":
         name = "mobilenetv3_small"
@@ -43,10 +45,21 @@ def create_embedder(cfg: EmbedderConfig) -> TorchReidEmbedder:
         raise ValueError(f"Unsupported backbone '{cfg.backbone}'. Supported: {SUPPORTED_BACKBONES}")
 
     input_size = cfg.input_size or _default_input_size(name)
-    tcfg = TorchEmbedderConfig(
-        backbone=name,
-        device=cfg.device,
-        weights=cfg.weights,
-        input_size=input_size,
-    )
-    return TorchReidEmbedder(tcfg)
+    backend = cfg.backend.lower()
+    if backend == "onnx":
+        if not cfg.weights:
+            raise ValueError("ONNX backend requires 'weights' to be an .onnx model path.")
+        ocfg = OnnxEmbedderConfig(
+            model_path=cfg.weights,
+            input_size=input_size,
+        )
+        return OnnxReidEmbedder(ocfg)
+    if backend == "torch":
+        tcfg = TorchEmbedderConfig(
+            backbone=name,
+            device=cfg.device,
+            weights=cfg.weights,
+            input_size=input_size,
+        )
+        return TorchReidEmbedder(tcfg)
+    raise ValueError(f"Unsupported embedder backend '{cfg.backend}'. Use 'torch' or 'onnx'.")
