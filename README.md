@@ -86,7 +86,7 @@ unknown_threshold: 0.45
 Use the benchmark runner to execute a fixed experiment matrix and write a summary CSV:
 
 ```
-python scripts/benchmark.py configs/benchmark.yaml
+python scripts/benchmark.py configs/benchmark.example.yaml
 ```
 
 Outputs are stored under `outputs/benchmarks/<run_name>/` and a summary CSV is written to:
@@ -100,9 +100,9 @@ Notes:
 ### When to use run.py vs benchmark.py
 - **Interactive testing / tuning**: use `edge_reid_runtime.run` with a YAML config.
   ```
-  PYTHONPATH=.. python -m edge_reid_runtime.run --config configs/run_full.yaml
+  PYTHONPATH=.. python -m edge_reid_runtime.run --config configs/run_full.example.yaml
   ```
-- **Structured benchmarking**: use `scripts/benchmark.py` with `configs/benchmark.yaml`.
+- **Structured benchmarking**: use `scripts/benchmark.py` with `configs/benchmark.example.yaml`.
 
 ### Summary CSV fields (high-level)
 - `name`, `device`, `backbone`, `model_size_mb`, `param_count`, `frames`, `fps`

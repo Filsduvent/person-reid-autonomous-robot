@@ -65,6 +65,16 @@ weights/
 *.npy
 *.npz
 
+# Local run configs (use *.example.yaml for templates)
+configs/*.yaml
+configs/*.yml
+!configs/*.example.yaml
+!configs/*.example.yml
+!configs/_template_baseline.yaml
+!configs/baseline_*.yaml
+!configs/baseline_*.yml
+!configs/ablation_stride2.yaml
+
 # Environment
 venv/
 env/

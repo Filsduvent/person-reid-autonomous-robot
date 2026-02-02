@@ -67,6 +67,8 @@ def model_size_mb(weights_path: str | None) -> float:
 def param_count(weights_path: str | None) -> int | None:
     if not weights_path:
         return None
+    if weights_path.endswith(".onnx"):
+        return None
     try:
         import torch
     except Exception:
@@ -74,7 +76,10 @@ def param_count(weights_path: str | None) -> int | None:
     p = Path(weights_path)
     if not p.exists():
         return None
-    state = torch.load(p, map_location="cpu")
+    try:
+        state = torch.load(p, map_location="cpu")
+    except Exception:
+        return None
     if isinstance(state, dict) and "state_dict" in state:
         state = state["state_dict"]
     if not isinstance(state, dict):
