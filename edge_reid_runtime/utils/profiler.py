@@ -39,12 +39,14 @@ class StageTimer:
         self._t0: Optional[float] = None
 
     def __enter__(self):
+        self.profiler._maybe_sync()
         self._t0 = time.perf_counter()
         return self
 
     def __exit__(self, exc_type, exc, tb):
         if self._t0 is None:
             return
+        self.profiler._maybe_sync()
         dt = time.perf_counter() - self._t0
         self.profiler._stages_ms[self.name] = self.profiler._stages_ms.get(self.name, 0.0) + dt * 1000.0
 
@@ -57,7 +59,7 @@ class StageProfiler:
     - rolling FPS
     - optional RSS via psutil
     """
-    def __init__(self, fps_window: int = 30, collect_history: bool = False):
+    def __init__(self, fps_window: int = 30, collect_history: bool = False, cuda_sync: bool = False):
         self._t_frame0: Optional[float] = None
         self._dt_window: Deque[float] = deque(maxlen=fps_window)
         self._stages_ms: Dict[str, float] = {}
@@ -65,9 +67,17 @@ class StageProfiler:
         self._collect_history = collect_history
         self._history: List[FrameStats] = []
         self._cuda_available = bool(torch is not None and torch.cuda.is_available())
+        self._cuda_sync = bool(cuda_sync) and self._cuda_available
 
     def stage(self, name: str) -> StageTimer:
         return StageTimer(self, name)
+
+    def _maybe_sync(self) -> None:
+        if self._cuda_sync and torch is not None:
+            try:
+                torch.cuda.synchronize()
+            except Exception:
+                pass
 
     def on_frame_start(self) -> None:
         self._t_frame0 = time.perf_counter()

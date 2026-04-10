@@ -1,10 +1,11 @@
 source: video
 video_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/test_video/test_video.mp4
-device: cpu
-output_dir: outputs/run_video
+device: cuda
+output_dir: exp/outputs_runtime/run_video
 webcam_index: 0
 max_frames: 0
 print_every: 10
+cuda_sync: false
 
 detector: yolov8
 yolo_model: yolov8n.pt
@@ -18,11 +19,11 @@ n_init: 3
 max_iou_distance: 0.7
 
 reid_backbone: osnet_x0_25
-weights: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/weights/models--kaiyangzhou--osnet/snapshots/a5c5cc037c24235cda3b21085b93ad77c9616224/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
+weights:  edge_reid_runtime/weights/models--kaiyangzhou--osnet/snapshots/a5c5cc037c24235cda3b21085b93ad77c9616224/osnet_x0_25_msmt17_combineall_256x128_amsgrad_ep150_stp60_lr0.0015_b64_fb10_softmax_labelsmooth_flip_jitter.pth
 
-save_video: false
-display: false
-output_video: null
+save_video: False
+display: False
+output_video: exp/output_runtime/run_video/testVideoReidGpuOsx0_25.mp4
 
 known_threshold: 0.55
 unknown_threshold: 0.45

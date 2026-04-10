@@ -46,6 +46,7 @@ class RunConfig:
     reacquire_cooldown_frames: int = 15
     gallery_path: Optional[Path] = None
     reset_gallery: bool = False
+    cuda_sync: bool = False
 
 
 def validate_run_config(cfg: RunConfig) -> None:

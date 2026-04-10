@@ -86,7 +86,7 @@ unknown_threshold: 0.45
 Use the benchmark runner to execute a fixed experiment matrix and write a summary CSV:
 
 ```
-python scripts/benchmark.py configs/benchmark.example.yaml
+python scripts/benchmark.py configs/benchmark.yaml
 ```
 
 Outputs are stored under `outputs/benchmarks/<run_name>/` and a summary CSV is written to:
@@ -96,13 +96,17 @@ Notes:
 - `warmup_frames` are excluded from timing stats.
 - If ground truth is not provided, identity metrics are recorded as `N/A`.
  - For webcam benchmarks, set a fixed `max_frames` so the run terminates and writes a summary.
+ - For accurate per-stage timings on CUDA, set `cuda_sync: true` (or `--cuda_sync`).
+   This forces GPU synchronization at stage boundaries so detector/embedder times are not
+   incorrectly attributed to CPU stages like the tracker. For live runs, keep it `false`
+   to avoid extra sync overhead.
 
 ### When to use run.py vs benchmark.py
 - **Interactive testing / tuning**: use `edge_reid_runtime.run` with a YAML config.
   ```
-  PYTHONPATH=.. python -m edge_reid_runtime.run --config configs/run_full.example.yaml
+  PYTHONPATH=.. python -m edge_reid_runtime.run --config configs/run_full.yaml
   ```
-- **Structured benchmarking**: use `scripts/benchmark.py` with `configs/benchmark.example.yaml`.
+- **Structured benchmarking**: use `scripts/benchmark.py` with `configs/benchmark.yaml`.
 
 ### Summary CSV fields (high-level)
 - `name`, `device`, `backbone`, `model_size_mb`, `param_count`, `frames`, `fps`
@@ -126,7 +130,10 @@ PYTHONPATH=.. python -m edge_reid_runtime.run \
   --output_dir outputs/onnx_run \
   --reid_backbone osnet_x0_25 \
   --embedder_backend onnx \
-  --weights exports/osnet_x0_25.onnx
+  --weights exports/osnet_x0_25.
+  Make sure run_pi.yaml contains:
+  
+  onnx
 ```
 
 ### Pi install (CPU-only)

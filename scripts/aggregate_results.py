@@ -20,6 +20,7 @@ def read_summary(path: Path) -> List[Dict[str, str]]:
 
 def norm(row: Dict[str, str]) -> Dict[str, str]:
     return {
+        "run_name": row.get("name", ""),
         "model": row.get("backbone", ""),
         "device": row.get("device", ""),
         "weights_path": row.get("weights", ""),
@@ -39,7 +40,7 @@ def norm(row: Dict[str, str]) -> Dict[str, str]:
         "visualization_ms_mean": row.get("visualization_ms_mean", ""),
         "input_ms_mean": row.get("input_ms_mean", ""),
         "total_ms_mean": row.get("total_ms_mean", ""),
-        "notes": row.get("name", ""),
+        "notes": row.get("notes", row.get("name", "")),
     }
 
 
@@ -57,6 +58,7 @@ def main(argv: List[str]) -> int:
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = [
+        "run_name",
         "model",
         "device",
         "weights_path",

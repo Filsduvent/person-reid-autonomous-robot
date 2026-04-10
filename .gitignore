@@ -133,7 +133,7 @@ exp/
 Dataset/
 EXPERIMENTS_DIRECTORY/
 person-reid-autonomous-robot/edge_reid_runtime/outputs/
-
+person-reid-autonomous-robot/edge_reid_runtime/weights/
 
 # Environment and IDE files
 venv/

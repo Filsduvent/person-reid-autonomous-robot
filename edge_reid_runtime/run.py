@@ -117,6 +117,8 @@ def _build_parser() -> argparse.ArgumentParser:
                    help="Path to save/load gallery state (JSON).")
     p.add_argument("--reset_gallery", action="store_true",
                    help="If set, ignore any existing gallery file and start fresh.")
+    p.add_argument("--cuda_sync", action="store_true",
+                   help="Synchronize CUDA around stage timing for accurate per-stage profiling.")
     p.add_argument("--save_video", action="store_true",
                    help="Save visualization video to output_dir.")
     p.add_argument("--display", action="store_true",
@@ -219,6 +221,7 @@ def build_config(args: argparse.Namespace) -> RunConfig:
         reacquire_cooldown_frames=args.reacquire_cooldown_frames,
         gallery_path=Path(args.gallery_path) if args.gallery_path else None,
         reset_gallery=args.reset_gallery,
+        cuda_sync=args.cuda_sync,
     )
 
 
@@ -262,9 +265,12 @@ def run_minimal_loop(cfg: RunConfig) -> int:
     except Exception as e:
         logger.warning(f"Failed to write config_used.yaml: {e}")
 
-    profiler = StageProfiler(fps_window=30)
     device_resolved = resolve_device(cfg.device)
     logger.info(f"resolved_device={device_resolved}")
+    profiler = StageProfiler(
+        fps_window=30,
+        cuda_sync=(device_resolved == "cuda" and cfg.cuda_sync),
+    )
 
     detector_name = getattr(cfg, "detector", "yolov8")
     if detector_name == "null":

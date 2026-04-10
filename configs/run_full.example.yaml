@@ -5,6 +5,7 @@ video_path: null
 webcam_index: 0
 max_frames: 0
 print_every: 10
+cuda_sync: false
 
 detector: yolov8
 yolo_model: yolov8n.pt
