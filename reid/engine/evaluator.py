@@ -13,7 +13,12 @@ def extract_features(model, loader, device):
     feats, pids, cams, names, marks = [], [], [], [], []
     for imgs, pid, cam, name, mark in loader:
         imgs = imgs.to(device, non_blocking=True)
-        emb = model(imgs).detach().cpu().numpy()
+        out = model(imgs)
+        if isinstance(out, (tuple, list)):
+            emb = out[0]
+        else:
+            emb = out
+        emb = emb.detach().cpu().numpy()
         feats.append(emb)
         pids.append(pid.numpy())
         cams.append(cam.numpy())

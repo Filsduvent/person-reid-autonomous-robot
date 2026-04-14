@@ -4,7 +4,15 @@ import torch.nn.functional as F
 from torchvision.models import resnet50, ResNet50_Weights
 
 class ReidBaseline(nn.Module):
-    def __init__(self, pretrained: bool, last_conv_stride: int, embedding_dim: int, bnneck: bool, normalize: bool):
+    def __init__(
+        self,
+        pretrained: bool,
+        last_conv_stride: int,
+        embedding_dim: int,
+        bnneck: bool,
+        normalize: bool,
+        num_classes: int | None = None,
+    ):
         super().__init__()
         weights = ResNet50_Weights.IMAGENET1K_V2 if pretrained else None
         m = resnet50(weights=weights)
@@ -30,13 +38,22 @@ class ReidBaseline(nn.Module):
             nn.init.constant_(self.bnneck.bias, 0.0)
 
         self.normalize = bool(normalize)
+        self.classifier = None
+        if num_classes is not None and int(num_classes) > 0:
+            self.classifier = nn.Linear(embedding_dim, int(num_classes), bias=False)
 
     def forward(self, x):
         feat_map = self.backbone(x)
         feat = self.gap(feat_map).flatten(1)            # [N, 2048]
-        emb = self.embedding(feat)                      # [N, D]
+        emb = self.embedding(feat)                      # [N, D] (pre-BN)
         if self.bnneck is not None:
-            emb = self.bnneck(emb)
+            bn = self.bnneck(emb)
+        else:
+            bn = emb
+
+        logits = self.classifier(bn) if self.classifier is not None else None
+
+        out = bn
         if self.normalize:
-            emb = F.normalize(emb, p=2, dim=1)
-        return emb
+            out = F.normalize(out, p=2, dim=1)
+        return out, logits

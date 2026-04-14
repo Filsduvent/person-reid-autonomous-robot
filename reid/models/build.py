@@ -1,6 +1,6 @@
 from reid.models.baseline import ReidBaseline
 
-def build_model(cfg):
+def build_model(cfg, num_classes: int | None = None):
     mcfg = cfg["model"]
     bcfg = mcfg["backbone"]
     hcfg = mcfg["head"]
@@ -14,5 +14,6 @@ def build_model(cfg):
         embedding_dim=int(hcfg["embedding_dim"]),
         bnneck=bool(hcfg["bnneck"]),
         normalize=bool(hcfg["normalize"]),
+        num_classes=num_classes,
     )
     return model
