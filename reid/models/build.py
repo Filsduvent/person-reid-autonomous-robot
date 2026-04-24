@@ -16,6 +16,7 @@ def build_model(cfg, num_classes: int | None = None):
         bnneck=bool(hcfg["bnneck"]),
         normalize=bool(hcfg["normalize"]),
         metric_feat=str(hcfg.get("metric_feat", "bn")).lower(),
+        classifier_enabled=bool(hcfg.get("classifier", False)),
         num_classes=num_classes,
     )
     return model

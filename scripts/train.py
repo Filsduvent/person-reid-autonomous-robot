@@ -17,17 +17,22 @@ from reid.engine.evaluator import evaluate_reid
 from reid.engine.train_loop import train_one_epoch
 
 
-def build_optimizer(cfg, model):
+def build_optimizer(cfg, model, criterion=None):
     ocfg = cfg["optim"]
     name = ocfg["name"].lower()
     lr = float(ocfg["lr"])
     wd = float(ocfg["weight_decay"])
+    params = list(model.parameters())
+    if criterion is not None:
+        params.extend(p for p in criterion.parameters())
+    params = [p for p in params if p.requires_grad]
+
     if name == "adam":
-        return torch.optim.Adam(model.parameters(), lr=lr, weight_decay=wd)
+        return torch.optim.Adam(params, lr=lr, weight_decay=wd)
     if name == "adamw":
-        return torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=wd)
+        return torch.optim.AdamW(params, lr=lr, weight_decay=wd)
     if name == "sgd":
-        return torch.optim.SGD(model.parameters(), lr=lr, weight_decay=wd, momentum=0.9, nesterov=True)
+        return torch.optim.SGD(params, lr=lr, weight_decay=wd, momentum=0.9, nesterov=True)
     raise ValueError(f"Unknown optimizer: {name}")
 
 def main():
@@ -61,19 +66,29 @@ def main():
     print(f"[Data] Train batch size = {batch_size}")
 
     train_dataset = train_loader.dataset
+    classifier_enabled = bool(cfg["model"]["head"].get("classifier", False))
+    id_enabled = bool(cfg["loss"].get("id", {}).get("enabled"))
+    center_enabled = bool(cfg["loss"].get("center", {}).get("enabled"))
+
+    if id_enabled and not classifier_enabled:
+        raise ValueError("ID loss enabled but model.head.classifier is false.")
+
     num_classes = None
-    if cfg["loss"].get("id", {}).get("enabled") or cfg["loss"].get("center", {}).get("enabled"):
+    if classifier_enabled or id_enabled or center_enabled:
         num_classes = getattr(train_dataset, "num_classes", None)
         if num_classes is None:
-            raise ValueError("ID or center loss enabled but train dataset has no 'num_classes' attribute.")
+            raise ValueError(
+                "Classifier, ID loss, or center loss enabled but train dataset has no "
+                "'num_classes' attribute."
+            )
         if num_classes <= 1:
-            raise ValueError("ID or center loss enabled but num_classes <= 1.")
+            raise ValueError("Classifier, ID loss, or center loss enabled but num_classes <= 1.")
 
     feat_dim = int(cfg["model"]["head"]["embedding_dim"])
 
     model = build_model(cfg, num_classes=num_classes).to(device)
     criterion = build_criterion(cfg, num_classes=num_classes, feat_dim=feat_dim).to(device)
-    optimizer = build_optimizer(cfg, model)
+    optimizer = build_optimizer(cfg, model, criterion=criterion)
 
     # --- Test loader ---
     tcfg = cfg["data"]["test"]

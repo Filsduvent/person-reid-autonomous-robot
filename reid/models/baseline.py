@@ -13,6 +13,7 @@ class ReidBaseline(nn.Module):
         bnneck: bool,
         normalize: bool,
         metric_feat: str = "bn",
+        classifier_enabled: bool = False,
         num_classes: int | None = None,
     ):
         super().__init__()
@@ -45,7 +46,7 @@ class ReidBaseline(nn.Module):
         self.normalize = bool(normalize)
         self.metric_feat = metric_feat
         self.classifier = None
-        if num_classes is not None and int(num_classes) > 0:
+        if classifier_enabled and num_classes is not None and int(num_classes) > 0:
             self.classifier = nn.Linear(embedding_dim, int(num_classes), bias=False)
 
     def forward(self, x):
