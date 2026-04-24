@@ -16,6 +16,7 @@ from reid.losses.build import build_criterion
 from reid.engine.evaluator import evaluate_reid
 from reid.engine.train_loop import train_one_epoch
 
+
 def build_optimizer(cfg, model):
     ocfg = cfg["optim"]
     name = ocfg["name"].lower()
@@ -60,16 +61,18 @@ def main():
     print(f"[Data] Train batch size = {batch_size}")
 
     num_classes = None
-    if cfg["loss"]["id"]["enabled"]:
+    if cfg["loss"].get("id", {}).get("enabled") or cfg["loss"].get("center", {}).get("enabled"):
         labels = getattr(train_loader.dataset, "labels", None)
         if labels is None:
-            raise ValueError("ID loss enabled but train dataset has no 'labels' attribute.")
+            raise ValueError("ID or center loss enabled but train dataset has no 'labels' attribute.")
         num_classes = len(set(int(x) for x in labels))
         if num_classes <= 1:
-            raise ValueError("ID loss enabled but num_classes <= 1.")
+            raise ValueError("ID or center loss enabled but num_classes <= 1.")
+
+    feat_dim = int(cfg["model"]["head"]["embedding_dim"])
 
     model = build_model(cfg, num_classes=num_classes).to(device)
-    criterion = build_criterion(cfg).to(device)
+    criterion = build_criterion(cfg, num_classes=num_classes, feat_dim=feat_dim).to(device)
     optimizer = build_optimizer(cfg, model)
 
     # --- Test loader ---

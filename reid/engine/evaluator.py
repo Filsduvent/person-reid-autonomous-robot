@@ -7,6 +7,7 @@ from reid.metrics.distance import compute_dist, normalize
 from reid.metrics.ranking import cmc, mean_ap, mean_inp
 from reid.utils.io import ensure_dir
 
+
 @torch.no_grad()
 def extract_features(model, loader, device):
     model.eval()
@@ -14,7 +15,9 @@ def extract_features(model, loader, device):
     for imgs, pid, cam, name, mark in loader:
         imgs = imgs.to(device, non_blocking=True)
         out = model(imgs)
-        if isinstance(out, (tuple, list)):
+        if isinstance(out, dict):
+            emb = out["emb"]
+        elif isinstance(out, (tuple, list)):
             emb = out[0]
         else:
             emb = out
