@@ -83,6 +83,8 @@ model:
     pooling: gap            # gap|max
     bnneck: true
     normalize: true         # L2-normalize embeddings for metric learning
+    metric_feat: bn         # raw|bn
+    classifier: true
 
 loss:
   triplet:
@@ -91,9 +93,13 @@ loss:
     mining: batch_hard
     weight: 1.0
   id:
-    enabled: false
+    enabled: true
     label_smoothing: 0.1
     weight: 1.0
+  center:
+    enabled: false
+    weight: 0.0005
+    feat: raw               # raw|bn
 
 optim:
   name: adam
