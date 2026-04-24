@@ -1,5 +1,6 @@
 import time
 import torch
+from reid.models.outputs import ensure_output_dict
 
 
 def train_one_epoch(model, loader, criterion, optimizer, device, amp: bool, log_interval: int, tb_writer=None, epoch: int = 1, steps_per_epoch: int = 200):
@@ -22,7 +23,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device, amp: bool, log_
         optimizer.zero_grad(set_to_none=True)
 
         with torch.cuda.amp.autocast(enabled=amp):
-            outputs = model(imgs)
+            outputs = ensure_output_dict(model(imgs))
             loss, logs = criterion(outputs, labels)
 
         scaler.scale(loss).backward()

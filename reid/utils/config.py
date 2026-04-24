@@ -8,6 +8,14 @@ import yaml
 from typing import Any, Dict, List, Tuple
 
 
+def _expect_choice(name: str, value: Any, allowed: set[str]) -> str:
+    value = str(value).lower()
+    if value not in allowed:
+        opts = ", ".join(sorted(allowed))
+        raise ValueError(f"Unsupported {name}='{value}'. Use one of: {opts}.")
+    return value
+
+
 def _deep_update(d: Dict[str, Any], u: Dict[str, Any]) -> Dict[str, Any]:
     for k, v in u.items():
         if isinstance(v, dict) and isinstance(d.get(k), dict):
@@ -117,6 +125,33 @@ def load_config(path: str, overrides: List[str] | None = None) -> Dict[str, Any]
     cfg = resolve_interpolations(cfg)
 
     return cfg
+
+
+def validate_reid_config(cfg: Dict[str, Any], num_classes: int | None = None) -> None:
+    model_cfg = cfg.get("model", {})
+    head_cfg = model_cfg.get("head", {})
+    loss_cfg = cfg.get("loss", {})
+
+    classifier_enabled = bool(head_cfg.get("classifier", False))
+    metric_feat = _expect_choice("model.head.metric_feat", head_cfg.get("metric_feat", "bn"), {"raw", "bn"})
+
+    id_cfg = loss_cfg.get("id", {})
+    id_enabled = bool(id_cfg.get("enabled", False))
+    center_cfg = loss_cfg.get("center", {})
+    center_enabled = bool(center_cfg.get("enabled", False))
+
+    if id_enabled and not classifier_enabled:
+        raise ValueError("ID loss enabled but model.head.classifier is false.")
+
+    if center_enabled:
+        _expect_choice("loss.center.feat", center_cfg.get("feat", "raw"), {"raw", "bn"})
+
+    # Explicitly validate even when not currently used elsewhere so invalid values fail early.
+    _ = metric_feat
+
+    if num_classes is not None:
+        if (classifier_enabled or id_enabled or center_enabled) and int(num_classes) <= 1:
+            raise ValueError("Classifier, ID loss, or center loss enabled but num_classes <= 1.")
 
 
 def save_yaml(cfg: Dict[str, Any], path: str) -> None:

@@ -3,7 +3,7 @@ import json, os.path as osp
 import torch
 from torch.utils.data import DataLoader
 
-from reid.utils.config import load_config
+from reid.utils.config import load_config, validate_reid_config
 from reid.utils.device import select_device, device_summary
 from reid.utils.io import ensure_dir
 from reid.utils.seed import set_seed
@@ -41,6 +41,7 @@ def main():
     args = parser.parse_args()
 
     cfg = load_config(args.config)
+    validate_reid_config(cfg)
 
     exp_dir = cfg["experiment"]["output_dir"]
     ensure_dir(exp_dir)
@@ -67,26 +68,22 @@ def main():
 
     train_dataset = train_loader.dataset
     classifier_enabled = bool(cfg["model"]["head"].get("classifier", False))
-    id_enabled = bool(cfg["loss"].get("id", {}).get("enabled"))
     center_enabled = bool(cfg["loss"].get("center", {}).get("enabled"))
 
-    if id_enabled and not classifier_enabled:
-        raise ValueError("ID loss enabled but model.head.classifier is false.")
-
     num_classes = None
-    if classifier_enabled or id_enabled or center_enabled:
+    if classifier_enabled or bool(cfg["loss"].get("id", {}).get("enabled")) or center_enabled:
         num_classes = getattr(train_dataset, "num_classes", None)
         if num_classes is None:
             raise ValueError(
                 "Classifier, ID loss, or center loss enabled but train dataset has no "
                 "'num_classes' attribute."
             )
-        if num_classes <= 1:
-            raise ValueError("Classifier, ID loss, or center loss enabled but num_classes <= 1.")
-
-    feat_dim = int(cfg["model"]["head"]["embedding_dim"])
+        validate_reid_config(cfg, num_classes=num_classes)
 
     model = build_model(cfg, num_classes=num_classes).to(device)
+    feat_dim = getattr(model, "feat_dim", None)
+    if feat_dim is None or int(feat_dim) <= 0:
+        raise ValueError("Model must expose a positive 'feat_dim' attribute for loss construction.")
     criterion = build_criterion(cfg, num_classes=num_classes, feat_dim=feat_dim).to(device)
     optimizer = build_optimizer(cfg, model, criterion=criterion)
 

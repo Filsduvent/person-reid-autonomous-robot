@@ -33,6 +33,8 @@ class ReidBaseline(nn.Module):
         self.gap = nn.AdaptiveAvgPool2d((1, 1))
 
         in_dim = 2048
+        self.backbone_dim = in_dim
+        self.feat_dim = int(embedding_dim)
         self.embedding = nn.Identity() if embedding_dim == in_dim else nn.Linear(in_dim, embedding_dim, bias=False)
 
         if metric_feat not in {"raw", "bn"}:
