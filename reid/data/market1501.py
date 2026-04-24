@@ -74,6 +74,7 @@ class Market1501FromPartitions(Dataset):
         self.im_names = [x[0] for x in kept]
         self.pids = [x[1] for x in kept]
         self.labels = [x[2] for x in kept]
+        self.num_classes = len(set(int(x) for x in self.labels))
 
     def __len__(self) -> int:
         return len(self.im_names)

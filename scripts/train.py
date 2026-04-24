@@ -60,12 +60,12 @@ def main():
     train_loader, batch_size = build_train_loader(cfg)
     print(f"[Data] Train batch size = {batch_size}")
 
+    train_dataset = train_loader.dataset
     num_classes = None
     if cfg["loss"].get("id", {}).get("enabled") or cfg["loss"].get("center", {}).get("enabled"):
-        labels = getattr(train_loader.dataset, "labels", None)
-        if labels is None:
-            raise ValueError("ID or center loss enabled but train dataset has no 'labels' attribute.")
-        num_classes = len(set(int(x) for x in labels))
+        num_classes = getattr(train_dataset, "num_classes", None)
+        if num_classes is None:
+            raise ValueError("ID or center loss enabled but train dataset has no 'num_classes' attribute.")
         if num_classes <= 1:
             raise ValueError("ID or center loss enabled but num_classes <= 1.")
 
