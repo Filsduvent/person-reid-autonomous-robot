@@ -1,5 +1,6 @@
 import argparse
 import json, os.path as osp
+from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
 
@@ -35,6 +36,14 @@ def build_optimizer(cfg, model, criterion=None):
         return torch.optim.SGD(params, lr=lr, weight_decay=wd, momentum=0.9, nesterov=True)
     raise ValueError(f"Unknown optimizer: {name}")
 
+
+def resolve_repo_relative_path(path_str: str) -> str:
+    path = Path(path_str)
+    if path.is_absolute():
+        return str(path)
+    repo_root = Path(__file__).resolve().parents[1]
+    return str(repo_root / path)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, required=True)
@@ -43,7 +52,8 @@ def main():
     cfg = load_config(args.config)
     validate_reid_config(cfg)
 
-    exp_dir = cfg["experiment"]["output_dir"]
+    exp_dir = resolve_repo_relative_path(cfg["experiment"]["output_dir"])
+    cfg["experiment"]["output_dir"] = exp_dir
     ensure_dir(exp_dir)
 
     device, _ = select_device(cfg["system"]["device"], cfg["system"].get("gpu_id", 0), cfg)

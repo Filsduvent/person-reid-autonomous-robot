@@ -5,7 +5,8 @@ from reid.models.outputs import ensure_output_dict
 
 def train_one_epoch(model, loader, criterion, optimizer, device, amp: bool, log_interval: int, tb_writer=None, epoch: int = 1, steps_per_epoch: int = 200):
     model.train()
-    scaler = torch.cuda.amp.GradScaler(enabled=amp)
+    amp_device = "cuda" if device.type == "cuda" else "cpu"
+    scaler = torch.amp.GradScaler(amp_device, enabled=amp)
 
     t0 = time.time()
     running_total = 0.0
@@ -22,7 +23,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device, amp: bool, log_
 
         optimizer.zero_grad(set_to_none=True)
 
-        with torch.cuda.amp.autocast(enabled=amp):
+        with torch.amp.autocast(device_type=amp_device, enabled=amp):
             outputs = ensure_output_dict(model(imgs))
             loss, logs = criterion(outputs, labels)
 
