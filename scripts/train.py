@@ -14,27 +14,9 @@ from reid.data.market1501_test import Market1501TestFromPartitions
 from reid.data.transforms import build_test_tf
 from reid.models.build import build_model
 from reid.losses.build import build_criterion
+from reid.optim.build import build_optimizer, build_center_optimizer, build_scheduler
 from reid.engine.evaluator import evaluate_reid
 from reid.engine.train_loop import train_one_epoch
-
-
-def build_optimizer(cfg, model, criterion=None):
-    ocfg = cfg["optim"]
-    name = ocfg["name"].lower()
-    lr = float(ocfg["lr"])
-    wd = float(ocfg["weight_decay"])
-    params = list(model.parameters())
-    if criterion is not None:
-        params.extend(p for p in criterion.parameters())
-    params = [p for p in params if p.requires_grad]
-
-    if name == "adam":
-        return torch.optim.Adam(params, lr=lr, weight_decay=wd)
-    if name == "adamw":
-        return torch.optim.AdamW(params, lr=lr, weight_decay=wd)
-    if name == "sgd":
-        return torch.optim.SGD(params, lr=lr, weight_decay=wd, momentum=0.9, nesterov=True)
-    raise ValueError(f"Unknown optimizer: {name}")
 
 
 def resolve_repo_relative_path(path_str: str) -> str:
@@ -95,7 +77,9 @@ def main():
     if feat_dim is None or int(feat_dim) <= 0:
         raise ValueError("Model must expose a positive 'feat_dim' attribute for loss construction.")
     criterion = build_criterion(cfg, num_classes=num_classes, feat_dim=feat_dim).to(device)
-    optimizer = build_optimizer(cfg, model, criterion=criterion)
+    optimizer = build_optimizer(cfg, model)
+    center_optimizer = build_center_optimizer(cfg, criterion)
+    scheduler = build_scheduler(cfg, optimizer)
 
     # --- Test loader ---
     tcfg = cfg["data"]["test"]
@@ -136,9 +120,11 @@ def main():
             loader=train_loader,
             criterion=criterion,
             optimizer=optimizer,
+            center_optimizer=center_optimizer,
             device=device,
             amp=amp,
             log_interval=log_interval,
+            scheduler=scheduler,
             tb_writer=tb,
             epoch=ep,
             steps_per_epoch=steps_per_epoch,
