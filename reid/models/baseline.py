@@ -20,10 +20,17 @@ class ReidBaseline(nn.Module):
         weights = ResNet50_Weights.IMAGENET1K_V2 if pretrained else None
         m = resnet50(weights=weights)
 
-        # Adjust last stage stride if requested (stride in layer4[0].conv2 and downsample)
+        # torchvision ResNet50 downsamples in layer4[0].conv2 and layer4[0].downsample[0].
         if last_conv_stride == 1:
+            # Keep higher spatial resolution in the final feature map, as commonly used
+            # by strong ReID baselines.
             m.layer4[0].conv2.stride = (1, 1)
             m.layer4[0].downsample[0].stride = (1, 1)
+        elif last_conv_stride == 2:
+            # Keep the standard ImageNet ResNet50 downsampling behavior.
+            pass
+        else:
+            raise ValueError("last_conv_stride must be 1 or 2")
 
         # Remove classifier head
         self.backbone = nn.Sequential(

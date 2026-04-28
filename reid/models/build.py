@@ -5,13 +5,16 @@ def build_model(cfg, num_classes: int | None = None):
     mcfg = cfg["model"]
     bcfg = mcfg["backbone"]
     hcfg = mcfg["head"]
+    last_conv_stride = int(bcfg["last_conv_stride"])
 
     if mcfg["name"] != "reid_baseline":
         raise NotImplementedError(mcfg["name"])
 
+    print(f"[Model] backbone=resnet50 last_conv_stride={last_conv_stride}")
+
     model = ReidBaseline(
         pretrained=bool(bcfg["pretrained"]),
-        last_conv_stride=int(bcfg["last_conv_stride"]),
+        last_conv_stride=last_conv_stride,
         embedding_dim=int(hcfg["embedding_dim"]),
         bnneck=bool(hcfg["bnneck"]),
         normalize=bool(hcfg["normalize"]),

@@ -6,6 +6,37 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Last Stride Trick
+
+Implemented:
+- `last_conv_stride` remains YAML-controlled through `model.backbone.last_conv_stride`
+- `reid/models/build.py` now reads the value into a local variable and prints:
+  - `[Model] backbone=resnet50 last_conv_stride=...`
+- `ReidBaseline` now explicitly supports:
+  - `last_conv_stride: 1`
+  - `last_conv_stride: 2`
+- `last_conv_stride: 1` modifies only `layer4[0].conv2` and `layer4[0].downsample[0]`
+- invalid stride values now raise:
+  - `ValueError("last_conv_stride must be 1 or 2")`
+- optional ablation config added:
+  - `configs/ablation_stride2.yaml`
+
+Validation:
+- `PYTHONPATH=. pytest -q tests/test_model_forward.py tests/test_reid_loss_modes.py tests/test_train_loop_optim.py`
+- result in this environment: `13 passed, 5 skipped`
+- forward tests verify:
+  - `last_conv_stride=1` runs on CPU
+  - `last_conv_stride=2` runs on CPU
+  - pooled embedding shape stays unchanged
+  - final backbone feature map is spatially larger for stride `1` than stride `2`
+- config/build tests verify:
+  - YAML alone controls the stride setting
+  - builder reflects stride `1` vs `2` without hardcoding
+
+Notes:
+- CUDA forward verification is covered by a skip-gated test and was not executed in this environment because `torch.cuda.is_available()` was `False` on April 28, 2026
+- evaluation smoke coverage is present but was skipped in this environment because `sklearn` is not installed
+
 ### Label Smoothing Verification
 
 Verified:
@@ -97,12 +128,12 @@ No task-specific uncommitted work was intended at the time this note was last up
 
 ## Suggested Next Step
 
-Implement the Bag-of-Tricks last stride trick in the current ReID baseline.
+Pick the next Bag-of-Tricks item to implement and validate in the current ReID baseline.
 
 Expected focus:
-1. verify how `last_conv_stride` is currently wired from YAML into the backbone
-2. confirm the default baseline setting matches the intended trick
-3. validate training/eval still run correctly when comparing stride variants
+1. confirm the target trick against the current repo state
+2. keep it YAML-controlled when applicable
+3. add focused validation before committing the step
 
 ## Useful Commands
 
