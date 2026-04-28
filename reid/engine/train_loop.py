@@ -45,14 +45,16 @@ def train_one_epoch(
         scaler.scale(loss).backward()
 
         center_weight = float(getattr(criterion, "w_center", 0.0))
-        center_criterion = getattr(criterion, "center", None)
-        if center_optimizer is not None and center_criterion is not None and center_weight > 0.0:
-            for param in center_criterion.parameters():
+        center_loss = getattr(criterion, "center_loss", None)
+        if center_loss is None:
+            center_loss = getattr(criterion, "center", None)
+        if center_optimizer is not None and center_loss is not None and center_weight > 0.0:
+            for param in center_loss.parameters():
                 if param.grad is not None:
                     param.grad.data.mul_(1.0 / center_weight)
 
         scaler.step(optimizer)
-        if center_optimizer is not None and center_criterion is not None and center_weight > 0.0:
+        if center_optimizer is not None and center_loss is not None and center_weight > 0.0:
             scaler.step(center_optimizer)
         scaler.update()
         if scheduler is not None:

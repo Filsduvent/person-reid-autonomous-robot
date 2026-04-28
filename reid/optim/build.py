@@ -46,22 +46,23 @@ def build_optimizer(cfg, model):
     raise ValueError(f"Unknown optimizer: {name}")
 
 
-def build_center_optimizer(cfg, center_criterion):
+def build_center_optimizer(cfg, criterion):
     """Build the optional optimizer for center loss parameters."""
 
     center_cfg = cfg["loss"].get("center", {})
     if not center_cfg.get("enabled", False):
         return None
-    if center_criterion is None:
+    if criterion is None:
         return None
 
-    if hasattr(center_criterion, "center"):
-        center_criterion = center_criterion.center
-    if center_criterion is None:
+    center_loss = getattr(criterion, "center_loss", None)
+    if center_loss is None:
+        center_loss = getattr(criterion, "center", None)
+    if center_loss is None:
         return None
 
     center_lr = float(center_cfg["lr"])
-    params = [param for param in center_criterion.parameters() if param.requires_grad]
+    params = [param for param in center_loss.parameters() if param.requires_grad]
     if not params:
         return None
 

@@ -43,7 +43,6 @@ BASE_CFG = {
             "enabled": False,
             "weight": 0.0005,
             "lr": 0.5,
-            "feat": "raw",
         },
     },
     "optim": {

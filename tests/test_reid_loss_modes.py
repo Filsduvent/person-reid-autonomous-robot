@@ -98,10 +98,12 @@ def test_reid_modes_one_batch_cpu(mode_name, cfg):
     total_loss.backward()
 
     if cfg["loss"]["center"]["enabled"]:
-        assert criterion.center is not None
-        assert criterion.center.centers.grad is not None
-        assert criterion.center.centers.grad.shape == criterion.center.centers.shape
+        assert criterion.center_loss is not None
+        assert criterion.center is criterion.center_loss
+        assert criterion.center_loss.centers.grad is not None
+        assert criterion.center_loss.centers.grad.shape == criterion.center_loss.centers.shape
     else:
+        assert criterion.center_loss is None
         assert criterion.center is None
 
 
@@ -189,6 +191,7 @@ def test_metric_losses_use_configured_metric_feature(metric_feat, expected_key):
     triplet = _RecordTriplet()
     center = _RecordCenter()
     criterion.triplet = triplet
+    criterion.center_loss = center
     criterion.center = center
 
     outputs = {

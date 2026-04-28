@@ -46,7 +46,6 @@ BASE_CFG = {
             "enabled": False,
             "weight": 0.0005,
             "lr": 0.5,
-            "feat": "raw",
         },
     },
     "optim": {
@@ -124,6 +123,16 @@ def test_build_center_optimizer_only_when_enabled():
 
     assert isinstance(center_optimizer, torch.optim.SGD)
     assert center_optimizer.param_groups[0]["lr"] == pytest.approx(cfg["loss"]["center"]["lr"])
+
+
+def test_build_center_optimizer_returns_none_without_center_loss_module():
+    cfg = _make_cfg()
+    cfg["loss"]["center"]["enabled"] = True
+
+    class CriterionWithoutCenter:
+        center_loss = None
+
+    assert build_center_optimizer(cfg, CriterionWithoutCenter()) is None
 
 
 def test_build_scheduler_supports_warmup_multistep_and_updates_per_iteration():

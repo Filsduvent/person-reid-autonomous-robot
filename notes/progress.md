@@ -6,6 +6,54 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Center Loss Integration
+
+Implemented:
+- `loss.center` remains YAML-controlled with:
+  - `enabled`
+  - `weight`
+  - `lr`
+- Center Loss stays disabled by default in the baseline config but can be enabled without code changes
+- `build_criterion(cfg, num_classes, feat_dim)` now:
+  - creates `CenterLoss` only when enabled
+  - validates `num_classes` and `feat_dim`
+  - stores the module as `criterion.center_loss`
+  - keeps `criterion.center` as a compatibility alias
+- triplet loss and center loss now share the same `model.head.metric_feat` routing
+- ID loss continues using `outputs["logits"]` only
+- `build_center_optimizer(cfg, criterion)` now:
+  - returns `None` when center loss is disabled
+  - returns `None` when the criterion has no center loss module
+  - otherwise returns SGD over the center loss parameters with `loss.center.lr`
+- train loop now:
+  - zeros the center optimizer when present
+  - rescales center gradients by `1 / center_weight`
+  - steps the center optimizer safely alongside the main optimizer
+- Center Loss remains device-agnostic and moves with the criterion module
+
+Validation:
+- `PYTHONPATH=. pytest -q tests/test_optim_build.py tests/test_reid_loss_modes.py tests/test_train_loop_optim.py`
+- result in this environment: `22 passed, 3 skipped`
+- verified modes:
+  - triplet only
+  - ID only
+  - triplet + ID
+  - triplet + ID + center
+- verified behavior:
+  - center optimizer is created only when needed
+  - `loss/center` is logged through the criterion and train loop
+  - center gradients exist and are stepped when enabled
+
+How To Test:
+- focused Center Loss checks:
+  - `PYTHONPATH=. pytest -q tests/test_optim_build.py tests/test_reid_loss_modes.py tests/test_train_loop_optim.py`
+- debug training path:
+  - `PYTHONPATH=. python3 scripts/train.py --config configs/debug_train.yaml`
+
+Notes:
+- CUDA execution remains skip-gated in tests and was not executed in this environment because `torch.cuda.is_available()` was `False` on April 28, 2026
+- no `.cuda()` calls were introduced into `CenterLoss`
+
 ### BNNeck Trick
 
 Implemented:
@@ -180,7 +228,7 @@ Notes:
 
 ## Current Uncommitted Work
 
-No task-specific uncommitted work was intended at the time this note was last updated.
+Center Loss integration hardening is present in the working tree and not yet committed.
 
 ## Suggested Next Step
 
