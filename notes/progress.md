@@ -6,6 +6,62 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### BNNeck Trick
+
+Implemented:
+- `model.head.bnneck`, `metric_feat`, and `eval_feat` are now explicit YAML controls
+- strong-baseline defaults are now:
+  - `bnneck: true`
+  - `metric_feat: raw`
+  - `eval_feat: bn`
+- `ReidBaseline` now exposes the BNNeck contract as:
+  - `feat_raw`
+  - `feat_bn`
+  - `emb`
+  - `logits`
+- `emb` is now selected from `eval_feat` and then normalized if enabled
+- BNNeck is now implemented as a dedicated bottleneck layer with:
+  - frozen BN bias
+  - BN weight/bias initialization
+- classifier remains bias-free and is explicitly initialized with small normal weights
+- loss routing now uses `model.head.metric_feat` for:
+  - triplet loss
+  - center loss
+- ID loss still uses `logits` only
+- evaluator now reads `outputs["emb"]` from dict outputs and does not use `logits`
+- builder validation now raises explicit `ValueError`s for invalid:
+  - `metric_feat`
+  - `eval_feat`
+- active baseline/debug/ablation configs were aligned to the BNNeck contract
+- stale `loss.center.feat` routing was removed from the active YAML configs
+
+Validation:
+- `PYTHONPATH=. pytest -q tests/test_model_forward.py tests/test_reid_loss_modes.py tests/test_train_loop_optim.py`
+- result in this environment: `22 passed, 6 skipped`
+- forward tests verify:
+  - BNNeck enabled works
+  - BNNeck disabled works
+  - `eval_feat: raw` works
+  - `eval_feat: bn` works
+  - output dict contains `feat_raw`, `feat_bn`, `emb`, `logits`
+- loss-routing tests verify:
+  - triplet uses configured metric feature
+  - center uses configured metric feature
+  - ID loss uses `logits` only
+- existing train-loop tests verify training still runs on CPU with the dict-output contract
+
+How To Test:
+- focused BNNeck checks:
+  - `PYTHONPATH=. pytest -q tests/test_model_forward.py tests/test_reid_loss_modes.py tests/test_train_loop_optim.py`
+- quick syntax checks:
+  - `python3 -m py_compile reid/models/baseline.py reid/models/build.py reid/losses/build.py reid/engine/evaluator.py tests/test_model_forward.py tests/test_reid_loss_modes.py`
+- debug train path:
+  - `PYTHONPATH=. python3 scripts/train.py --config configs/debug_train.yaml`
+
+Notes:
+- CUDA checks remain skip-gated in tests and were not executed in this environment because `torch.cuda.is_available()` was `False` on April 28, 2026
+- evaluator smoke tests are present but skip when `sklearn` is not installed in the environment
+
 ### Last Stride Trick
 
 Implemented:

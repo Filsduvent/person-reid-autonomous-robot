@@ -15,7 +15,7 @@ class LossBundle(nn.Module):
         w_id: float = 1.0,
         center: nn.Module | None = None,
         w_center: float = 1.0,
-        center_feat_key: str = "feat_raw",
+        metric_feat_key: str = "feat_raw",
     ):
         super().__init__()
         self.triplet = triplet
@@ -24,7 +24,7 @@ class LossBundle(nn.Module):
         self.w_id = float(w_id)
         self.center = center
         self.w_center = float(w_center)
-        self.center_feat_key = center_feat_key
+        self.metric_feat_key = metric_feat_key
 
     def forward(self, outputs, labels: torch.Tensor):
         if not isinstance(outputs, dict):
@@ -40,11 +40,14 @@ class LossBundle(nn.Module):
             "loss/center": 0.0,
         }
 
+        metric_feat = outputs.get(self.metric_feat_key)
+        if (self.triplet is not None or self.center is not None) and metric_feat is None:
+            raise ValueError(
+                f"Metric loss enabled but model output '{self.metric_feat_key}' is missing."
+            )
+
         if self.triplet is not None:
-            emb = outputs.get("emb")
-            if emb is None:
-                raise ValueError("Triplet loss enabled but model output 'emb' is missing.")
-            lt = self.triplet(emb, labels)
+            lt = self.triplet(metric_feat, labels)
             total = total + self.w_triplet * lt
             logs["loss/triplet"] = float(lt.detach().cpu())
 
@@ -59,12 +62,7 @@ class LossBundle(nn.Module):
             logs["loss/id"] = float(li.detach().cpu())
 
         if self.center is not None:
-            feat = outputs.get(self.center_feat_key)
-            if feat is None:
-                raise ValueError(
-                    f"Center loss enabled but model output '{self.center_feat_key}' is missing."
-                )
-            lc = self.center(feat, labels)
+            lc = self.center(metric_feat, labels)
             total = total + self.w_center * lc
             logs["loss/center"] = float(lc.detach().cpu())
 
@@ -74,6 +72,11 @@ class LossBundle(nn.Module):
 
 def build_criterion(cfg, num_classes: int | None, feat_dim: int | None):
     lcfg = cfg["loss"]
+    hcfg = cfg["model"]["head"]
+    metric_feat = str(hcfg.get("metric_feat", "raw")).lower()
+    if metric_feat not in {"raw", "bn"}:
+        raise ValueError(f"Unsupported metric feature '{metric_feat}'. Use 'raw' or 'bn'.")
+    metric_feat_key = "feat_raw" if metric_feat == "raw" else "feat_bn"
 
     trip = None
     w_trip = 1.0
@@ -89,7 +92,6 @@ def build_criterion(cfg, num_classes: int | None, feat_dim: int | None):
 
     center = None
     w_center = 1.0
-    center_feat_key = "feat_raw"
     if "center" in lcfg and lcfg["center"]["enabled"]:
         if num_classes is None or int(num_classes) <= 0:
             raise ValueError("Center loss enabled but num_classes is not set.")
@@ -97,10 +99,6 @@ def build_criterion(cfg, num_classes: int | None, feat_dim: int | None):
             raise ValueError("Center loss enabled but feat_dim is not set.")
         center = CenterLoss(num_classes=int(num_classes), feat_dim=int(feat_dim))
         w_center = float(lcfg["center"]["weight"])
-        center_feat = str(lcfg["center"].get("feat", "raw")).lower()
-        if center_feat not in {"raw", "bn"}:
-            raise ValueError(f"Unsupported center feature '{center_feat}'. Use 'raw' or 'bn'.")
-        center_feat_key = "feat_raw" if center_feat == "raw" else "feat_bn"
 
     if trip is None and id_loss is None and center is None:
         raise ValueError("At least one loss must be enabled in cfg['loss'].")
@@ -112,5 +110,5 @@ def build_criterion(cfg, num_classes: int | None, feat_dim: int | None):
         w_id=w_id,
         center=center,
         w_center=w_center,
-        center_feat_key=center_feat_key,
+        metric_feat_key=metric_feat_key,
     )

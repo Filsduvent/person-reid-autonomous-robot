@@ -93,7 +93,13 @@ model:
     pooling: gap
     bnneck: true
     normalize: true
-    metric_feat: bn
+
+    # Feature used for metric losses like triplet/center
+    metric_feat: raw
+
+    # Feature used for evaluation/retrieval
+    eval_feat: bn
+
     classifier: true
 
 loss:
@@ -110,7 +116,6 @@ loss:
     enabled: false
     weight: 0.0005
     lr: 0.5
-    feat: raw
 
 optim:
   name: adam

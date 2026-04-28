@@ -13,6 +13,7 @@ class ReidBaseline(nn.Module):
         bnneck: bool,
         normalize: bool,
         metric_feat: str = "bn",
+        eval_feat: str = "bn",
         classifier_enabled: bool = False,
         num_classes: int | None = None,
     ):
@@ -46,29 +47,41 @@ class ReidBaseline(nn.Module):
 
         if metric_feat not in {"raw", "bn"}:
             raise ValueError(f"Unsupported metric feature '{metric_feat}'. Use 'raw' or 'bn'.")
+        if eval_feat not in {"raw", "bn"}:
+            raise ValueError(f"Unsupported eval feature '{eval_feat}'. Use 'raw' or 'bn'.")
 
-        self.bnneck = nn.BatchNorm1d(embedding_dim) if bnneck else None
-        if self.bnneck is not None:
-            nn.init.constant_(self.bnneck.weight, 1.0)
-            nn.init.constant_(self.bnneck.bias, 0.0)
+        self.bottleneck = nn.BatchNorm1d(embedding_dim) if bnneck else None
+        if self.bottleneck is not None:
+            self.bottleneck.bias.requires_grad_(False)
+            nn.init.constant_(self.bottleneck.weight, 1.0)
+            nn.init.constant_(self.bottleneck.bias, 0.0)
 
         self.normalize = bool(normalize)
         self.metric_feat = metric_feat
+        self.eval_feat = eval_feat
         self.classifier = None
         if classifier_enabled and num_classes is not None and int(num_classes) > 0:
             self.classifier = nn.Linear(embedding_dim, int(num_classes), bias=False)
+            nn.init.normal_(self.classifier.weight, std=0.001)
 
     def forward(self, x):
         feat_map = self.backbone(x)
         feat = self.gap(feat_map).flatten(1)            # [N, 2048]
         feat_raw = self.embedding(feat)                 # [N, D] (pre-BN)
-        if self.bnneck is not None:
-            feat_bn = self.bnneck(feat_raw)
+        if self.bottleneck is not None:
+            feat_bn = self.bottleneck(feat_raw)
         else:
             feat_bn = feat_raw
 
-        metric_base = feat_bn if self.metric_feat == "bn" else feat_raw
-        emb = F.normalize(metric_base, p=2, dim=1) if self.normalize else metric_base
+        if self.eval_feat == "bn":
+            emb = feat_bn
+        elif self.eval_feat == "raw":
+            emb = feat_raw
+        else:
+            raise ValueError(f"Unsupported eval feature '{self.eval_feat}'. Use 'raw' or 'bn'.")
+
+        if self.normalize:
+            emb = F.normalize(emb, p=2, dim=1)
         logits = self.classifier(feat_bn) if self.classifier is not None else None
 
         return {

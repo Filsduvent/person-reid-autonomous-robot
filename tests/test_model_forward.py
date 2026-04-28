@@ -1,6 +1,7 @@
 import pytest
 import torch
 from torch.utils.data import DataLoader
+import torch.nn.functional as F
 
 from reid.models.baseline import ReidBaseline
 from reid.models.build import build_model
@@ -50,6 +51,39 @@ def test_resnet50_last_stride_shapes():
     assert feat_map_s1.shape[3] > feat_map_s2.shape[3]
 
 
+@pytest.mark.parametrize("bnneck", [True, False])
+@pytest.mark.parametrize("eval_feat", ["raw", "bn"])
+def test_model_forward_returns_expected_bnneck_outputs(bnneck, eval_feat):
+    num_classes = 3
+    model = ReidBaseline(
+        pretrained=False,
+        last_conv_stride=1,
+        embedding_dim=128,
+        bnneck=bnneck,
+        normalize=True,
+        metric_feat="raw",
+        eval_feat=eval_feat,
+        classifier_enabled=True,
+        num_classes=num_classes,
+    )
+    model.eval()
+
+    with torch.no_grad():
+        outputs = model(torch.randn(2, 3, 256, 128))
+
+    assert "feat_raw" in outputs
+    assert "feat_bn" in outputs
+    assert "emb" in outputs
+    assert "logits" in outputs
+    assert outputs["feat_raw"].shape == outputs["feat_bn"].shape
+    assert outputs["emb"].shape[0] == 2
+    assert outputs["logits"].shape == (2, num_classes)
+
+    expected_eval_feat = outputs["feat_bn"] if eval_feat == "bn" else outputs["feat_raw"]
+    expected_emb = F.normalize(expected_eval_feat, p=2, dim=1)
+    assert torch.allclose(outputs["emb"], expected_emb, atol=1e-6, rtol=1e-5)
+
+
 def test_build_model_uses_configured_last_conv_stride():
     base_cfg = {
         "model": {
@@ -65,6 +99,7 @@ def test_build_model_uses_configured_last_conv_stride():
                 "bnneck": True,
                 "normalize": True,
                 "metric_feat": "bn",
+                "eval_feat": "bn",
                 "classifier": False,
             },
         }
@@ -80,7 +115,41 @@ def test_build_model_uses_configured_last_conv_stride():
     assert model_s2.backbone[-1][0].downsample[0].stride == (2, 2)
 
 
-def test_evaluate_reid_runs_with_both_last_stride_settings_on_cpu():
+@pytest.mark.parametrize(
+    ("field", "value", "expected_message"),
+    [
+        ("metric_feat", "bad", "Unsupported metric feature"),
+        ("eval_feat", "bad", "Unsupported eval feature"),
+    ],
+)
+def test_build_model_rejects_invalid_feature_selection(field, value, expected_message):
+    cfg = {
+        "model": {
+            "name": "reid_baseline",
+            "backbone": {
+                "name": "resnet50",
+                "pretrained": False,
+                "last_conv_stride": 1,
+            },
+            "head": {
+                "embedding_dim": 128,
+                "pooling": "gap",
+                "bnneck": True,
+                "normalize": True,
+                "metric_feat": "raw",
+                "eval_feat": "bn",
+                "classifier": False,
+            },
+        }
+    }
+    cfg["model"]["head"][field] = value
+
+    with pytest.raises(ValueError, match=expected_message):
+        build_model(cfg)
+
+
+@pytest.mark.parametrize("eval_feat", ["raw", "bn"])
+def test_evaluate_reid_runs_with_both_eval_feature_settings_on_cpu(eval_feat):
     pytest.importorskip("sklearn")
     from reid.engine.evaluator import evaluate_reid
 
@@ -106,7 +175,8 @@ def test_evaluate_reid_runs_with_both_last_stride_settings_on_cpu():
             embedding_dim=128,
             bnneck=True,
             normalize=True,
-            metric_feat="bn",
+            metric_feat="raw",
+            eval_feat=eval_feat,
             classifier_enabled=False,
             num_classes=None,
         )

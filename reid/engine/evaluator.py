@@ -5,7 +5,7 @@ import torch
 
 from reid.metrics.distance import compute_dist, normalize
 from reid.metrics.ranking import cmc, mean_ap, mean_inp
-from reid.models.outputs import ensure_output_dict, get_embedding
+from reid.models.outputs import ensure_output_dict
 from reid.utils.io import ensure_dir
 
 
@@ -15,8 +15,10 @@ def extract_features(model, loader, device):
     feats, pids, cams, names, marks = [], [], [], [], []
     for imgs, pid, cam, name, mark in loader:
         imgs = imgs.to(device, non_blocking=True)
-        out = ensure_output_dict(model(imgs))
-        emb = get_embedding(out)
+        outputs = ensure_output_dict(model(imgs))
+        emb = outputs.get("emb")
+        if emb is None:
+            raise ValueError("Model output dict is missing 'emb'.")
         emb = emb.detach().cpu().numpy()
         feats.append(emb)
         pids.append(pid.numpy())

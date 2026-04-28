@@ -93,7 +93,13 @@ model:
     pooling: gap            # gap|max
     bnneck: true
     normalize: true         # L2-normalize embeddings for metric learning
-    metric_feat: bn         # raw|bn
+
+    # Feature used for metric losses like triplet/center
+    metric_feat: raw        # raw|bn
+
+    # Feature used for evaluation/retrieval
+    eval_feat: bn           # raw|bn
+
     classifier: true
 
 loss:
@@ -110,7 +116,6 @@ loss:
     enabled: false
     weight: 0.0005
     lr: 0.5
-    feat: raw               # raw|bn
 
 optim:
   name: adam
