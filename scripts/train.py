@@ -105,9 +105,6 @@ def main():
     log_interval = int(cfg["system"]["log_interval"])
     epochs = int(cfg["train"]["epochs"])
 
-    # Step 2.1: keep epoch length bounded (later we make it precise)
-    steps_per_epoch = 200
-
     best_metric = -1.0
     best_name = cfg["train"]["save"]["metric"]  # "mAP" recommended
 
@@ -127,7 +124,6 @@ def main():
             scheduler=scheduler,
             tb_writer=tb,
             epoch=ep,
-            steps_per_epoch=steps_per_epoch,
         )
         print(f"[Epoch {ep}] avg_loss={avg_loss:.4f}")
 

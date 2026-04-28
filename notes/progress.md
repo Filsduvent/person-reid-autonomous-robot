@@ -6,6 +6,62 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### PK Sampler And Training Modes
+
+Implemented:
+- `PKBatchSampler` is now finite and no longer uses infinite iteration
+- PK sampler now:
+  - builds per-identity index pools
+  - pads identities with replacement up to `K` when needed
+  - shuffles locally with seeded RNGs only
+  - yields finite `List[int]` PK batches
+- sampler reproducibility is local to the sampler through:
+  - `random.Random(seed)`
+  - `np.random.default_rng(seed)`
+- sampler length is now derived from the actual finite batch plan, so `len(train_loader)` matches the yielded epoch batches
+- `build_train_loader(cfg)` now supports:
+  - `sampler: pk` for triplet / triplet+ID style training
+  - `sampler: random` for ID-only / softmax-only style training
+- train loop no longer uses fake `steps_per_epoch` limits
+- one epoch is now defined by the dataloader / sampler length
+- PK loader safety checks now fail early for:
+  - triplet loss with `sampler: random`
+  - `P <= 1`
+  - `K <= 1`
+  - `batch_size != P * K` in PK mode
+- strong-baseline Market1501 config now explicitly includes:
+  - `sampler: pk`
+  - `P: 16`
+  - `K: 4`
+  - `batch_size: 64`
+
+Validation:
+- `PYTHONPATH=. pytest -q tests/test_sampler.py`
+- result in this environment: `9 passed`
+- `PYTHONPATH=. pytest -q tests/test_sampler.py tests/test_train_loop_optim.py`
+- result in this environment: `10 passed, 3 skipped`
+- sampler tests verify:
+  - PK batches have size `P*K`
+  - each batch contains exactly `P` identities
+  - each selected identity appears exactly `K` times
+  - sampler iteration is finite
+  - `len(sampler)` is finite and positive
+  - PK loader length is finite
+  - random mode works for ID-only
+  - triplet + random raises a clear error
+  - PK mode rejects invalid `P`, `K`, or mismatched `batch_size`
+
+How To Test:
+- focused sampler checks:
+  - `PYTHONPATH=. pytest -q tests/test_sampler.py`
+- sampler plus train-loop regression:
+  - `PYTHONPATH=. pytest -q tests/test_sampler.py tests/test_train_loop_optim.py`
+- quick syntax checks:
+  - `python3 -m py_compile reid/data/samplers.py reid/data/build.py reid/engine/train_loop.py scripts/train.py tests/test_sampler.py`
+
+Notes:
+- CUDA train-loop checks remain skip-gated and were not executed in this environment because `torch.cuda.is_available()` was `False` on April 28, 2026
+
 ### Center Loss Integration
 
 Implemented:

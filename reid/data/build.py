@@ -24,13 +24,28 @@ def build_train_loader(cfg):
     dataset = Market1501FromPartitions(root=root, split=split, transform=tf)
 
     batch_cfg = tcfg["batch"]
-    sampler_name = batch_cfg["sampler"]
+    sampler_name = str(batch_cfg.get("sampler", "pk")).lower()
+    triplet_enabled = bool(cfg["loss"]["triplet"]["enabled"])
     num_workers = int(cfg["data"]["num_workers"])
     pin_memory = bool(cfg["data"]["pin_memory"])
+
+    if triplet_enabled and sampler_name != "pk":
+        raise ValueError("Triplet loss requires sampler='pk' so each batch has positive pairs.")
 
     if sampler_name == "pk":
         P = int(batch_cfg["P"])
         K = int(batch_cfg["K"])
+        if P <= 1:
+            raise ValueError("PK sampler requires P > 1 so each batch has multiple identities.")
+        if K <= 1:
+            raise ValueError("PK sampler requires K > 1 so each identity has positive pairs.")
+        expected_batch_size = P * K
+        configured_batch_size = int(batch_cfg.get("batch_size", expected_batch_size))
+        if configured_batch_size != expected_batch_size:
+            raise ValueError(
+                f"PK sampler requires batch_size == P*K, got batch_size={configured_batch_size} "
+                f"and P*K={expected_batch_size}."
+            )
         batch_sampler = PKBatchSampler(dataset.labels, P=P, K=K, drop_last=True, seed=cfg["repro"]["seed"])
         loader = DataLoader(
             dataset,
@@ -38,9 +53,18 @@ def build_train_loader(cfg):
             num_workers=num_workers,
             pin_memory=pin_memory,
         )
-        steps_per_epoch = None  # we will control this in train loop via cfg if needed later
-        batch_size = P * K
+        batch_size = expected_batch_size
+    elif sampler_name == "random":
+        batch_size = int(batch_cfg["batch_size"])
+        loader = DataLoader(
+            dataset,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            drop_last=True,
+        )
     else:
-        raise NotImplementedError("Only pk sampler is supported in Step 2.1")
+        raise ValueError(f"Unsupported train sampler '{sampler_name}'. Use 'pk' or 'random'.")
 
     return loader, batch_size

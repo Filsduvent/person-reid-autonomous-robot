@@ -61,6 +61,7 @@ data:
       sampler: pk            # pk|random
       P: 16                  # ids per batch
       K: 4                   # images per id
+      batch_size: 64         # use with sampler: random, or keep equal to P*K for pk
 
   test:
     dataset:

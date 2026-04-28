@@ -1,8 +1,9 @@
 from collections import defaultdict
 from typing import Dict, Iterator, List
 import random
-import torch
+import numpy as np
 from torch.utils.data import Sampler
+
 
 class PKBatchSampler(Sampler[List[int]]):
     """
@@ -15,51 +16,44 @@ class PKBatchSampler(Sampler[List[int]]):
         self.K = int(K)
         self.drop_last = drop_last
         self.rng = random.Random(seed)
+        self.np_rng = np.random.default_rng(seed)
 
         self.label_to_indices: Dict[int, List[int]] = defaultdict(list)
         for idx, lab in enumerate(labels):
             self.label_to_indices[int(lab)].append(idx)
         self.unique_labels = list(self.label_to_indices.keys())
 
+    def _build_batches(self) -> List[List[int]]:
+        """Construct one finite epoch of PK batches."""
+        batch_indices_per_label: Dict[int, List[List[int]]] = {}
+        available_labels: List[int] = []
+
+        for lab, indices in self.label_to_indices.items():
+            idxs = indices[:]
+            if len(idxs) < self.K:
+                idxs = self.np_rng.choice(idxs, size=self.K, replace=True).tolist()
+
+            self.rng.shuffle(idxs)
+            chunks = [idxs[i:i + self.K] for i in range(0, len(idxs), self.K)]
+            chunks = [chunk for chunk in chunks if len(chunk) == self.K]
+            if chunks:
+                batch_indices_per_label[lab] = chunks
+                available_labels.append(lab)
+
+        batches: List[List[int]] = []
+        while len(available_labels) >= self.P:
+            chosen_labels = self.rng.sample(available_labels, self.P)
+            batch: List[int] = []
+            for lab in chosen_labels:
+                batch.extend(batch_indices_per_label[lab].pop(0))
+                if not batch_indices_per_label[lab]:
+                    available_labels.remove(lab)
+            batches.append(batch)
+
+        return batches
+
     def __iter__(self) -> Iterator[List[int]]:
-        labels = self.unique_labels[:]
-        self.rng.shuffle(labels)
-
-        # make per-label pools we can sample from repeatedly
-        pools = {lab: inds[:] for lab, inds in self.label_to_indices.items()}
-        for lab in pools:
-            self.rng.shuffle(pools[lab])
-
-        batch: List[int] = []
-        while True:
-            # sample P labels (with replacement if not enough)
-            if len(labels) >= self.P:
-                chosen = labels[:self.P]
-                labels = labels[self.P:]
-            else:
-                chosen = labels[:]
-                # refill
-                labels = self.unique_labels[:]
-                self.rng.shuffle(labels)
-                while len(chosen) < self.P:
-                    chosen.append(labels.pop())
-
-            for lab in chosen:
-                inds = pools[lab]
-                if len(inds) >= self.K:
-                    picked = inds[:self.K]
-                    pools[lab] = inds[self.K:]
-                else:
-                    # not enough left -> sample with replacement from full list
-                    full = self.label_to_indices[lab]
-                    picked = [self.rng.choice(full) for _ in range(self.K)]
-                    pools[lab] = inds  # keep whatever remained
-                batch.extend(picked)
-
-            yield batch
-            batch = []
+        yield from self._build_batches()
 
     def __len__(self) -> int:
-        # undefined meaningful epoch length; let DataLoader run until you stop.
-        # We’ll control “steps per epoch” in the train loop for now.
-        return 10**9
+        return len(self._build_batches())

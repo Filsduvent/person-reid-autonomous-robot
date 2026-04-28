@@ -15,11 +15,11 @@ def train_one_epoch(
     scheduler=None,
     tb_writer=None,
     epoch: int = 1,
-    steps_per_epoch: int = 200,
 ):
     model.train()
     amp_device = "cuda" if device.type == "cuda" else "cpu"
     scaler = torch.amp.GradScaler(amp_device, enabled=amp)
+    num_steps = len(loader)
 
     t0 = time.time()
     running_total = 0.0
@@ -28,9 +28,6 @@ def train_one_epoch(
     running_center = 0.0
 
     for step, (imgs, labels) in enumerate(loader, start=1):
-        if steps_per_epoch is not None and step > steps_per_epoch:
-            break
-
         imgs = imgs.to(device, non_blocking=True)
         labels = labels.to(device, non_blocking=True)
 
@@ -78,7 +75,7 @@ def train_one_epoch(
                 None,
             )
 
-            msg = f"[Epoch {epoch}] step {step:04d} loss={avg:.4f} lr={current_lr:.6g}"
+            msg = f"[Epoch {epoch}] step {step:04d}/{num_steps:04d} loss={avg:.4f} lr={current_lr:.6g}"
             if bias_lr is not None:
                 msg += f" lr/bias={bias_lr:.6g}"
             if running_triplet > 0.0:
@@ -100,4 +97,4 @@ def train_one_epoch(
                 if bias_lr is not None:
                     tb_writer.add_scalar("lr/bias", bias_lr, global_step=global_step)
 
-    return running_total / max(1, min(step, steps_per_epoch or step))
+    return running_total / max(1, num_steps)

@@ -108,7 +108,6 @@ def test_train_loop_runs_with_expected_optimizers_and_logs_lr(cfg, expect_center
         scheduler=scheduler,
         tb_writer=None,
         epoch=1,
-        steps_per_epoch=1,
     )
 
     captured = capsys.readouterr()
@@ -149,7 +148,6 @@ def test_train_loop_runs_on_cuda_for_loss_combinations(cfg):
         scheduler=scheduler,
         tb_writer=None,
         epoch=1,
-        steps_per_epoch=1,
     )
 
     assert avg_loss > 0.0
