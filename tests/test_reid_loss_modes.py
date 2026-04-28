@@ -2,8 +2,10 @@ import copy
 
 import pytest
 import torch
+import torch.nn.functional as F
 
 from reid.losses.build import build_criterion
+from reid.losses.id import CrossEntropyLabelSmooth, IDCrossEntropyLoss, build_id_loss
 from reid.models.build import build_model
 from reid.models.outputs import ensure_output_dict
 
@@ -100,3 +102,34 @@ def test_reid_modes_one_batch_cpu(mode_name, cfg):
         assert criterion.center.centers.grad.shape == criterion.center.centers.shape
     else:
         assert criterion.center is None
+
+
+def test_build_id_loss_switches_between_ce_and_label_smoothing():
+    assert isinstance(build_id_loss(label_smoothing=0.0), IDCrossEntropyLoss)
+    assert isinstance(build_id_loss(label_smoothing=0.1), CrossEntropyLabelSmooth)
+
+
+def test_label_smoothing_zero_matches_cross_entropy():
+    logits = torch.tensor(
+        [[2.5, 0.1, -1.3], [0.2, 1.7, -0.4], [-0.8, 0.3, 2.2]],
+        dtype=torch.float32,
+    )
+    targets = torch.tensor([0, 1, 2], dtype=torch.long)
+
+    ce_loss = F.cross_entropy(logits, targets)
+    smooth_zero_loss = build_id_loss(label_smoothing=0.0)(logits, targets)
+
+    assert smooth_zero_loss == pytest.approx(float(ce_loss), rel=1e-6, abs=1e-7)
+
+
+def test_label_smoothing_positive_changes_loss_value():
+    logits = torch.tensor(
+        [[3.0, 0.5, -1.0], [0.1, 2.0, -0.5], [-1.2, 0.3, 2.5]],
+        dtype=torch.float32,
+    )
+    targets = torch.tensor([0, 1, 2], dtype=torch.long)
+
+    ce_loss = build_id_loss(label_smoothing=0.0)(logits, targets)
+    smooth_loss = build_id_loss(label_smoothing=0.1)(logits, targets)
+
+    assert float(smooth_loss) != pytest.approx(float(ce_loss), rel=1e-6, abs=1e-7)

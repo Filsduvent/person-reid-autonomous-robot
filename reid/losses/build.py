@@ -53,6 +53,8 @@ class LossBundle(nn.Module):
             if logits is None:
                 raise ValueError("ID loss enabled but model output 'logits' is missing.")
             li = self.id_loss(logits, labels)
+            if torch.isnan(li):
+                raise RuntimeError("NaN detected in ID loss")
             total = total + self.w_id * li
             logs["loss/id"] = float(li.detach().cpu())
 

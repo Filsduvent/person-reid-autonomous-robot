@@ -6,6 +6,31 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Label Smoothing Verification
+
+Verified:
+- `loss.id.label_smoothing` is config-driven in YAML
+- `label_smoothing: 0.0` selects standard CE behavior
+- `label_smoothing: 0.1` selects `CrossEntropyLabelSmooth`
+- ID loss consumes classifier `logits` and dataset `labels`
+- NaN guard added for ID loss in `reid/losses/build.py`
+- CPU training-path checks cover:
+  - triplet only
+  - ID only
+  - triplet + ID
+  - triplet + ID + center
+
+Validation:
+- `PYTHONPATH=. pytest -q tests/test_reid_loss_modes.py tests/test_train_loop_optim.py`
+- result in this environment: `11 passed, 3 skipped`
+- label smoothing tests verify:
+  - `label_smoothing: 0.0` matches `F.cross_entropy(...)`
+  - `label_smoothing: 0.1` changes the scalar ID-loss value on fixed logits
+
+Notes:
+- CUDA runtime verification could not be executed in the current environment because `torch.cuda.is_available()` was `False` on April 28, 2026
+- CUDA-path tests were added and will run automatically on a GPU-visible machine
+
 ### Phase 3.2: Optimizer + Warmup Scheduler
 
 Implemented:
@@ -68,21 +93,16 @@ Notes:
 
 ## Current Uncommitted Work
 
-At the time this note was written, Random Erasing changes are present in the working tree and not yet committed.
-
-Touched files:
-- `configs/baseline_market1501_resnet50_triplet.yaml`
-- `reid/data/build.py`
-- `reid/data/transforms.py`
-- `scripts/debug_transforms.py`
-- `tests/test_data_transforms.py`
+No task-specific uncommitted work was intended at the time this note was last updated.
 
 ## Suggested Next Step
 
-Before starting the next trick:
-1. review the Random Erasing diff
-2. run the transform/debug checks you want
-3. commit the Random Erasing task as its own commit
+Implement the Bag-of-Tricks last stride trick in the current ReID baseline.
+
+Expected focus:
+1. verify how `last_conv_stride` is currently wired from YAML into the backbone
+2. confirm the default baseline setting matches the intended trick
+3. validate training/eval still run correctly when comparing stride variants
 
 ## Useful Commands
 
