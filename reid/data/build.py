@@ -12,12 +12,7 @@ def build_train_loader(cfg):
     aug = tcfg["aug"]
     tf = build_train_tf(
         image_size=image_size,
-        mean=aug["mean"],
-        std=aug["std"],
-        mirror=aug["mirror"],
-        crop_prob=aug["crop_prob"],
-        crop_ratio=aug["crop_ratio"],
-        scale_255=aug["scale_255"],
+        aug_cfg=aug,
     )
 
     ds_name = tcfg["dataset"]["name"]

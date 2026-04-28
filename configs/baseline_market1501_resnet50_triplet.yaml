@@ -41,9 +41,19 @@ data:
       scale_255: true
       mean: [0.486, 0.459, 0.408]
       std:  [0.229, 0.224, 0.225]
-      mirror: random         # none|random|always
-      crop_prob: 0.0
-      crop_ratio: 1.0
+      mirror: random
+      padding:
+        enabled: true
+        size: 10
+      random_crop:
+        enabled: true
+      random_erasing:
+        enabled: true
+        probability: 0.5
+        sl: 0.02
+        sh: 0.4
+        r1: 0.3
+        mean: [0.486, 0.459, 0.408]
     loader:
       shuffle: true
       final_batch: true
