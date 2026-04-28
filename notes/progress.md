@@ -6,6 +6,30 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Optimizer Refinements
+
+Implemented:
+- SGD optimizer builder now supports YAML-controlled `nesterov`
+- optimizer param groups now keep `param_name` for debugging and verification
+- bias-group overrides remain YAML-controlled through:
+  - `bias_lr_factor`
+  - `weight_decay_bias`
+- optimizer tests now verify:
+  - bias params use `base_lr * bias_lr_factor`
+  - bias params use `weight_decay_bias`
+  - non-bias params use base values
+  - SGD honors `nesterov: true`
+
+Validation:
+- `PYTHONPATH=. pytest -q tests/test_optim_build.py`
+- result in this environment: `10 passed`
+
+How To Test:
+- focused optimizer checks:
+  - `PYTHONPATH=. pytest -q tests/test_optim_build.py`
+- quick syntax checks:
+  - `python3 -m py_compile reid/optim/build.py tests/test_optim_build.py`
+
 ### PK Sampler And Training Modes
 
 Implemented:
@@ -288,12 +312,12 @@ Center Loss integration hardening is present in the working tree and not yet com
 
 ## Suggested Next Step
 
-Pick the next Bag-of-Tricks item to implement and validate in the current ReID baseline.
+Implement and validate re-ranking in the current ReID baseline.
 
 Expected focus:
-1. confirm the target trick against the current repo state
-2. keep it YAML-controlled when applicable
-3. add focused validation before committing the step
+1. verify the current evaluator path and where re-ranking should plug in
+2. keep re-ranking YAML-controlled behind `eval.rerank.enabled`
+3. validate that plain evaluation and re-ranked evaluation both remain reproducible
 
 ## Useful Commands
 

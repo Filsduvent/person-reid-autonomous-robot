@@ -55,6 +55,7 @@ BASE_CFG = {
         "bias_lr_factor": 2.0,
         "weight_decay_bias": 1e-4,
         "momentum": 0.9,
+        "nesterov": False,
     },
     "sched": {
         "name": "warmup_multistep",
@@ -108,6 +109,40 @@ def test_build_optimizer_applies_bias_group_overrides():
     assert bias_lr in observed_lrs
     assert base_wd in observed_wds
     assert bias_wd in observed_wds
+
+
+def test_build_optimizer_stores_param_names_and_applies_group_values_per_param():
+    cfg = _make_cfg()
+    model = build_model(cfg, num_classes=3)
+
+    optimizer = build_optimizer(cfg, model)
+
+    base_lr = float(cfg["optim"]["lr"])
+    bias_lr = base_lr * float(cfg["optim"]["bias_lr_factor"])
+    base_wd = float(cfg["optim"]["weight_decay"])
+    bias_wd = float(cfg["optim"]["weight_decay_bias"])
+
+    for group in optimizer.param_groups:
+        param_name = group.get("param_name")
+        assert param_name is not None
+        if "bias" in param_name:
+            assert group["lr"] == pytest.approx(bias_lr)
+            assert group["weight_decay"] == pytest.approx(bias_wd)
+        else:
+            assert group["lr"] == pytest.approx(base_lr)
+            assert group["weight_decay"] == pytest.approx(base_wd)
+
+
+def test_build_optimizer_supports_sgd_nesterov_flag():
+    cfg = _make_cfg()
+    cfg["optim"]["name"] = "sgd"
+    cfg["optim"]["nesterov"] = True
+    model = build_model(cfg, num_classes=3)
+
+    optimizer = build_optimizer(cfg, model)
+
+    assert isinstance(optimizer, torch.optim.SGD)
+    assert optimizer.defaults["nesterov"] is True
 
 
 def test_build_center_optimizer_only_when_enabled():

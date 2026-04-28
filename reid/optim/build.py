@@ -16,6 +16,7 @@ def build_optimizer(cfg, model):
     bias_lr_factor = float(ocfg.get("bias_lr_factor", 1.0))
     weight_decay_bias = float(ocfg.get("weight_decay_bias", weight_decay))
     momentum = float(ocfg.get("momentum", 0.9))
+    nesterov = bool(ocfg.get("nesterov", False))
 
     params = []
     for param_name, param in model.named_parameters():
@@ -33,11 +34,12 @@ def build_optimizer(cfg, model):
                 "params": [param],
                 "lr": lr,
                 "weight_decay": param_weight_decay,
+                "param_name": param_name,
             }
         )
 
     if name == "sgd":
-        return torch.optim.SGD(params, lr=base_lr, momentum=momentum)
+        return torch.optim.SGD(params, lr=base_lr, momentum=momentum, nesterov=nesterov)
     if name == "adam":
         return torch.optim.Adam(params, lr=base_lr)
     if name == "adamw":
