@@ -1,7 +1,7 @@
 experiment:
-  name: baseline_r50_triplet_market1501
+  name: market1501_r50_triplet_id_center
   output_dir: exp/${experiment.name}
-  notes: "ResNet50 backbone, BNNeck optional, Triplet batch-hard baseline"
+  notes: "ResNet50 strong-baseline experiment with Center Loss on corrected epoch-based milestones"
 
 system:
   device: auto         # auto|cpu|cuda
@@ -21,7 +21,7 @@ logging:
     enabled: false
     project: "reid"
     entity: null
-    tags: ["baseline", "r50", "triplet"]
+    tags: ["market1501", "r50", "triplet", "id", "center"]
 
 data:
   root: ~/nobackup/Projects/Dataset
@@ -31,16 +31,16 @@ data:
 
   train:
     dataset:
-      name: market1501       # market1501|duke|cuhk03|msmt17|...
-      split: trainval        # train|trainval
+      name: market1501
+      split: trainval
     images:
-      dir: null              # optional explicit override; usually inferred
+      dir: null
       size: [256, 128]
       batch_dims: NCHW
     aug:
       scale_255: true
       mean: [0.486, 0.459, 0.408]
-      std:  [0.229, 0.224, 0.225]
+      std: [0.229, 0.224, 0.225]
       mirror: random
       padding:
         enabled: true
@@ -58,22 +58,22 @@ data:
       shuffle: true
       final_batch: true
     batch:
-      sampler: pk            # pk|random
-      P: 16                  # ids per batch
-      K: 4                   # images per id
-      batch_size: 64         # use with sampler: random, or keep equal to P*K for pk
+      sampler: pk
+      P: 16
+      K: 4
+      batch_size: 64
 
   test:
     dataset:
       name: market1501
-      split: test            # val|test
+      split: test
     images:
       size: [256, 128]
       batch_dims: NCHW
     aug:
       scale_255: true
       mean: [0.486, 0.459, 0.408]
-      std:  [0.229, 0.224, 0.225]
+      std: [0.229, 0.224, 0.225]
       mirror: none
       crop_prob: 0.0
       crop_ratio: 1.0
@@ -91,16 +91,11 @@ model:
     last_conv_stride: 1
   head:
     embedding_dim: 2048
-    pooling: gap            # gap|max
+    pooling: gap
     bnneck: true
-    normalize: true         # L2-normalize embeddings for metric learning
-
-    # Feature used for metric losses like triplet/center
-    metric_feat: raw        # raw|bn
-
-    # Feature used for evaluation/retrieval
-    eval_feat: bn           # raw|bn
-
+    normalize: true
+    metric_feat: raw
+    eval_feat: bn
     classifier: true
 
 loss:
@@ -114,7 +109,7 @@ loss:
     label_smoothing: 0.1
     weight: 1.0
   center:
-    enabled: false
+    enabled: true
     weight: 0.0005
     lr: 0.5
 
@@ -144,12 +139,12 @@ train:
 
 eval:
   normalize_feat: true
-  distance: euclidean       # euclidean|cosine
+  distance: euclidean
   topk: [1, 5, 10]
-  rerank:                   # optional k-reciprocal re-ranking
+  rerank:
     enabled: false
     k1: 20
     k2: 6
     lambda_value: 0.3
   export:
-    format: ["json"]        # json|csv|npz
+    format: ["json"]

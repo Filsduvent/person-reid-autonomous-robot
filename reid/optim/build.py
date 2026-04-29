@@ -71,7 +71,7 @@ def build_center_optimizer(cfg, criterion):
     return torch.optim.SGD(params, lr=center_lr)
 
 
-def build_scheduler(cfg, optimizer):
+def build_scheduler(cfg, optimizer, steps_per_epoch=None):
     """Build the learning-rate scheduler from YAML config."""
 
     sched_cfg = cfg.get("sched")
@@ -86,9 +86,16 @@ def build_scheduler(cfg, optimizer):
     gamma = float(sched_cfg.get("gamma", 0.1))
 
     if name == "warmup_multistep":
+        if steps_per_epoch is None or int(steps_per_epoch) <= 0:
+            raise ValueError(
+                "warmup_multistep scheduler requires a positive steps_per_epoch so "
+                "epoch milestones can be converted to iteration milestones."
+            )
+        steps_per_epoch = int(steps_per_epoch)
+        milestone_iters = [int(m) * steps_per_epoch for m in milestones]
         return WarmupMultiStepLR(
             optimizer=optimizer,
-            milestones=milestones,
+            milestones=milestone_iters,
             gamma=gamma,
             warmup_factor=float(sched_cfg.get("warmup_factor", 1.0 / 3.0)),
             warmup_iters=int(sched_cfg.get("warmup_iters", 500)),

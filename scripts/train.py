@@ -26,6 +26,31 @@ def resolve_repo_relative_path(path_str: str) -> str:
     repo_root = Path(__file__).resolve().parents[1]
     return str(repo_root / path)
 
+
+def log_eval_metrics(tb_writer, scores, epoch):
+    if tb_writer is None:
+        return
+
+    tb_writer.add_scalar("eval/mAP", float(scores["mAP"]), global_step=epoch)
+    tb_writer.add_scalar("eval/mINP", float(scores["mINP"]), global_step=epoch)
+    if scores.get("Rank1") is not None:
+        tb_writer.add_scalar("eval/Rank1", float(scores["Rank1"]), global_step=epoch)
+    if scores.get("Rank5") is not None:
+        tb_writer.add_scalar("eval/Rank5", float(scores["Rank5"]), global_step=epoch)
+    if scores.get("Rank10") is not None:
+        tb_writer.add_scalar("eval/Rank10", float(scores["Rank10"]), global_step=epoch)
+
+    if "rerank_mAP" in scores:
+        tb_writer.add_scalar("eval/rerank_mAP", float(scores["rerank_mAP"]), global_step=epoch)
+    if "rerank_mINP" in scores:
+        tb_writer.add_scalar("eval/rerank_mINP", float(scores["rerank_mINP"]), global_step=epoch)
+    if scores.get("rerank_Rank1") is not None:
+        tb_writer.add_scalar("eval/rerank_Rank1", float(scores["rerank_Rank1"]), global_step=epoch)
+    if scores.get("rerank_Rank5") is not None:
+        tb_writer.add_scalar("eval/rerank_Rank5", float(scores["rerank_Rank5"]), global_step=epoch)
+    if scores.get("rerank_Rank10") is not None:
+        tb_writer.add_scalar("eval/rerank_Rank10", float(scores["rerank_Rank10"]), global_step=epoch)
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, required=True)
@@ -79,7 +104,7 @@ def main():
     criterion = build_criterion(cfg, num_classes=num_classes, feat_dim=feat_dim).to(device)
     optimizer = build_optimizer(cfg, model)
     center_optimizer = build_center_optimizer(cfg, criterion)
-    scheduler = build_scheduler(cfg, optimizer)
+    scheduler = build_scheduler(cfg, optimizer, steps_per_epoch=len(train_loader))
 
     # --- Test loader ---
     tcfg = cfg["data"]["test"]
@@ -130,6 +155,7 @@ def main():
         if (ep % int(cfg["train"]["eval_interval"])) == 0:
             scores = evaluate_reid(cfg, model, test_loader, device)
             print(f"[Eval] epoch={ep} mAP={scores['mAP']:.4f} Rank1={scores['Rank1']:.4f} mINP={scores['mINP']:.4f}")
+            log_eval_metrics(tb, scores, ep)
 
             # save metrics
             with open(osp.join(metrics_dir, "latest_val.json"), "w") as f:

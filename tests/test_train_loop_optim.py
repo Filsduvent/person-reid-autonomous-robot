@@ -92,7 +92,7 @@ def test_train_loop_runs_with_expected_optimizers_and_logs_lr(cfg, expect_center
     criterion = build_criterion(cfg, num_classes=num_classes, feat_dim=model.feat_dim)
     optimizer = build_optimizer(cfg, model)
     center_optimizer = build_center_optimizer(cfg, criterion)
-    scheduler = build_scheduler(cfg, optimizer)
+    scheduler = build_scheduler(cfg, optimizer, steps_per_epoch=len(loader))
 
     assert (center_optimizer is not None) is expect_center_optimizer
 
@@ -134,7 +134,7 @@ def test_train_loop_runs_on_cuda_for_loss_combinations(cfg):
     criterion = build_criterion(cfg, num_classes=num_classes, feat_dim=model.feat_dim).to("cuda")
     optimizer = build_optimizer(cfg, model)
     center_optimizer = build_center_optimizer(cfg, criterion)
-    scheduler = build_scheduler(cfg, optimizer)
+    scheduler = build_scheduler(cfg, optimizer, steps_per_epoch=len(loader))
 
     avg_loss = train_one_epoch(
         model=model,

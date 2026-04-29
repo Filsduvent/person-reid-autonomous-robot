@@ -170,15 +170,17 @@ def test_build_center_optimizer_returns_none_without_center_loss_module():
     assert build_center_optimizer(cfg, CriterionWithoutCenter()) is None
 
 
-def test_build_scheduler_supports_warmup_multistep_and_updates_per_iteration():
+def test_build_scheduler_supports_warmup_multistep_with_epoch_milestones():
     cfg = _make_cfg()
-    cfg["sched"]["milestones"] = [4, 6]
+    cfg["sched"]["milestones"] = [2, 3]
     model = build_model(cfg, num_classes=3)
     optimizer = build_optimizer(cfg, model)
+    steps_per_epoch = 2
 
-    scheduler = build_scheduler(cfg, optimizer)
+    scheduler = build_scheduler(cfg, optimizer, steps_per_epoch=steps_per_epoch)
 
     assert isinstance(scheduler, WarmupMultiStepLR)
+    assert scheduler.milestones == [4, 6]
 
     lrs = [optimizer.param_groups[0]["lr"]]
     for _ in range(5):
@@ -188,7 +190,17 @@ def test_build_scheduler_supports_warmup_multistep_and_updates_per_iteration():
 
     assert lrs[0] < lrs[1] < lrs[2]
     assert lrs[2] == pytest.approx(cfg["optim"]["lr"])
+    assert lrs[3] == pytest.approx(cfg["optim"]["lr"])
     assert lrs[4] < lrs[3]
+
+
+def test_build_scheduler_rejects_warmup_multistep_without_steps_per_epoch():
+    cfg = _make_cfg()
+    model = build_model(cfg, num_classes=3)
+    optimizer = build_optimizer(cfg, model)
+
+    with pytest.raises(ValueError, match="steps_per_epoch"):
+        build_scheduler(cfg, optimizer)
 
 
 def test_build_scheduler_supports_legacy_step_config():

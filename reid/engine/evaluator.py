@@ -5,6 +5,7 @@ import torch
 
 from reid.metrics.distance import compute_dist, normalize
 from reid.metrics.ranking import cmc, mean_ap, mean_inp
+from reid.metrics.rerank import re_ranking
 from reid.models.outputs import ensure_output_dict
 from reid.utils.io import ensure_dir
 
@@ -40,18 +41,25 @@ def evaluate_reid(cfg, model, test_loader, device):
     q = (marks == 0)
     g = (marks == 1)
 
-    dist = compute_dist(feat[q], feat[g], metric=cfg["eval"]["distance"])
+    q_feat = feat[q]
+    g_feat = feat[g]
+    q_ids = ids[q]
+    g_ids = ids[g]
+    q_cams = cams[q]
+    g_cams = cams[g]
 
-    mAP = mean_ap(dist, ids[q], ids[g], cams[q], cams[g], average=True)
+    dist = compute_dist(q_feat, g_feat, metric=cfg["eval"]["distance"])
+
+    mAP = mean_ap(dist, q_ids, g_ids, q_cams, g_cams, average=True)
     cmc_scores = cmc(
-        dist, ids[q], ids[g], cams[q], cams[g],
+        dist, q_ids, g_ids, q_cams, g_cams,
         topk=max(cfg["eval"]["topk"]),
         separate_camera_set=False,
         single_gallery_shot=False,
         first_match_break=True,
         average=True
     )
-    mINP = mean_inp(dist, ids[q], ids[g], cams[q], cams[g], average=True)
+    mINP = mean_inp(dist, q_ids, g_ids, q_cams, g_cams, average=True)
 
     topk = cfg["eval"]["topk"]
     out = {
@@ -62,4 +70,37 @@ def evaluate_reid(cfg, model, test_loader, device):
         "Rank10": float(cmc_scores[9]) if len(cmc_scores) > 9 else None,
         "cmc": [float(cmc_scores[k-1]) for k in topk],
     }
+
+    rerank_cfg = cfg["eval"].get("rerank", {})
+    if rerank_cfg.get("enabled", False):
+        print("[Eval] Re-ranking enabled. This may use significant CPU memory for large galleries.")
+        q_q_dist = compute_dist(q_feat, q_feat, metric=cfg["eval"]["distance"])
+        g_g_dist = compute_dist(g_feat, g_feat, metric=cfg["eval"]["distance"])
+        rerank_dist = re_ranking(
+            dist,
+            q_q_dist,
+            g_g_dist,
+            k1=int(rerank_cfg.get("k1", 20)),
+            k2=int(rerank_cfg.get("k2", 6)),
+            lambda_value=float(rerank_cfg.get("lambda_value", 0.3)),
+        )
+
+        rerank_map = mean_ap(rerank_dist, q_ids, g_ids, q_cams, g_cams, average=True)
+        rerank_cmc = cmc(
+            rerank_dist, q_ids, g_ids, q_cams, g_cams,
+            topk=max(topk),
+            separate_camera_set=False,
+            single_gallery_shot=False,
+            first_match_break=True,
+            average=True
+        )
+        rerank_minp = mean_inp(rerank_dist, q_ids, g_ids, q_cams, g_cams, average=True)
+        out.update({
+            "rerank_mAP": float(rerank_map),
+            "rerank_mINP": float(rerank_minp),
+            "rerank_Rank1": float(rerank_cmc[0]) if len(rerank_cmc) > 0 else None,
+            "rerank_Rank5": float(rerank_cmc[4]) if len(rerank_cmc) > 4 else None,
+            "rerank_Rank10": float(rerank_cmc[9]) if len(rerank_cmc) > 9 else None,
+            "rerank_cmc": [float(rerank_cmc[k-1]) for k in topk],
+        })
     return out

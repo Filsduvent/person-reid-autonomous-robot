@@ -6,6 +6,81 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Optional Re-Ranking Evaluation
+
+Implemented:
+- optional k-reciprocal re-ranking utility added in `reid/metrics/rerank.py`
+- evaluator now always reports original metrics:
+  - `mAP`
+  - `mINP`
+  - `Rank1`
+  - `Rank5`
+  - `Rank10`
+- evaluator now adds reranked metrics only when `eval.rerank.enabled: true`:
+  - `rerank_mAP`
+  - `rerank_mINP`
+  - `rerank_Rank1`
+  - `rerank_Rank5`
+  - `rerank_Rank10`
+- current evaluator flow remains:
+  - features -> distance matrices -> optional reranking -> metrics
+- metric JSON export now naturally includes rerank keys only when enabled because eval scores are serialized directly
+- TensorBoard eval logging now:
+  - always logs original eval metrics
+  - logs rerank eval metrics only when present
+- evaluator now prints a memory warning when reranking is enabled because large galleries can be expensive on CPU memory
+- active Market1501 baseline config now exposes:
+  - `eval.rerank.enabled`
+  - `eval.rerank.k1`
+  - `eval.rerank.k2`
+  - `eval.rerank.lambda_value`
+
+Validation:
+- `python3 -m py_compile reid/metrics/rerank.py reid/engine/evaluator.py tests/test_rerank.py scripts/train.py`
+- result in this environment: passed
+- `PYTHONPATH=. pytest -q tests/test_rerank.py tests/test_model_forward.py`
+- result in this environment: `11 passed, 5 skipped`
+- rerank tests verify:
+  - rerank utility returns query-gallery distance matrices with finite values
+  - evaluator works with rerank disabled
+  - evaluator works with rerank enabled
+  - original metrics are preserved
+  - rerank metrics are reported separately
+
+How To Test:
+- focused rerank and evaluator checks:
+  - `PYTHONPATH=. pytest -q tests/test_rerank.py tests/test_model_forward.py`
+- rerank experiment toggle:
+  - `PYTHONPATH=. python3 scripts/train.py --config configs/experiment_market1501_resnet50_center.yaml`
+  - duplicate the config or temporarily set `eval.rerank.enabled: true` in the experiment YAML for the rerank comparison run
+
+### Warmup Scheduler Milestone Semantics
+
+Implemented:
+- `warmup_multistep` milestones are now interpreted as epochs, matching the strong-baseline recipe
+- scheduler stepping remains per iteration in the train loop
+- `build_scheduler(cfg, optimizer, steps_per_epoch=...)` now converts YAML epoch milestones into iteration milestones internally
+- warmup remains controlled by `warmup_iters` and therefore still operates per iteration
+- `scripts/train.py` now passes `len(train_loader)` into the scheduler builder so active training uses the corrected semantics
+- scheduler builder now raises a clear error if `warmup_multistep` is requested without a positive `steps_per_epoch`
+
+Validation:
+- `python3 -m py_compile reid/optim/build.py scripts/train.py tests/test_optim_build.py tests/test_train_loop_optim.py`
+- result in this environment: passed
+- `PYTHONPATH=. pytest -q tests/test_optim_build.py tests/test_train_loop_optim.py`
+- result in this environment: `15 passed, 3 skipped`
+- scheduler tests now verify:
+  - epoch milestones are converted to iteration milestones
+  - warmup still ramps per iteration
+  - LR decay occurs at the expected epoch boundary after conversion
+  - missing `steps_per_epoch` fails early for `warmup_multistep`
+
+How To Test:
+- focused scheduler and train-loop checks:
+  - `PYTHONPATH=. pytest -q tests/test_optim_build.py tests/test_train_loop_optim.py`
+- quick syntax checks:
+  - `python3 -m py_compile reid/optim/build.py scripts/train.py tests/test_optim_build.py tests/test_train_loop_optim.py`
+
 ### Optimizer Refinements
 
 Implemented:
@@ -267,8 +342,8 @@ Validation:
   - triplet + ID + center
 
 Notes:
-- scheduler is currently stepped per iteration
-- current milestone semantics therefore behave per iteration unless later converted from epochs
+- scheduler still steps per iteration
+- milestone semantics are now corrected by converting YAML epoch milestones to iteration milestones during scheduler construction
 
 Relevant commit:
 - `17d7485` `Add ReID optimizer and warmup scheduler support`
@@ -308,16 +383,16 @@ Notes:
 
 ## Current Uncommitted Work
 
-Center Loss integration hardening is present in the working tree and not yet committed.
+None. The working tree should be clean after committing the reranking and scheduler-semantics changes.
 
 ## Suggested Next Step
 
-Implement and validate re-ranking in the current ReID baseline.
+Implement and validate the full ResNet50 strong-baseline run with Center Loss enabled on top of the corrected scheduler semantics.
 
 Expected focus:
-1. verify the current evaluator path and where re-ranking should plug in
-2. keep re-ranking YAML-controlled behind `eval.rerank.enabled`
-3. validate that plain evaluation and re-ranked evaluation both remain reproducible
+1. keep the study centered on `resnet50`
+2. use `configs/experiment_market1501_resnet50_center.yaml` for the next full run
+3. compare base metrics first with `eval.rerank.enabled: false`, then reranked metrics with the same setup and `eval.rerank.enabled: true`
 
 ## Useful Commands
 
@@ -337,4 +412,10 @@ Run current test coverage:
 
 ```bash
 PYTHONPATH=. pytest -q tests/test_data_transforms.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_optim_build.py
+```
+
+Run next ResNet50 center-loss experiment:
+
+```bash
+PYTHONPATH=. python3 scripts/train.py --config configs/experiment_market1501_resnet50_center.yaml
 ```
