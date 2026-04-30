@@ -6,6 +6,62 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Collate Functions And Training Observability
+
+Implemented:
+- explicit train/test collate functions added in `reid/data/collate.py`
+  - `train_collate_fn(batch)` for `(image, label)` batches
+  - `test_collate_fn(batch)` for `(image, pid, camid, name, mark)` batches
+- both shared dataloader builders now use explicit `collate_fn` wiring in `reid/data/build.py`
+  - train loader now uses `train_collate_fn`
+  - test loader now uses `test_collate_fn`
+- train/test batch contracts are now explicit instead of relying on PyTorch default collation for metadata
+- `scripts/train.py` and `scripts/evaluate.py` continue to use the shared builders, so there is still no duplicated test-loader construction
+- `reid/engine/train_loop.py` now computes `acc_id` when classifier logits are present
+  - this is conditional and only runs when `outputs["logits"]` exists
+  - triplet-only mode still works without accuracy logging
+- train loop now logs time/speed observability data at each log interval:
+  - `time/batch`
+  - `speed=... imgs/s`
+  - `lr/base`
+- TensorBoard now receives:
+  - `acc/id` when logits are present
+  - `time/batch`
+  - `speed/img_per_sec`
+  - `lr/base`
+
+What It Adds:
+- clearer and more durable dataset/dataloader contracts
+- safer metadata handling for evaluation batches
+- better training sanity checks when ID logits are enabled
+- easier throughput debugging and machine-to-machine comparison
+- no change to model architecture, loss behavior, or metric definitions
+
+How It Works:
+- train collation stacks images and converts labels to `torch.long`
+- test collation stacks images, converts numeric metadata to `torch.long`, and preserves filenames as a Python `list`
+- dataloader builders pass those collate functions directly into `DataLoader(...)`
+- train-loop accuracy is computed from `logits.argmax(dim=1)` versus labels only when logits exist
+- speed is computed from logged samples over interval wall-clock time, while `time/batch` is derived from the same interval
+
+Validation:
+- `python3 -m py_compile reid/data/collate.py reid/data/build.py reid/engine/train_loop.py tests/test_collate.py tests/test_train_loop_optim.py`
+- result in this environment: passed
+- `PYTHONPATH=. pytest -q tests/test_collate.py tests/test_train_loop_optim.py tests/test_model_forward.py`
+- result in this environment: `14 passed, 6 skipped`
+- collate and observability tests verify:
+  - train collate returns `NCHW` images and `torch.long` labels
+  - test collate returns images, pids, camids, names, and marks with the expected types
+  - train loop logs LR, time per batch, and speed
+  - `acc_id` appears only when classifier logits are available
+  - triplet-only mode still runs
+
+How To Test:
+- focused collate and train-loop checks:
+  - `PYTHONPATH=. pytest -q tests/test_collate.py tests/test_train_loop_optim.py tests/test_model_forward.py`
+- quick syntax checks:
+  - `python3 -m py_compile reid/data/collate.py reid/data/build.py reid/engine/train_loop.py`
+
 ### Train And Evaluation Orchestration
 
 Implemented:

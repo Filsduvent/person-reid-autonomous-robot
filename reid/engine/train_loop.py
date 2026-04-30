@@ -23,10 +23,13 @@ def train_one_epoch(
     num_steps = len(loader)
 
     t0 = time.time()
+    last_log_time = t0
     running_total = 0.0
     running_triplet = 0.0
     running_id = 0.0
     running_center = 0.0
+    running_acc_id = 0.0
+    acc_steps = 0
 
     for step, (imgs, labels) in enumerate(loader, start=1):
         imgs = imgs.to(device, non_blocking=True)
@@ -62,9 +65,22 @@ def train_one_epoch(
         running_triplet += float(logs.get("loss/triplet", 0.0))
         running_id += float(logs.get("loss/id", 0.0))
         running_center += float(logs.get("loss/center", 0.0))
+        logits = outputs.get("logits")
+        batch_acc = None
+        if logits is not None:
+            pred = logits.argmax(dim=1)
+            batch_acc = float((pred == labels).float().mean().detach().cpu())
+            running_acc_id += batch_acc
+            acc_steps += 1
 
         if (step % log_interval) == 0:
             dt = time.time() - t0
+            interval_elapsed = time.time() - last_log_time
+            batch_size = int(imgs.shape[0])
+            interval_steps = min(log_interval, step)
+            time_per_batch = interval_elapsed / max(1, interval_steps)
+            speed = (batch_size * interval_steps) / max(interval_elapsed, 1e-12)
+            last_log_time = time.time()
             avg = running_total / step
             current_lr = optimizer.param_groups[0]["lr"]
             bias_lr = next(
@@ -75,17 +91,23 @@ def train_one_epoch(
                 ),
                 None,
             )
+            avg_acc = (running_acc_id / acc_steps) if acc_steps > 0 else None
 
-            msg = f"[Epoch {epoch}] step {step:04d}/{num_steps:04d} loss={avg:.4f} lr={current_lr:.6g}"
+            msg = (
+                f"Epoch [{epoch}] Iter [{step}/{num_steps}] "
+                f"loss_total={avg:.4f} lr={current_lr:.6g}"
+            )
             if bias_lr is not None:
                 msg += f" lr/bias={bias_lr:.6g}"
+            if avg_acc is not None:
+                msg += f" acc_id={avg_acc:.4f}"
             if running_triplet > 0.0:
                 msg += f" triplet={running_triplet / step:.4f}"
             if running_id > 0.0:
                 msg += f" id={running_id / step:.4f}"
             if running_center > 0.0:
                 msg += f" center={running_center / step:.4f}"
-            msg += f" ({dt:.1f}s)"
+            msg += f" time/batch={time_per_batch:.4f}s speed={speed:.2f} imgs/s elapsed={dt:.1f}s"
             if logger is not None:
                 logger.info(msg)
             else:
@@ -98,6 +120,11 @@ def train_one_epoch(
                 tb_writer.add_scalar("loss/id", logs.get("loss/id", 0.0), global_step=global_step)
                 tb_writer.add_scalar("loss/center", logs.get("loss/center", 0.0), global_step=global_step)
                 tb_writer.add_scalar("lr", current_lr, global_step=global_step)
+                tb_writer.add_scalar("lr/base", current_lr, global_step=global_step)
+                tb_writer.add_scalar("time/batch", time_per_batch, global_step=global_step)
+                tb_writer.add_scalar("speed/img_per_sec", speed, global_step=global_step)
+                if avg_acc is not None:
+                    tb_writer.add_scalar("acc/id", avg_acc, global_step=global_step)
                 if bias_lr is not None:
                     tb_writer.add_scalar("lr/bias", bias_lr, global_step=global_step)
 

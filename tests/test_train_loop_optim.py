@@ -112,7 +112,11 @@ def test_train_loop_runs_with_expected_optimizers_and_logs_lr(cfg, expect_center
 
     captured = capsys.readouterr()
     assert avg_loss > 0.0
-    assert " lr=" in captured.out
+    assert "lr=" in captured.out
+    assert "time/batch=" in captured.out
+    assert "speed=" in captured.out
+    if cfg["model"]["head"]["classifier"]:
+        assert "acc_id=" in captured.out
 
 
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA is not available in this environment")

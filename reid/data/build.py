@@ -1,5 +1,6 @@
 from torch.utils.data import DataLoader
 
+from reid.data.collate import test_collate_fn, train_collate_fn
 from reid.data.market1501 import Market1501FromPartitions
 from reid.data.market1501_test import Market1501TestFromPartitions
 from reid.data.samplers import PKBatchSampler
@@ -53,6 +54,7 @@ def build_train_loader(cfg):
             batch_sampler=batch_sampler,
             num_workers=num_workers,
             pin_memory=pin_memory,
+            collate_fn=train_collate_fn,
         )
         batch_size = expected_batch_size
     elif sampler_name == "random":
@@ -64,6 +66,7 @@ def build_train_loader(cfg):
             num_workers=num_workers,
             pin_memory=pin_memory,
             drop_last=True,
+            collate_fn=train_collate_fn,
         )
     else:
         raise ValueError(f"Unsupported train sampler '{sampler_name}'. Use 'pk' or 'random'.")
@@ -93,5 +96,6 @@ def build_test_loader(cfg):
         num_workers=int(cfg["data"]["num_workers"]),
         pin_memory=bool(cfg["data"]["pin_memory"]),
         drop_last=False,
+        collate_fn=test_collate_fn,
     )
     return loader
