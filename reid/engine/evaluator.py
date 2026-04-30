@@ -32,7 +32,7 @@ def extract_features(model, loader, device):
             np.hstack(names),
             np.hstack(marks))
 
-def evaluate_reid(cfg, model, test_loader, device):
+def evaluate_reid(cfg, model, test_loader, device, logger=None):
     feat, ids, cams, im_names, marks = extract_features(model, test_loader, device)
 
     if cfg["eval"]["normalize_feat"]:
@@ -73,7 +73,10 @@ def evaluate_reid(cfg, model, test_loader, device):
 
     rerank_cfg = cfg["eval"].get("rerank", {})
     if rerank_cfg.get("enabled", False):
-        print("[Eval] Re-ranking enabled. This may use significant CPU memory for large galleries.")
+        if logger is not None:
+            logger.warning("Re-ranking enabled. This may use significant CPU memory for large galleries.")
+        else:
+            print("[Eval] Re-ranking enabled. This may use significant CPU memory for large galleries.")
         q_q_dist = compute_dist(q_feat, q_feat, metric=cfg["eval"]["distance"])
         g_g_dist = compute_dist(g_feat, g_feat, metric=cfg["eval"]["distance"])
         rerank_dist = re_ranking(

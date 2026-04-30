@@ -140,9 +140,11 @@ train:
   save:
     save_best: true
     metric: mAP
-    resume: ""
+    resume: ""             # resume training checkpoint path
+    save_last: true
 
 eval:
+  weight: ""               # optional checkpoint path for standalone evaluate.py
   normalize_feat: true
   distance: euclidean       # euclidean|cosine
   topk: [1, 5, 10]

@@ -6,6 +6,77 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Train And Evaluation Orchestration
+
+Implemented:
+- experiment logger utility added in `reid/utils/logger.py`
+- checkpoint utility added in `reid/utils/checkpoint.py`
+- checkpoint loading now supports:
+  - full training checkpoints with `ckpt["model"]`
+  - raw model-only state dicts
+  - `module.` prefix stripping for non-DataParallel loads
+- `scripts/train.py` was refactored into an orchestration-style entrypoint that now:
+  - loads config plus `--opts` overrides
+  - creates experiment artifact directories
+  - sets up logger, device, seed, TensorBoard, loaders, model, criterion, optimizer, center optimizer, and scheduler
+  - resumes from `train.save.resume` when configured
+  - saves canonical checkpoints and eval artifacts
+- `scripts/evaluate.py` added as a standalone evaluation entrypoint that:
+  - loads config plus optional `--weight`
+  - builds only the test-side path
+  - loads a checkpoint
+  - runs evaluation without training
+  - writes metrics JSON under the experiment directory
+- shared `build_test_loader(cfg)` added to `reid/data/build.py` so train/evaluate reuse the same test loader logic
+- evaluation JSON export schema is now consistent across training and standalone evaluation:
+  - `dataset`
+  - `split`
+  - `epoch`
+  - `checkpoint`
+  - `mAP`
+  - `mINP`
+  - `Rank1`
+  - `Rank5`
+  - `Rank10`
+  - rerank fields only when reranking is enabled
+- resolved config artifacts are now saved as:
+  - `config.resolved.yaml`
+  - `config.yaml` compatibility alias
+- canonical checkpoints are now saved as:
+  - `checkpoints/ckpt_best.pth`
+  - `checkpoints/ckpt_last.pth`
+- train artifact layer now also writes:
+  - `logs/stdout.txt`
+  - `logs/stderr.txt`
+  - `plots/loss_curve.png`
+  - `plots/rank1_curve.png`
+  - `plots/map_bar.png`
+  - `plots/minp_bar.png`
+  - `plots/cmc_curve.png`
+- standalone evaluation now also tee-captures raw output to:
+  - `logs/eval_stdout.txt`
+  - `logs/eval_stderr.txt`
+
+Validation:
+- `python3 -m py_compile reid/utils/logger.py reid/utils/checkpoint.py scripts/train.py scripts/evaluate.py reid/data/build.py`
+- result in this environment: passed
+- `PYTHONPATH=. pytest -q tests/test_checkpoint.py tests/test_train_orchestration.py tests/test_train_loop_optim.py tests/test_model_forward.py tests/test_rerank.py`
+- result in this environment: `32 passed, 11 skipped`
+- orchestration tests now verify:
+  - canonical resolved-config artifact naming
+  - canonical checkpoint naming
+  - resume restores epoch, best metric, optimizer, scheduler, and center optimizer state
+  - model-only checkpoint load works
+  - `module.` prefix stripping works
+
+How To Test:
+- focused orchestration checks:
+  - `PYTHONPATH=. pytest -q tests/test_checkpoint.py tests/test_train_orchestration.py tests/test_train_loop_optim.py`
+- direct standalone evaluator CLI check:
+  - `python3 scripts/evaluate.py --help`
+- example standalone evaluation run:
+  - `python3 scripts/evaluate.py --config configs/experiment_market1501_resnet50_center_rerank.yaml --weight exp/market1501_r50_triplet_id_center_rerank/checkpoints/ckpt_best.pth`
+
 ### Optional Re-Ranking Evaluation
 
 Implemented:
@@ -383,16 +454,16 @@ Notes:
 
 ## Current Uncommitted Work
 
-None. The working tree should be clean after committing the reranking and scheduler-semantics changes.
+Orchestration / artifact-layer changes are present and should be committed as a separate step after review.
 
 ## Suggested Next Step
 
-Implement and validate the full ResNet50 strong-baseline run with Center Loss enabled on top of the corrected scheduler semantics.
+Run at least one real end-to-end experiment with the refactored orchestration and inspect the new artifacts.
 
 Expected focus:
-1. keep the study centered on `resnet50`
-2. use `configs/experiment_market1501_resnet50_center.yaml` for the next full run
-3. compare base metrics first with `eval.rerank.enabled: false`, then reranked metrics with the same setup and `eval.rerank.enabled: true`
+1. verify `config.resolved.yaml`, `logs/`, `checkpoints/`, `metrics/`, and `plots/` are all created as expected
+2. verify `train.save.resume` through a real interrupted-and-resumed run
+3. verify `scripts/evaluate.py` on a real checkpoint in both rerank-off and rerank-on settings
 
 ## Useful Commands
 
@@ -418,4 +489,10 @@ Run next ResNet50 center-loss experiment:
 
 ```bash
 PYTHONPATH=. python3 scripts/train.py --config configs/experiment_market1501_resnet50_center.yaml
+```
+
+Run standalone evaluation:
+
+```bash
+python3 scripts/evaluate.py --config configs/experiment_market1501_resnet50_center_rerank.yaml --weight exp/market1501_r50_triplet_id_center_rerank/checkpoints/ckpt_best.pth
 ```

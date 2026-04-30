@@ -1,6 +1,7 @@
 from torch.utils.data import DataLoader
 
 from reid.data.market1501 import Market1501FromPartitions
+from reid.data.market1501_test import Market1501TestFromPartitions
 from reid.data.samplers import PKBatchSampler
 from reid.data.transforms import build_train_tf, build_test_tf
 
@@ -68,3 +69,29 @@ def build_train_loader(cfg):
         raise ValueError(f"Unsupported train sampler '{sampler_name}'. Use 'pk' or 'random'.")
 
     return loader, batch_size
+
+
+def build_test_loader(cfg):
+    root = cfg["data"]["root"]
+    tcfg = cfg["data"]["test"]
+
+    image_size = tuple(tcfg["images"]["size"])
+    aug = tcfg["aug"]
+    tf = build_test_tf(image_size=image_size, mean=aug["mean"], std=aug["std"])
+
+    ds_name = tcfg["dataset"]["name"]
+    split = tcfg["dataset"]["split"]
+
+    if ds_name != "market1501":
+        raise NotImplementedError(f"Test loader currently supports market1501 only, got {ds_name}")
+
+    dataset = Market1501TestFromPartitions(root=root, split=split, transform=tf)
+    loader = DataLoader(
+        dataset,
+        batch_size=int(tcfg["batch"]["size"]),
+        shuffle=bool(tcfg["loader"]["shuffle"]),
+        num_workers=int(cfg["data"]["num_workers"]),
+        pin_memory=bool(cfg["data"]["pin_memory"]),
+        drop_last=False,
+    )
+    return loader

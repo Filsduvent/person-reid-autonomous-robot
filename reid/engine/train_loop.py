@@ -15,6 +15,7 @@ def train_one_epoch(
     scheduler=None,
     tb_writer=None,
     epoch: int = 1,
+    logger=None,
 ):
     model.train()
     amp_device = "cuda" if device.type == "cuda" else "cpu"
@@ -85,7 +86,10 @@ def train_one_epoch(
             if running_center > 0.0:
                 msg += f" center={running_center / step:.4f}"
             msg += f" ({dt:.1f}s)"
-            print(msg)
+            if logger is not None:
+                logger.info(msg)
+            else:
+                print(msg)
 
             if tb_writer is not None:
                 global_step = epoch * 100000 + step
