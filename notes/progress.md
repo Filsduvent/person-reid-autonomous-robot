@@ -6,6 +6,102 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### DukeMTMC-ReID Dataset Lock
+
+Implemented:
+- DukeMTMC-ReID dataset support added in `reid/data/duke.py`
+  - `DukeProcessedTrain`
+  - `DukeProcessedTest`
+  - `DukeRawTrain`
+  - `DukeRawTest`
+  - `parse_duke_raw_name`
+  - shared processed parser import: `parse_processed_reid_name`
+- Duke uses the same global ReID dataset protocol as Market1501 and CUHK03
+  - train samples return `(image, label)`
+  - eval samples return `(image, pid, camid, image_name, mark)`
+  - `mark=0` means query and `mark=1` means gallery
+- supported processed layout:
+  - `root/duke/images`
+  - `root/duke/partitions.pkl`
+- supported raw layout:
+  - `root/duke/DukeMTMC-reID/bounding_box_train`
+  - `root/duke/DukeMTMC-reID/query`
+  - `root/duke/DukeMTMC-reID/bounding_box_test`
+- supported train splits:
+  - `train`
+  - `trainval`
+- supported eval splits:
+  - `val`
+  - `test`
+- raw Duke filename parsing is strict enough for the official naming convention:
+  - uses regex `([-\d]+)_c(\d)`
+  - skips junk pid `-1`
+  - validates camera range `[1, 8]`
+  - converts raw camera ids to zero-based ids
+- processed Duke uses the shared transformed ReID parser:
+  - `parse_processed_reid_name("00000002_0001_00000000.jpg") -> (2, 1)`
+- train datasets expose:
+  - `labels`
+  - `num_classes`
+  - `pids`
+  - `cams`
+  - `im_names`
+- test datasets expose:
+  - `pids`
+  - `cams`
+  - `marks`
+  - `im_names`
+  - `num_query`
+  - `num_gallery`
+- raw test ordering is locked:
+  - query samples first with `mark=0`
+  - gallery samples second with `mark=1`
+- Duke constructors fail early with `FileNotFoundError(path)` for missing:
+  - processed `images`
+  - processed `partitions.pkl`
+  - raw `bounding_box_train`
+  - raw `query`
+  - raw `bounding_box_test`
+- `reid/data/build.py` now dispatches Market1501, CUHK03, and Duke
+  - Duke `format: processed` uses `images/partitions.pkl`
+  - Duke `format: raw` uses the official folders
+  - missing `format` defaults to `processed`
+- Duke dataset statistics are printed by the builders:
+  - `[DukeMTMC-ReID] format=processed split=trainval`
+  - `num images`
+  - `num identities`
+  - `num query images`
+  - `num gallery images`
+  - `num cameras`
+- Duke baseline config added:
+  - `configs/baseline_duke_resnet50_triplet.yaml`
+  - default train dataset: `name=duke`, `split=trainval`, `format=processed`
+  - default test dataset: `name=duke`, `split=test`, `format=processed`
+
+What It Locks:
+- Duke processed train/eval can plug into the same train loop, sampler, loss, model, and evaluator as Market1501 and CUHK03
+- Duke raw train/eval can be selected through config when the official folders exist
+- no evaluator logic changes are required
+- `num_classes` is exposed by train datasets
+- query/gallery ordering is deterministic and tested
+
+Validation:
+- `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_dataset_protocol.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py`
+- result in this environment: `83 passed in 3.69s`
+- evaluator files were not modified
+
+How To Test:
+- focused Duke/unit checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_duke_dataset.py tests/test_dataset_protocol.py`
+- focused dataset regression checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_dataset_protocol.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py`
+- real-data processed smoke check on Constantine:
+  - set `data.root` to the parent directory containing `duke/images` and `duke/partitions.pkl`
+  - run the normal train/eval loader path with `configs/baseline_duke_resnet50_triplet.yaml`
+- real-data raw smoke check on Constantine:
+  - override Duke train/test dataset `format: raw`
+  - ensure `root/duke/DukeMTMC-reID/{bounding_box_train,query,bounding_box_test}` exists
+
 ### CUHK03 Processed Dataset Lock
 
 Implemented:

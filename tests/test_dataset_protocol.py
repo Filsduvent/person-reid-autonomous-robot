@@ -395,3 +395,116 @@ def test_build_loaders_reject_unknown_cuhk03_format(monkeypatch):
 
     with pytest.raises(ValueError, match="Unsupported CUHK03 test dataset format"):
         build_test_loader(test_cfg)
+
+
+@pytest.mark.parametrize(
+    ("dataset_format", "attr_name"),
+    [
+        ("processed", "DukeProcessedTrain"),
+        ("raw", "DukeRawTrain"),
+    ],
+)
+def test_build_train_loader_uses_duke_when_configured(monkeypatch, capsys, dataset_format, attr_name):
+    used = {}
+
+    class DukeTrainDataset(_TrainDataset):
+        def __init__(self, root=None, split=None, transform=None):
+            super().__init__(root=root, split=split, transform=transform)
+            self.split = split
+            self.cams = [1 for _ in self.labels]
+            used.update({"root": root, "split": split, "format": dataset_format})
+
+    monkeypatch.setattr(f"reid.data.build.{attr_name}", DukeTrainDataset)
+    monkeypatch.setattr("reid.data.build.build_train_tf", lambda image_size, aug_cfg: None)
+    cfg = copy.deepcopy(TRAIN_CFG)
+    cfg["data"]["train"]["dataset"] = {
+        "name": "duke",
+        "split": "trainval",
+        "format": dataset_format,
+    }
+
+    loader, _ = build_train_loader(cfg)
+    out = capsys.readouterr().out
+
+    assert loader.dataset.num_classes == 2
+    assert used == {
+        "root": "/tmp/unused",
+        "split": "trainval",
+        "format": dataset_format,
+    }
+    assert f"[DukeMTMC-ReID] format={dataset_format} split=trainval" in out
+    assert "num images: 4" in out
+    assert "num identities: 2" in out
+    assert "num cameras: 1" in out
+
+
+@pytest.mark.parametrize(
+    ("dataset_format", "attr_name"),
+    [
+        ("processed", "DukeProcessedTest"),
+        ("raw", "DukeRawTest"),
+    ],
+)
+def test_build_test_loader_uses_duke_when_configured(monkeypatch, capsys, dataset_format, attr_name):
+    used = {}
+
+    class DukeTestDataset(_EvalDataset):
+        def __init__(self, root=None, split=None, transform=None):
+            super().__init__(root=root, split=split, transform=transform)
+            self.split = split
+            used.update({"root": root, "split": split, "format": dataset_format})
+
+    monkeypatch.setattr(f"reid.data.build.{attr_name}", DukeTestDataset)
+    monkeypatch.setattr(
+        "reid.data.build.build_test_tf",
+        lambda image_size, mean, std: None,
+    )
+    cfg = copy.deepcopy(TEST_CFG)
+    cfg["data"]["test"]["dataset"] = {
+        "name": "duke",
+        "split": "test",
+        "format": dataset_format,
+    }
+
+    loader = build_test_loader(cfg)
+    out = capsys.readouterr().out
+
+    assert loader.dataset.marks == [MARK_QUERY, MARK_GALLERY]
+    assert used == {
+        "root": "/tmp/unused",
+        "split": "test",
+        "format": dataset_format,
+    }
+    assert f"[DukeMTMC-ReID] format={dataset_format} split=test" in out
+    assert "num images: 2" in out
+    assert "num identities: 1" in out
+    assert "num query images: 1" in out
+    assert "num gallery images: 1" in out
+    assert "num cameras: 1" in out
+
+
+def test_build_loaders_reject_unknown_duke_format(monkeypatch):
+    monkeypatch.setattr("reid.data.build.build_train_tf", lambda image_size, aug_cfg: None)
+    train_cfg = copy.deepcopy(TRAIN_CFG)
+    train_cfg["data"]["train"]["dataset"] = {
+        "name": "duke",
+        "split": "trainval",
+        "format": "unknown",
+    }
+
+    with pytest.raises(ValueError, match="Unsupported Duke train dataset format"):
+        build_train_loader(train_cfg)
+
+    monkeypatch.setattr(
+        "reid.data.build.build_test_tf",
+        lambda image_size, mean, std: None,
+    )
+    test_cfg = copy.deepcopy(TEST_CFG)
+    test_cfg["data"]["test"]["dataset"] = {
+        "name": "duke",
+        "split": "test",
+        "format": "unknown",
+    }
+
+    with pytest.raises(ValueError, match="Unsupported Duke test dataset format"):
+        build_test_loader(test_cfg)
