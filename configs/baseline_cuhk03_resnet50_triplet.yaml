@@ -1,0 +1,165 @@
+experiment:
+  name: baseline_r50_triplet_cuhk03_detected
+  output_dir: exp/${experiment.name}
+  notes: "ResNet50 backbone, BNNeck optional, Triplet batch-hard baseline"
+
+system:
+  device: auto         # auto|cpu|cuda
+  gpu_id: 0
+  amp: false
+  log_interval: 20
+
+repro:
+  seed: 42
+  deterministic: false
+  benchmark: true
+
+logging:
+  to_file: true
+  tensorboard: true
+  wandb:
+    enabled: false
+    project: "reid"
+    entity: null
+    tags: ["baseline", "r50", "triplet"]
+
+data:
+  root: ~/Dataset
+  num_workers: 4
+  pin_memory: true
+  prefetch_threads: 2
+
+  train:
+    dataset:
+      name: cuhk03           # market1501|duke|cuhk03|msmt17|...
+      split: trainval        # train|trainval
+      format: processed      # processed
+      image_type: detected   # detected|labeled
+      protocol: new          # new|classic
+      split_id: 0
+    images:
+      dir: null              # optional explicit override; usually inferred
+      size: [256, 128]
+      batch_dims: NCHW
+    aug:
+      scale_255: true
+      mean: [0.486, 0.459, 0.408]
+      std:  [0.229, 0.224, 0.225]
+      mirror: random
+      padding:
+        enabled: true
+        size: 10
+      random_crop:
+        enabled: true
+      random_erasing:
+        enabled: true
+        probability: 0.5
+        sl: 0.02
+        sh: 0.4
+        r1: 0.3
+        mean: [0.486, 0.459, 0.408]
+    loader:
+      shuffle: true
+      final_batch: true
+    batch:
+      sampler: pk            # pk|random
+      P: 16                  # ids per batch
+      K: 4                   # images per id
+      batch_size: 64         # use with sampler: random, or keep equal to P*K for pk
+
+  test:
+    dataset:
+      name: cuhk03
+      split: test            # val|test
+      format: processed      # processed
+      image_type: detected   # detected|labeled
+      protocol: new          # new|classic
+      split_id: 0
+    images:
+      size: [256, 128]
+      batch_dims: NCHW
+    aug:
+      scale_255: true
+      mean: [0.486, 0.459, 0.408]
+      std:  [0.229, 0.224, 0.225]
+      mirror: none
+      crop_prob: 0.0
+      crop_ratio: 1.0
+    loader:
+      shuffle: false
+      final_batch: true
+    batch:
+      size: 32
+
+model:
+  name: reid_baseline
+  backbone:
+    name: resnet50
+    pretrained: true
+    last_conv_stride: 1
+  head:
+    embedding_dim: 2048
+    pooling: gap            # gap|max
+    bnneck: true
+    normalize: true         # L2-normalize embeddings for metric learning
+
+    # Feature used for metric losses like triplet/center
+    metric_feat: raw        # raw|bn
+
+    # Feature used for evaluation/retrieval
+    eval_feat: bn           # raw|bn
+
+    classifier: true
+
+loss:
+  triplet:
+    enabled: true
+    margin: 0.3
+    mining: batch_hard
+    weight: 1.0
+  id:
+    enabled: true
+    label_smoothing: 0.1
+    weight: 1.0
+  center:
+    enabled: false
+    weight: 0.0005
+    lr: 0.5
+
+optim:
+  name: adam
+  lr: 0.0003
+  weight_decay: 0.0005
+  bias_lr_factor: 1.0
+  weight_decay_bias: 0.0005
+  momentum: 0.9
+
+sched:
+  name: warmup_multistep
+  milestones: [40, 70]
+  gamma: 0.1
+  warmup_factor: 0.01
+  warmup_iters: 500
+  warmup_method: linear
+
+train:
+  epochs: 120
+  eval_interval: 10
+  save:
+    save_best: true
+    metric: mAP
+    resume: ""             # resume training checkpoint path
+    save_last: true
+
+eval:
+  weight: ""               # optional checkpoint path for standalone evaluate.py
+  normalize_feat: true
+  distance: euclidean       # euclidean|cosine
+  topk: [1, 5, 10]
+  rerank:                   # optional k-reciprocal re-ranking
+    enabled: false
+    k1: 20
+    k2: 6
+    lambda_value: 0.3
+  export:
+    format: ["json"]        # json|csv|npz

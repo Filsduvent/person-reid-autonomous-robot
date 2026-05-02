@@ -253,3 +253,145 @@ def test_build_loaders_reject_unknown_market1501_format(monkeypatch):
 
     with pytest.raises(ValueError, match="Unsupported Market1501 test dataset format"):
         build_test_loader(test_cfg)
+
+
+def test_build_train_loader_uses_processed_cuhk03_when_configured(monkeypatch, capsys):
+    used = {}
+
+    class CUHKTrainDataset(_TrainDataset):
+        def __init__(
+            self,
+            root=None,
+            split=None,
+            image_type="detected",
+            protocol="new",
+            split_id=0,
+            transform=None,
+            ):
+                super().__init__(root=root, split=split, transform=transform)
+                self.split = split
+                self.image_type = image_type
+                self.protocol = protocol
+                self.split_id = split_id
+                used.update({
+                "root": root,
+                "split": split,
+                "image_type": image_type,
+                "protocol": protocol,
+                "split_id": split_id,
+            })
+
+    monkeypatch.setattr("reid.data.build.CUHK03ProcessedTrain", CUHKTrainDataset)
+    monkeypatch.setattr("reid.data.build.build_train_tf", lambda image_size, aug_cfg: None)
+    cfg = copy.deepcopy(TRAIN_CFG)
+    cfg["data"]["train"]["dataset"] = {
+        "name": "cuhk03",
+        "split": "trainval",
+        "format": "processed",
+        "image_type": "labeled",
+        "protocol": "classic",
+        "split_id": 2,
+    }
+
+    loader, _ = build_train_loader(cfg)
+    out = capsys.readouterr().out
+
+    assert loader.dataset.num_classes == 2
+    assert "[CUHK03] format=processed image_type=labeled split=trainval" in out
+    assert "num images: 4" in out
+    assert "num identities: 2" in out
+    assert "num query images: n/a" in out
+    assert "num gallery images: n/a" in out
+    assert used == {
+        "root": "/tmp/unused",
+        "split": "trainval",
+        "image_type": "labeled",
+        "protocol": "classic",
+        "split_id": 2,
+    }
+
+
+def test_build_test_loader_uses_processed_cuhk03_when_configured(monkeypatch, capsys):
+    used = {}
+
+    class CUHKTestDataset(_EvalDataset):
+        def __init__(
+            self,
+            root=None,
+            split=None,
+            image_type="detected",
+            protocol="new",
+            split_id=0,
+            transform=None,
+            ):
+                super().__init__(root=root, split=split, transform=transform)
+                self.split = split
+                self.image_type = image_type
+                self.protocol = protocol
+                self.split_id = split_id
+                used.update({
+                "root": root,
+                "split": split,
+                "image_type": image_type,
+                "protocol": protocol,
+                "split_id": split_id,
+            })
+
+    monkeypatch.setattr("reid.data.build.CUHK03ProcessedTest", CUHKTestDataset)
+    monkeypatch.setattr(
+        "reid.data.build.build_test_tf",
+        lambda image_size, mean, std: None,
+    )
+    cfg = copy.deepcopy(TEST_CFG)
+    cfg["data"]["test"]["dataset"] = {
+        "name": "cuhk03",
+        "split": "test",
+        "format": "processed",
+        "image_type": "detected",
+        "protocol": "new",
+        "split_id": 0,
+    }
+
+    loader = build_test_loader(cfg)
+    out = capsys.readouterr().out
+
+    assert loader.dataset.marks == [MARK_QUERY, MARK_GALLERY]
+    assert "[CUHK03] format=processed image_type=detected split=test" in out
+    assert "num images: 2" in out
+    assert "num identities: n/a" in out
+    assert "num query images: 1" in out
+    assert "num gallery images: 1" in out
+    assert used == {
+        "root": "/tmp/unused",
+        "split": "test",
+        "image_type": "detected",
+        "protocol": "new",
+        "split_id": 0,
+    }
+
+
+def test_build_loaders_reject_unknown_cuhk03_format(monkeypatch):
+    monkeypatch.setattr("reid.data.build.build_train_tf", lambda image_size, aug_cfg: None)
+    train_cfg = copy.deepcopy(TRAIN_CFG)
+    train_cfg["data"]["train"]["dataset"] = {
+        "name": "cuhk03",
+        "split": "trainval",
+        "format": "raw",
+    }
+
+    with pytest.raises(ValueError, match="Unsupported CUHK03 train dataset format"):
+        build_train_loader(train_cfg)
+
+    monkeypatch.setattr(
+        "reid.data.build.build_test_tf",
+        lambda image_size, mean, std: None,
+    )
+    test_cfg = copy.deepcopy(TEST_CFG)
+    test_cfg["data"]["test"]["dataset"] = {
+        "name": "cuhk03",
+        "split": "test",
+        "format": "raw",
+    }
+
+    with pytest.raises(ValueError, match="Unsupported CUHK03 test dataset format"):
+        build_test_loader(test_cfg)

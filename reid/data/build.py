@@ -1,6 +1,7 @@
 from torch.utils.data import DataLoader
 
 from reid.data.collate import test_collate_fn, train_collate_fn
+from reid.data.cuhk03 import CUHK03ProcessedTest, CUHK03ProcessedTrain
 from reid.data.market1501 import Market1501FromPartitions, Market1501RawTrain
 from reid.data.market1501_test import Market1501RawTest, Market1501TestFromPartitions
 from reid.data.protocol import validate_eval_dataset, validate_train_dataset
@@ -36,8 +37,34 @@ def _build_market1501_test_dataset(root, split, dataset_format, transform):
     raise ValueError(f"Unsupported Market1501 test dataset format '{dataset_format}'. Use 'processed' or 'raw'.")
 
 
-def _print_market1501_train_stats(dataset_format, dataset):
-    print(f"[Market1501] format={dataset_format}")
+def _build_cuhk03_train_dataset(root, split, dataset_format, dataset_cfg, transform):
+    if dataset_format == "processed":
+        return CUHK03ProcessedTrain(
+            root=root,
+            split=split,
+            image_type=dataset_cfg.get("image_type", "detected"),
+            protocol=dataset_cfg.get("protocol", "new"),
+            split_id=dataset_cfg.get("split_id", 0),
+            transform=transform,
+        )
+    raise ValueError(f"Unsupported CUHK03 train dataset format '{dataset_format}'. Use 'processed'.")
+
+
+def _build_cuhk03_test_dataset(root, split, dataset_format, dataset_cfg, transform):
+    if dataset_format == "processed":
+        return CUHK03ProcessedTest(
+            root=root,
+            split=split,
+            image_type=dataset_cfg.get("image_type", "detected"),
+            protocol=dataset_cfg.get("protocol", "new"),
+            split_id=dataset_cfg.get("split_id", 0),
+            transform=transform,
+        )
+    raise ValueError(f"Unsupported CUHK03 test dataset format '{dataset_format}'. Use 'processed'.")
+
+
+def _print_reid_train_stats(dataset_name, dataset_format, dataset):
+    print(f"[{dataset_name}] format={dataset_format}")
     print(f"train identities: {int(dataset.num_classes)}")
     print(f"train images: {len(dataset)}")
     print("query images: n/a")
@@ -45,13 +72,29 @@ def _print_market1501_train_stats(dataset_format, dataset):
     print(f"cameras: {_camera_count(dataset)}")
 
 
-def _print_market1501_test_stats(dataset_format, dataset):
-    print(f"[Market1501] format={dataset_format}")
+def _print_reid_test_stats(dataset_name, dataset_format, dataset):
+    print(f"[{dataset_name}] format={dataset_format}")
     print("train identities: n/a")
     print("train images: n/a")
     print(f"query images: {_mark_count(dataset, 0)}")
     print(f"gallery images: {_mark_count(dataset, 1)}")
     print(f"cameras: {_camera_count(dataset)}")
+
+
+def _print_cuhk03_train_stats(dataset_format, dataset):
+    print(f"[CUHK03] format={dataset_format} image_type={dataset.image_type} split={dataset.split}")
+    print(f"num images: {len(dataset)}")
+    print(f"num identities: {int(dataset.num_classes)}")
+    print("num query images: n/a")
+    print("num gallery images: n/a")
+
+
+def _print_cuhk03_test_stats(dataset_format, dataset):
+    print(f"[CUHK03] format={dataset_format} image_type={dataset.image_type} split={dataset.split}")
+    print(f"num images: {len(dataset)}")
+    print("num identities: n/a")
+    print(f"num query images: {_mark_count(dataset, 0)}")
+    print(f"num gallery images: {_mark_count(dataset, 1)}")
 
 
 def build_train_loader(cfg):
@@ -65,16 +108,22 @@ def build_train_loader(cfg):
         aug_cfg=aug,
     )
 
-    ds_name = tcfg["dataset"]["name"]
-    split = tcfg["dataset"]["split"]
-    dataset_format = str(tcfg["dataset"].get("format", "processed")).lower()
+    dataset_cfg = tcfg["dataset"]
+    ds_name = dataset_cfg["name"]
+    split = dataset_cfg["split"]
+    dataset_format = str(dataset_cfg.get("format", "processed")).lower()
 
-    if ds_name != "market1501":
-        raise NotImplementedError(f"Step 2.1 supports market1501 only, got {ds_name}")
-
-    dataset = _build_market1501_train_dataset(root, split, dataset_format, tf)
+    if ds_name == "market1501":
+        dataset = _build_market1501_train_dataset(root, split, dataset_format, tf)
+    elif ds_name == "cuhk03":
+        dataset = _build_cuhk03_train_dataset(root, split, dataset_format, dataset_cfg, tf)
+    else:
+        raise NotImplementedError(f"Train loader supports market1501 and cuhk03 only, got {ds_name}")
     validate_train_dataset(dataset)
-    _print_market1501_train_stats(dataset_format, dataset)
+    if ds_name == "cuhk03":
+        _print_cuhk03_train_stats(dataset_format, dataset)
+    else:
+        _print_reid_train_stats(ds_name, dataset_format, dataset)
 
     batch_cfg = tcfg["batch"]
     sampler_name = str(batch_cfg.get("sampler", "pk")).lower()
@@ -133,16 +182,22 @@ def build_test_loader(cfg):
     aug = tcfg["aug"]
     tf = build_test_tf(image_size=image_size, mean=aug["mean"], std=aug["std"])
 
-    ds_name = tcfg["dataset"]["name"]
-    split = tcfg["dataset"]["split"]
-    dataset_format = str(tcfg["dataset"].get("format", "processed")).lower()
+    dataset_cfg = tcfg["dataset"]
+    ds_name = dataset_cfg["name"]
+    split = dataset_cfg["split"]
+    dataset_format = str(dataset_cfg.get("format", "processed")).lower()
 
-    if ds_name != "market1501":
-        raise NotImplementedError(f"Test loader currently supports market1501 only, got {ds_name}")
-
-    dataset = _build_market1501_test_dataset(root, split, dataset_format, tf)
+    if ds_name == "market1501":
+        dataset = _build_market1501_test_dataset(root, split, dataset_format, tf)
+    elif ds_name == "cuhk03":
+        dataset = _build_cuhk03_test_dataset(root, split, dataset_format, dataset_cfg, tf)
+    else:
+        raise NotImplementedError(f"Test loader supports market1501 and cuhk03 only, got {ds_name}")
     validate_eval_dataset(dataset)
-    _print_market1501_test_stats(dataset_format, dataset)
+    if ds_name == "cuhk03":
+        _print_cuhk03_test_stats(dataset_format, dataset)
+    else:
+        _print_reid_test_stats(ds_name, dataset_format, dataset)
     loader = DataLoader(
         dataset,
         batch_size=int(tcfg["batch"]["size"]),

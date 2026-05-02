@@ -6,6 +6,84 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### CUHK03 Processed Dataset Lock
+
+Implemented:
+- processed CUHK03 dataset support added in `reid/data/cuhk03.py`
+  - `CUHK03ProcessedTrain`
+  - `CUHK03ProcessedTest`
+  - `parse_processed_reid_name`
+- CUHK03 uses the same global ReID dataset protocol as Market1501
+  - train samples return `(image, label)`
+  - eval samples return `(image, pid, camid, image_name, mark)`
+  - `mark=0` means query and `mark=1` means gallery
+- supported processed layouts:
+  - `root/cuhk03/detected/images`
+  - `root/cuhk03/detected/partitions.pkl`
+  - `root/cuhk03/labeled/images`
+  - `root/cuhk03/labeled/partitions.pkl`
+- supported train splits:
+  - `train`
+  - `trainval`
+- supported eval splits:
+  - `val`
+  - `test`
+- supported CUHK03 config fields:
+  - `format: processed`
+  - `image_type: detected|labeled`
+  - `protocol: new|classic`
+  - `split_id: 0`
+- processed filename parsing is strict and reusable:
+  - accepts `8digits_4digits_8digits.jpg`
+  - accepts `8digits_4digits_8digits.png`
+  - keeps `camid = int(name[9:13])` for compatibility with the transformed tri-loss naming convention
+- train partitions require:
+  - `{split}_im_names`
+  - `{split}_ids2labels`
+- eval partitions require:
+  - `{split}_im_names`
+  - `{split}_marks`
+- CUHK03 constructors fail early with `FileNotFoundError(path)` for missing:
+  - `images`
+  - `partitions.pkl`
+- `reid/data/build.py` now dispatches both Market1501 and CUHK03
+  - Market1501 processed/raw behavior is unchanged
+  - CUHK03 currently supports processed format only
+- CUHK03 dataset statistics are printed by the builders:
+  - `[CUHK03] format=processed image_type=detected split=trainval`
+  - `num images`
+  - `num identities`
+  - `num query images`
+  - `num gallery images`
+- CUHK03 baseline config added:
+  - `configs/baseline_cuhk03_resnet50_triplet.yaml`
+- real-data smoke script added for the Constantine environment:
+  - `scripts/smoke_cuhk03_dataset.py`
+- raw CUHK03 `.mat` preprocessing is intentionally deferred
+  - `# TODO: Add raw CUHK03 .mat preprocessing support later if needed.`
+
+What It Locks:
+- CUHK03 processed train/eval can plug into the same train loop, sampler, loss, model, and evaluator as Market1501
+- no evaluator logic changes are required
+- `image_type=detected` and `image_type=labeled` are both represented in tests using synthetic fixtures
+- `num_classes` is exposed by the train dataset as `len(ids2labels)`
+
+Validation:
+- `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_dataset_protocol.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py`
+- result in this environment: `61 passed in 3.80s`
+- `git diff -- reid/engine/evaluator.py`
+- result in this environment: no diff
+
+How To Test:
+- focused CUHK03/unit checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_cuhk03_dataset.py tests/test_dataset_protocol.py`
+- focused dataset regression checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_dataset_protocol.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py`
+- Constantine real-data smoke check:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python scripts/smoke_cuhk03_dataset.py --config configs/baseline_cuhk03_resnet50_triplet.yaml --root /path/to/Dataset`
+- if the real dataset is large and only construction should be checked first:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python scripts/smoke_cuhk03_dataset.py --config configs/baseline_cuhk03_resnet50_triplet.yaml --root /path/to/Dataset --skip-batch`
+
 ### Dataset Protocol Lock
 
 Implemented:
