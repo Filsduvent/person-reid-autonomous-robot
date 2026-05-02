@@ -33,6 +33,7 @@ data:
     dataset:
       name: market1501       # market1501|duke|cuhk03|msmt17|...
       split: trainval        # train|trainval
+      format: processed      # processed|raw
     images:
       dir: null              # optional explicit override; usually inferred
       size: [256, 128]
@@ -67,6 +68,7 @@ data:
     dataset:
       name: market1501
       split: test            # val|test
+      format: processed      # processed|raw
     images:
       size: [256, 128]
       batch_dims: NCHW

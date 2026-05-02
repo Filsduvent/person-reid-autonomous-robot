@@ -1,10 +1,58 @@
 from torch.utils.data import DataLoader
 
 from reid.data.collate import test_collate_fn, train_collate_fn
-from reid.data.market1501 import Market1501FromPartitions
-from reid.data.market1501_test import Market1501TestFromPartitions
+from reid.data.market1501 import Market1501FromPartitions, Market1501RawTrain
+from reid.data.market1501_test import Market1501RawTest, Market1501TestFromPartitions
+from reid.data.protocol import validate_eval_dataset, validate_train_dataset
 from reid.data.samplers import PKBatchSampler
 from reid.data.transforms import build_train_tf, build_test_tf
+
+
+def _camera_count(dataset):
+    cams = getattr(dataset, "cams", None)
+    if cams is None:
+        return "unknown"
+    return len({int(cam) for cam in cams if int(cam) >= 0})
+
+
+def _mark_count(dataset, mark):
+    marks = getattr(dataset, "marks", [])
+    return sum(1 for value in marks if int(value) == mark)
+
+
+def _build_market1501_train_dataset(root, split, dataset_format, transform):
+    if dataset_format == "processed":
+        return Market1501FromPartitions(root=root, split=split, transform=transform)
+    if dataset_format == "raw":
+        return Market1501RawTrain(root=root, split=split, transform=transform)
+    raise ValueError(f"Unsupported Market1501 train dataset format '{dataset_format}'. Use 'processed' or 'raw'.")
+
+
+def _build_market1501_test_dataset(root, split, dataset_format, transform):
+    if dataset_format == "processed":
+        return Market1501TestFromPartitions(root=root, split=split, transform=transform)
+    if dataset_format == "raw":
+        return Market1501RawTest(root=root, split=split, transform=transform)
+    raise ValueError(f"Unsupported Market1501 test dataset format '{dataset_format}'. Use 'processed' or 'raw'.")
+
+
+def _print_market1501_train_stats(dataset_format, dataset):
+    print(f"[Market1501] format={dataset_format}")
+    print(f"train identities: {int(dataset.num_classes)}")
+    print(f"train images: {len(dataset)}")
+    print("query images: n/a")
+    print("gallery images: n/a")
+    print(f"cameras: {_camera_count(dataset)}")
+
+
+def _print_market1501_test_stats(dataset_format, dataset):
+    print(f"[Market1501] format={dataset_format}")
+    print("train identities: n/a")
+    print("train images: n/a")
+    print(f"query images: {_mark_count(dataset, 0)}")
+    print(f"gallery images: {_mark_count(dataset, 1)}")
+    print(f"cameras: {_camera_count(dataset)}")
+
 
 def build_train_loader(cfg):
     root = cfg["data"]["root"]
@@ -19,11 +67,14 @@ def build_train_loader(cfg):
 
     ds_name = tcfg["dataset"]["name"]
     split = tcfg["dataset"]["split"]
+    dataset_format = str(tcfg["dataset"].get("format", "processed")).lower()
 
     if ds_name != "market1501":
         raise NotImplementedError(f"Step 2.1 supports market1501 only, got {ds_name}")
 
-    dataset = Market1501FromPartitions(root=root, split=split, transform=tf)
+    dataset = _build_market1501_train_dataset(root, split, dataset_format, tf)
+    validate_train_dataset(dataset)
+    _print_market1501_train_stats(dataset_format, dataset)
 
     batch_cfg = tcfg["batch"]
     sampler_name = str(batch_cfg.get("sampler", "pk")).lower()
@@ -84,11 +135,14 @@ def build_test_loader(cfg):
 
     ds_name = tcfg["dataset"]["name"]
     split = tcfg["dataset"]["split"]
+    dataset_format = str(tcfg["dataset"].get("format", "processed")).lower()
 
     if ds_name != "market1501":
         raise NotImplementedError(f"Test loader currently supports market1501 only, got {ds_name}")
 
-    dataset = Market1501TestFromPartitions(root=root, split=split, transform=tf)
+    dataset = _build_market1501_test_dataset(root, split, dataset_format, tf)
+    validate_eval_dataset(dataset)
+    _print_market1501_test_stats(dataset_format, dataset)
     loader = DataLoader(
         dataset,
         batch_size=int(tcfg["batch"]["size"]),

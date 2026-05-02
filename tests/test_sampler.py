@@ -69,6 +69,7 @@ class _DummyDataset:
     def __init__(self, root, split, transform):
         del root, split, transform
         self.labels = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3]
+        self.num_classes = 4
 
     def __len__(self):
         return len(self.labels)

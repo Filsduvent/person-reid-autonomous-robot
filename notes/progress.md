@@ -6,6 +6,99 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Dataset Protocol Lock
+
+Implemented:
+- explicit dataset protocol module added in `reid/data/protocol.py`
+  - `ReIDTrainSample(image, label)`
+  - `ReIDEvalSample(image, pid, camid, image_name, mark)`
+  - train dataset validation for `labels` and `num_classes`
+  - eval dataset validation for `pids`, `cams`, `marks`, and `im_names`
+- train/eval mark constants are now centralized:
+  - `MARK_QUERY = 0`
+  - `MARK_GALLERY = 1`
+  - `MARK_MULTI_QUERY = 2`
+- Market1501 train/test datasets now return named protocol samples instead of raw anonymous tuples
+- Market1501 raw-directory parser added for standard `bounding_box_train`, `query`, and `bounding_box_test` folders
+  - uses regex `([-\d]+)_c(\d)`
+  - skips junk pid `-1`
+  - validates pid range `[0, 1501]` and camera range `[1, 6]`
+  - converts raw camera ids to zero-based ids
+  - supports train relabeling through `relabel=True`
+- explicit single-name parsers are now available:
+  - `parse_market1501_name("0002_c1s1_000451_01.jpg") -> (2, 0)`
+  - `parse_processed_name("00000002_0001_00000000.jpg") -> (2, 1)`
+- `Market1501RawTrain` added for the official raw train folder
+  - resolves `root/market1501/Market-1501-v15.09.15/bounding_box_train`
+  - exposes `samples = [(img_path, pid, camid, label), ...]`
+  - exposes `labels`, `pids`, `cams`, `im_names`, and `num_classes`
+  - returns train protocol samples equivalent to `(image, label)`
+- `Market1501RawTest` added for the official raw query/gallery folders
+  - resolves `query` and `bounding_box_test`
+  - builds a single sample list with all query samples first, then all gallery samples
+  - assigns `mark=0` for query and `mark=1` for gallery
+  - returns eval protocol samples equivalent to `(image, pid, camid, image_name, mark)`
+- processed Market1501 classes are preserved and aliased as:
+  - `Market1501ProcessedTrain = Market1501FromPartitions`
+  - `Market1501ProcessedTest = Market1501TestFromPartitions`
+- `reid/data/build.py` now chooses Market1501 datasets through `dataset.format`
+  - `processed` uses the existing `images/partitions.pkl` classes
+  - `raw` uses the official-folder raw classes
+  - missing `format` defaults to `processed`
+- train/test loader builders now print Market1501 dataset statistics:
+  - selected format
+  - train identities/images
+  - query/gallery images
+  - camera count
+- Market1501 constructors now fail early with `FileNotFoundError` for missing required paths
+  - raw: `bounding_box_train`, `query`, `bounding_box_test`
+  - processed: `images`, `partitions.pkl`
+- collate functions still accept the old tuple shapes for compatibility, then normalize into protocol samples internally
+- shared dataloader builders now validate datasets immediately after construction
+- tests added in `tests/test_dataset_protocol.py` for:
+  - train sample collation
+  - eval sample collation
+  - required train metadata
+  - required eval query/gallery marks
+  - unsupported eval marks
+- tests added in `tests/test_market1501_dataset.py` for:
+  - raw filename parsing and junk pid handling
+  - processed filename parsing
+  - processed train/eval dataset item contracts
+  - raw train/eval dataset item contracts
+  - raw query-before-gallery ordering
+  - required processed/raw path safety checks
+- evaluator logic was not changed; the existing evaluator still consumes `(imgs, pids, cams, names, marks)`
+
+What It Locks:
+- every train dataset must expose:
+  - `labels`: one class label per sample
+  - `num_classes`: positive class count
+  - contiguous non-negative labels covering `[0, num_classes)`
+- every eval dataset must expose:
+  - `pids`
+  - `cams`
+  - `marks`
+  - `im_names`
+  - at least one query sample and one gallery sample
+- loader outputs remain unchanged:
+  - train batches: `(imgs, labels)`
+  - eval batches: `(imgs, pids, camids, names, marks)`
+
+Validation:
+- `python3 -m py_compile reid/data/protocol.py reid/data/collate.py reid/data/market1501.py reid/data/market1501_test.py reid/data/build.py`
+- result in this environment: passed
+- `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_dataset_protocol.py tests/test_market1501_dataset.py tests/test_sampler.py`
+- result in this environment: `41 passed in 29.42s`
+- `git diff -- reid/engine/evaluator.py`
+- result in this environment: no diff
+
+How To Test:
+- focused dataset protocol checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_dataset_protocol.py tests/test_market1501_dataset.py tests/test_sampler.py`
+- syntax checks:
+  - `python3 -m py_compile reid/data/protocol.py reid/data/collate.py reid/data/market1501.py reid/data/market1501_test.py reid/data/build.py`
+
 ### Collate Functions And Training Observability
 
 Implemented:
