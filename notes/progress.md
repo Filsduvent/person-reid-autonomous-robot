@@ -6,6 +6,39 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Model Plug-In Contract Validation
+
+Implemented:
+- added `tests/test_model_plugin_contract.py`
+- introduced a `DummyReIDModel` test module that does not go through `build_model`
+- dummy model returns the locked model output dictionary:
+  - `feat_raw`
+  - `feat_bn`
+  - `emb`
+  - `logits`
+- verified the dummy model works with:
+  - `build_criterion`
+  - `build_optimizer`
+  - `build_scheduler`
+  - `train_one_epoch`
+  - `evaluate_reid`
+
+What It Locks:
+- the core training and evaluation system is model-agnostic
+- future PCB, MGN, TransReID, or custom models can plug in without touching datasets, losses, optimizer/scheduler, train loop, evaluator, checkpointing, or artifact code if they honor the locked output dictionary
+
+Validation:
+- syntax check and focused plug-in regression:
+  - `/home/filsduvent/environments/windflow_env/bin/python -m py_compile tests/test_model_plugin_contract.py && PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_model_plugin_contract.py tests/test_model_interface.py tests/test_loss_interface.py tests/test_evaluation_harness.py tests/test_train_loop_optim.py`
+- result in this environment: `23 passed, 3 skipped in 23.06s`
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_artifact_format.py tests/test_config_schema.py tests/test_smoke_test_matrix.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_data_transforms.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_evaluation_harness.py tests/test_rerank.py tests/test_resnet50_strong_baseline.py tests/test_model_plugin_contract.py tests/test_model_interface.py tests/test_model_forward.py tests/test_loss_interface.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py tests/test_optim_build.py`
+- result in this environment: `233 passed, 4 skipped in 54.22s`
+
+How To Test:
+- run the focused Phase 16 checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_model_plugin_contract.py tests/test_model_interface.py tests/test_loss_interface.py tests/test_evaluation_harness.py tests/test_train_loop_optim.py`
+
 ### Framework Smoke Test Matrix
 
 Implemented:
