@@ -6,6 +6,53 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Dataset Protocol Details Lock
+
+Implemented:
+- centralized dataset summary logging in `reid/data/build.py`
+- every dataset now prints the same loader-created summary shape:
+  - dataset display name
+  - loader role: `train` or `test`
+  - dataset root
+  - dataset format
+  - split
+  - image type / protocol / split id when the dataset exposes them
+  - number of images
+  - number of identities
+  - number of cameras
+  - number of query images
+  - number of gallery images
+- added missing Market1501 processed eval metadata:
+  - `split`
+  - `num_query`
+  - `num_gallery`
+- added missing Market1501 raw eval query/gallery counts
+- kept dataset-specific behavior inside dataset modules and builder dispatch only
+- verified MSMT17 config keeps reranking disabled by default
+
+What It Locks:
+- Market1501, CUHK03, DukeMTMC-ReID, and MSMT17 now report comparable protocol facts at loader creation
+- query/gallery counts come from marks or explicit dataset metadata without evaluator changes
+- train identity count comes from `dataset.num_classes`
+- eval identity/camera counts come from dataset metadata already required by the protocol
+- future datasets should implement the same attributes and automatically get the same summary
+
+Validation:
+- syntax check:
+  - `/home/filsduvent/environments/windflow_env/bin/python -m py_compile reid/data/build.py reid/data/market1501_test.py tests/test_dataset_protocol.py tests/test_config_schema.py`
+- focused dataset protocol regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_dataset_protocol.py tests/test_config_schema.py tests/test_market1501_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_msmt17_dataset.py tests/test_sampler.py tests/test_smoke_reid_pipeline.py`
+- result in this environment: `130 passed in 5.73s`
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_config_schema.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_rerank.py tests/test_model_forward.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py`
+- result in this environment: `177 passed, 4 skipped in 52.33s`
+
+How To Test:
+- run the focused dataset protocol checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_dataset_protocol.py tests/test_config_schema.py tests/test_market1501_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_msmt17_dataset.py tests/test_sampler.py tests/test_smoke_reid_pipeline.py`
+- inspect loader summary output by running a real-data smoke:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python scripts/smoke_reid_pipeline.py --config configs/baseline_msmt17_resnet50_triplet.yaml --root /path/to/Dataset --skip-model`
+
 ### Dataset Interface Lock
 
 Implemented:

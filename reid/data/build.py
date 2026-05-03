@@ -11,6 +11,14 @@ from reid.data.samplers import PKBatchSampler
 from reid.data.transforms import build_train_tf, build_test_tf
 
 
+DATASET_DISPLAY_NAMES = {
+    "market1501": "Market1501",
+    "cuhk03": "CUHK03",
+    "duke": "DukeMTMC-ReID",
+    "msmt17": "MSMT17",
+}
+
+
 def _camera_count(dataset):
     cams = getattr(dataset, "cams", None)
     if cams is None:
@@ -21,6 +29,46 @@ def _camera_count(dataset):
 def _mark_count(dataset, mark):
     marks = getattr(dataset, "marks", [])
     return sum(1 for value in marks if int(value) == mark)
+
+
+def _identity_count(dataset, role):
+    if role == "train":
+        return int(dataset.num_classes)
+    pids = getattr(dataset, "pids", None)
+    if pids is None:
+        return "unknown"
+    return len({int(pid) for pid in pids if int(pid) >= 0})
+
+
+def _query_count(dataset):
+    return int(getattr(dataset, "num_query", _mark_count(dataset, 0)))
+
+
+def _gallery_count(dataset):
+    return int(getattr(dataset, "num_gallery", _mark_count(dataset, 1)))
+
+
+def _print_dataset_summary(dataset_name, dataset_format, dataset, role):
+    display_name = DATASET_DISPLAY_NAMES.get(dataset_name, dataset_name)
+    print(f"[Dataset] name={display_name} role={role}")
+    print(f"root: {getattr(dataset, 'root', 'unknown')}")
+    print(f"format: {dataset_format}")
+    print(f"split: {getattr(dataset, 'split', 'unknown')}")
+    if hasattr(dataset, "image_type"):
+        print(f"image_type: {dataset.image_type}")
+    if hasattr(dataset, "protocol"):
+        print(f"protocol: {dataset.protocol}")
+    if hasattr(dataset, "split_id"):
+        print(f"split_id: {dataset.split_id}")
+    print(f"num images: {len(dataset)}")
+    print(f"num identities: {_identity_count(dataset, role)}")
+    print(f"num cameras: {_camera_count(dataset)}")
+    if role == "train":
+        print("num query images: n/a")
+        print("num gallery images: n/a")
+    else:
+        print(f"num query images: {_query_count(dataset)}")
+        print(f"num gallery images: {_gallery_count(dataset)}")
 
 
 def _build_market1501_train_dataset(root, split, dataset_format, transform):
@@ -93,82 +141,6 @@ def _build_msmt17_test_dataset(root, split, dataset_format, transform):
     raise ValueError(f"Unsupported MSMT17 test dataset format '{dataset_format}'. Use 'raw'.")
 
 
-def _print_reid_train_stats(dataset_name, dataset_format, dataset):
-    print(f"[{dataset_name}] format={dataset_format}")
-    print(f"train identities: {int(dataset.num_classes)}")
-    print(f"train images: {len(dataset)}")
-    print("query images: n/a")
-    print("gallery images: n/a")
-    print(f"cameras: {_camera_count(dataset)}")
-
-
-def _print_reid_test_stats(dataset_name, dataset_format, dataset):
-    print(f"[{dataset_name}] format={dataset_format}")
-    print("train identities: n/a")
-    print("train images: n/a")
-    print(f"query images: {_mark_count(dataset, 0)}")
-    print(f"gallery images: {_mark_count(dataset, 1)}")
-    print(f"cameras: {_camera_count(dataset)}")
-
-
-def _print_cuhk03_train_stats(dataset_format, dataset):
-    print(f"[CUHK03] format={dataset_format} image_type={dataset.image_type} split={dataset.split}")
-    print(f"num images: {len(dataset)}")
-    print(f"num identities: {int(dataset.num_classes)}")
-    print("num query images: n/a")
-    print("num gallery images: n/a")
-
-
-def _print_cuhk03_test_stats(dataset_format, dataset):
-    print(f"[CUHK03] format={dataset_format} image_type={dataset.image_type} split={dataset.split}")
-    print(f"num images: {len(dataset)}")
-    print("num identities: n/a")
-    print(f"num query images: {_mark_count(dataset, 0)}")
-    print(f"num gallery images: {_mark_count(dataset, 1)}")
-
-
-def _print_duke_train_stats(dataset_format, dataset):
-    print(f"[DukeMTMC-ReID] format={dataset_format} split={dataset.split}")
-    print(f"num images: {len(dataset)}")
-    print(f"num identities: {int(dataset.num_classes)}")
-    print("num query images: n/a")
-    print("num gallery images: n/a")
-    print(f"num cameras: {_camera_count(dataset)}")
-
-
-def _print_duke_test_stats(dataset_format, dataset):
-    print(f"[DukeMTMC-ReID] format={dataset_format} split={dataset.split}")
-    print(f"num images: {len(dataset)}")
-    print(f"num identities: {len({int(pid) for pid in dataset.pids if int(pid) >= 0})}")
-    print(f"num query images: {int(getattr(dataset, 'num_query', _mark_count(dataset, 0)))}")
-    print(f"num gallery images: {int(getattr(dataset, 'num_gallery', _mark_count(dataset, 1)))}")
-    print(f"num cameras: {_camera_count(dataset)}")
-
-
-def _print_msmt17_train_stats(dataset_format, dataset):
-    print(f"[MSMT17] format={dataset_format} split={dataset.split}")
-    print(f"num images: {len(dataset)}")
-    print(f"num identities: {int(dataset.num_classes)}")
-    print(f"num cameras: {_camera_count(dataset)}")
-
-
-def _pid_count_for_mark(dataset, mark):
-    return len({
-        int(pid)
-        for pid, sample_mark in zip(dataset.pids, dataset.marks)
-        if int(sample_mark) == mark and int(pid) >= 0
-    })
-
-
-def _print_msmt17_test_stats(dataset_format, dataset):
-    print(f"[MSMT17] format={dataset_format} split={dataset.split}")
-    print(f"query images: {int(getattr(dataset, 'num_query', _mark_count(dataset, 0)))}")
-    print(f"gallery images: {int(getattr(dataset, 'num_gallery', _mark_count(dataset, 1)))}")
-    print(f"query identities: {_pid_count_for_mark(dataset, 0)}")
-    print(f"gallery identities: {_pid_count_for_mark(dataset, 1)}")
-    print(f"cameras: {_camera_count(dataset)}")
-
-
 def build_train_loader(cfg):
     root = cfg["data"]["root"]
     tcfg = cfg["data"]["train"]
@@ -196,14 +168,7 @@ def build_train_loader(cfg):
     else:
         raise NotImplementedError(f"Train loader supports market1501, cuhk03, duke, and msmt17 only, got {ds_name}")
     validate_train_dataset(dataset)
-    if ds_name == "cuhk03":
-        _print_cuhk03_train_stats(dataset_format, dataset)
-    elif ds_name == "duke":
-        _print_duke_train_stats(dataset_format, dataset)
-    elif ds_name == "msmt17":
-        _print_msmt17_train_stats(dataset_format, dataset)
-    else:
-        _print_reid_train_stats(ds_name, dataset_format, dataset)
+    _print_dataset_summary(ds_name, dataset_format, dataset, role="train")
 
     batch_cfg = tcfg["batch"]
     sampler_name = str(batch_cfg.get("sampler", "pk")).lower()
@@ -279,14 +244,7 @@ def build_test_loader(cfg):
     else:
         raise NotImplementedError(f"Test loader supports market1501, cuhk03, duke, and msmt17 only, got {ds_name}")
     validate_eval_dataset(dataset)
-    if ds_name == "cuhk03":
-        _print_cuhk03_test_stats(dataset_format, dataset)
-    elif ds_name == "duke":
-        _print_duke_test_stats(dataset_format, dataset)
-    elif ds_name == "msmt17":
-        _print_msmt17_test_stats(dataset_format, dataset)
-    else:
-        _print_reid_test_stats(ds_name, dataset_format, dataset)
+    _print_dataset_summary(ds_name, dataset_format, dataset, role="test")
     loader = DataLoader(
         dataset,
         batch_size=int(tcfg["batch"]["size"]),

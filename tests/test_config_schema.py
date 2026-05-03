@@ -63,6 +63,14 @@ def test_validate_config_accepts_required_schema():
     validate_config(_cfg())
 
 
+def test_msmt17_config_disables_rerank_by_default():
+    cfg = load_config("configs/baseline_msmt17_resnet50_triplet.yaml")
+
+    assert cfg["data"]["train"]["dataset"]["name"] == "msmt17"
+    assert cfg["data"]["train"]["dataset"]["format"] == "raw"
+    assert cfg["eval"]["rerank"]["enabled"] is False
+
+
 @pytest.mark.parametrize("section", REQUIRED_TOP_LEVEL_SECTIONS)
 def test_validate_config_requires_top_level_sections(section):
     cfg = _cfg()

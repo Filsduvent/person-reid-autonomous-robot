@@ -17,7 +17,9 @@ from reid.data.protocol import (
 
 class _TrainDataset:
     def __init__(self, labels=None, root=None, split=None, transform=None):
-        del root, split, transform
+        del transform
+        self.root = root
+        self.split = split
         if labels is None:
             labels = [0, 0, 1, 1]
         self.labels = labels
@@ -29,7 +31,9 @@ class _TrainDataset:
 
 class _EvalDataset:
     def __init__(self, marks=None, root=None, split=None, transform=None):
-        del root, split, transform
+        del transform
+        self.root = root
+        self.split = split
         if marks is None:
             marks = [MARK_QUERY, MARK_GALLERY]
         self.pids = [1 for _ in marks]
@@ -195,7 +199,7 @@ def test_build_test_loader_validates_dataset_protocol(monkeypatch):
         build_test_loader(copy.deepcopy(TEST_CFG))
 
 
-def test_build_train_loader_uses_raw_market1501_when_configured(monkeypatch):
+def test_build_train_loader_uses_raw_market1501_when_configured(monkeypatch, capsys):
     used = {}
 
     class RawTrainDataset(_TrainDataset):
@@ -209,13 +213,22 @@ def test_build_train_loader_uses_raw_market1501_when_configured(monkeypatch):
     cfg["data"]["train"]["dataset"]["format"] = "raw"
 
     loader, num_classes = build_train_loader(cfg)
+    out = capsys.readouterr().out
 
     assert num_classes == 2
     assert used["raw_train"] is True
     assert loader.dataset.num_classes == 2
+    assert "[Dataset] name=Market1501 role=train" in out
+    assert "root: /tmp/unused" in out
+    assert "format: raw" in out
+    assert "split: trainval" in out
+    assert "num images: 4" in out
+    assert "num identities: 2" in out
+    assert "num query images: n/a" in out
+    assert "num gallery images: n/a" in out
 
 
-def test_build_test_loader_uses_raw_market1501_when_configured(monkeypatch):
+def test_build_test_loader_uses_raw_market1501_when_configured(monkeypatch, capsys):
     used = {}
 
     class RawTestDataset(_EvalDataset):
@@ -232,9 +245,18 @@ def test_build_test_loader_uses_raw_market1501_when_configured(monkeypatch):
     cfg["data"]["test"]["dataset"]["format"] = "raw"
 
     loader = build_test_loader(cfg)
+    out = capsys.readouterr().out
 
     assert used["raw_test"] is True
     assert loader.dataset.marks == [MARK_QUERY, MARK_GALLERY]
+    assert "[Dataset] name=Market1501 role=test" in out
+    assert "root: /tmp/unused" in out
+    assert "format: raw" in out
+    assert "split: test" in out
+    assert "num images: 2" in out
+    assert "num identities: 1" in out
+    assert "num query images: 1" in out
+    assert "num gallery images: 1" in out
 
 
 def test_build_loaders_reject_unknown_market1501_format(monkeypatch):
@@ -299,9 +321,16 @@ def test_build_train_loader_uses_processed_cuhk03_when_configured(monkeypatch, c
 
     assert num_classes == 2
     assert loader.dataset.num_classes == 2
-    assert "[CUHK03] format=processed image_type=labeled split=trainval" in out
+    assert "[Dataset] name=CUHK03 role=train" in out
+    assert "root: /tmp/unused" in out
+    assert "format: processed" in out
+    assert "split: trainval" in out
+    assert "image_type: labeled" in out
+    assert "protocol: classic" in out
+    assert "split_id: 2" in out
     assert "num images: 4" in out
     assert "num identities: 2" in out
+    assert "num cameras: unknown" in out
     assert "num query images: n/a" in out
     assert "num gallery images: n/a" in out
     assert used == {
@@ -358,9 +387,16 @@ def test_build_test_loader_uses_processed_cuhk03_when_configured(monkeypatch, ca
     out = capsys.readouterr().out
 
     assert loader.dataset.marks == [MARK_QUERY, MARK_GALLERY]
-    assert "[CUHK03] format=processed image_type=detected split=test" in out
+    assert "[Dataset] name=CUHK03 role=test" in out
+    assert "root: /tmp/unused" in out
+    assert "format: processed" in out
+    assert "split: test" in out
+    assert "image_type: detected" in out
+    assert "protocol: new" in out
+    assert "split_id: 0" in out
     assert "num images: 2" in out
-    assert "num identities: n/a" in out
+    assert "num identities: 1" in out
+    assert "num cameras: 1" in out
     assert "num query images: 1" in out
     assert "num gallery images: 1" in out
     assert used == {
@@ -435,10 +471,15 @@ def test_build_train_loader_uses_duke_when_configured(monkeypatch, capsys, datas
         "split": "trainval",
         "format": dataset_format,
     }
-    assert f"[DukeMTMC-ReID] format={dataset_format} split=trainval" in out
+    assert "[Dataset] name=DukeMTMC-ReID role=train" in out
+    assert "root: /tmp/unused" in out
+    assert f"format: {dataset_format}" in out
+    assert "split: trainval" in out
     assert "num images: 4" in out
     assert "num identities: 2" in out
     assert "num cameras: 1" in out
+    assert "num query images: n/a" in out
+    assert "num gallery images: n/a" in out
 
 
 @pytest.mark.parametrize(
@@ -478,7 +519,10 @@ def test_build_test_loader_uses_duke_when_configured(monkeypatch, capsys, datase
         "split": "test",
         "format": dataset_format,
     }
-    assert f"[DukeMTMC-ReID] format={dataset_format} split=test" in out
+    assert "[Dataset] name=DukeMTMC-ReID role=test" in out
+    assert "root: /tmp/unused" in out
+    assert f"format: {dataset_format}" in out
+    assert "split: test" in out
     assert "num images: 2" in out
     assert "num identities: 1" in out
     assert "num query images: 1" in out
@@ -542,10 +586,15 @@ def test_build_train_loader_uses_raw_msmt17_when_configured(monkeypatch, capsys)
         "split": "train",
         "format": "raw",
     }
-    assert "[MSMT17] format=raw split=train" in out
+    assert "[Dataset] name=MSMT17 role=train" in out
+    assert "root: /tmp/unused" in out
+    assert "format: raw" in out
+    assert "split: train" in out
     assert "num images: 4" in out
     assert "num identities: 2" in out
     assert "num cameras: 2" in out
+    assert "num query images: n/a" in out
+    assert "num gallery images: n/a" in out
 
 
 def test_build_test_loader_uses_raw_msmt17_when_configured(monkeypatch, capsys):
@@ -554,8 +603,7 @@ def test_build_test_loader_uses_raw_msmt17_when_configured(monkeypatch, capsys):
     class MSMT17TestDataset(_EvalDataset):
         def __init__(self, root=None, split=None, transform=None):
             del transform
-            super().__init__(marks=[MARK_QUERY, MARK_QUERY, MARK_GALLERY, MARK_GALLERY])
-            self.split = split
+            super().__init__(marks=[MARK_QUERY, MARK_QUERY, MARK_GALLERY, MARK_GALLERY], root=root, split=split)
             self.pids = [1, 2, 1, 3]
             self.cams = [0, 1, 0, 2]
             self.num_query = 2
@@ -583,12 +631,15 @@ def test_build_test_loader_uses_raw_msmt17_when_configured(monkeypatch, capsys):
         "split": "test",
         "format": "raw",
     }
-    assert "[MSMT17] format=raw split=test" in out
-    assert "query images: 2" in out
-    assert "gallery images: 2" in out
-    assert "query identities: 2" in out
-    assert "gallery identities: 2" in out
-    assert "cameras: 3" in out
+    assert "[Dataset] name=MSMT17 role=test" in out
+    assert "root: /tmp/unused" in out
+    assert "format: raw" in out
+    assert "split: test" in out
+    assert "num images: 4" in out
+    assert "num identities: 3" in out
+    assert "num cameras: 3" in out
+    assert "num query images: 2" in out
+    assert "num gallery images: 2" in out
 
 
 def test_build_loaders_reject_unknown_msmt17_format(monkeypatch):

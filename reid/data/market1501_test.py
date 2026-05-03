@@ -50,6 +50,8 @@ class Market1501RawTest(Dataset):
         self.pids = np.array([pid for _, pid, _, _ in self.samples], dtype=np.int64)
         self.cams = np.array([camid for _, _, camid, _ in self.samples], dtype=np.int64)
         self.marks = np.array([mark for _, _, _, mark in self.samples], dtype=np.int64)
+        self.num_query = len(query_records)
+        self.num_gallery = len(gallery_records)
 
     def __len__(self):
         return len(self.samples)
@@ -78,6 +80,7 @@ class Market1501TestFromPartitions(Dataset):
     """
     def __init__(self, root: str, transform=None, split: str = "test"):
         self.root = expand(root)
+        self.split = split
         self.transform = transform
         base_dir = osp.join(self.root, "market1501")
         self.im_dir = osp.join(base_dir, "images")
@@ -106,6 +109,8 @@ class Market1501TestFromPartitions(Dataset):
             pids.append(pid); cams.append(cam)
         self.pids = np.array(pids, dtype=np.int64)
         self.cams = np.array(cams, dtype=np.int64)
+        self.num_query = sum(1 for mark in self.marks if int(mark) == 0)
+        self.num_gallery = sum(1 for mark in self.marks if int(mark) == 1)
 
     def __len__(self):
         return len(self.im_names)
