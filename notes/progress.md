@@ -6,6 +6,45 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Future Model Integration Protocol
+
+Implemented:
+- added `docs/model_plugin_protocol.md`
+- added `tests/test_model_plugin_protocol_doc.py`
+- documented future model integration rules for:
+  - PCB
+  - MGN
+  - TransReID
+- documented allowed integration files:
+  - `reid/models/<model_name>.py`
+  - `reid/models/build.py`
+  - `configs/<model>_<dataset>.yaml`
+  - optional loss file under `reid/losses/`
+- documented forbidden integration files:
+  - `reid/data/`
+  - `reid/engine/evaluator.py`
+  - `reid/engine/train_loop.py`
+  - `reid/metrics/`
+  - `scripts/train.py`
+  - `scripts/evaluate.py`
+- documented required model output keys, required model attributes, builder responsibilities, config expectations, loss integration, evaluation integration, artifact compatibility, and verification checklist
+
+What It Locks:
+- future model work has an explicit plug-in boundary
+- PCB, MGN, and TransReID must adapt to the frozen framework protocol instead of changing data, training, evaluation, metrics, train/evaluate scripts, or artifacts
+
+Validation:
+- syntax check and focused model plug-in protocol regression:
+  - `/home/filsduvent/environments/windflow_env/bin/python -m py_compile tests/test_model_plugin_protocol_doc.py && PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_model_plugin_protocol_doc.py tests/test_baseline_protocol_doc.py tests/test_model_plugin_contract.py tests/test_model_interface.py tests/test_loss_interface.py tests/test_evaluation_harness.py`
+- result in this environment: `21 passed in 13.68s`
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_artifact_format.py tests/test_baseline_protocol_doc.py tests/test_model_plugin_protocol_doc.py tests/test_config_schema.py tests/test_smoke_test_matrix.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_data_transforms.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_evaluation_harness.py tests/test_rerank.py tests/test_resnet50_strong_baseline.py tests/test_model_plugin_contract.py tests/test_model_interface.py tests/test_model_forward.py tests/test_loss_interface.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py tests/test_optim_build.py`
+- result in this environment: `235 passed, 4 skipped in 53.07s`
+
+How To Test:
+- run the plug-in protocol checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_model_plugin_protocol_doc.py tests/test_baseline_protocol_doc.py tests/test_model_plugin_contract.py tests/test_model_interface.py tests/test_loss_interface.py tests/test_evaluation_harness.py`
+
 ### Strong Baseline Protocol Freeze
 
 Implemented:
