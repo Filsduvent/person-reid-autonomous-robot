@@ -6,6 +6,27 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Lab Validation Handoff
+
+Implemented:
+- added `docs/lab_validation_plan.md`
+- documented the exact test order to run before full lab training
+- included commands, what each test validates, and expected results
+- included real dataset smoke commands for:
+  - full smoke matrix
+  - single dataset smoke
+  - first one-epoch Market1501 training
+  - first full Market1501 baseline training
+
+What It Locks:
+- tomorrow's lab validation has a reproducible sequence from small unit checks to real dataset training
+- full training should start only after the full test suite, smoke matrix, and one-epoch baseline run pass
+
+How To Use:
+- open `docs/lab_validation_plan.md`
+- run the steps in order
+- stop at the first failure and fix before continuing
+
 ### Future Model Integration Protocol
 
 Implemented:
