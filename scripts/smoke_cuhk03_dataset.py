@@ -8,6 +8,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from reid.data.build import build_test_loader, build_train_loader
 from reid.utils.config import load_config
+from reid.utils.config_schema import validate_config
 
 
 def parse_args():
@@ -37,6 +38,7 @@ def main():
         overrides.append(f"data.root={args.root}")
 
     cfg = load_config(args.config, overrides=overrides)
+    validate_config(cfg)
     train_loader, batch_size = build_train_loader(cfg)
     test_loader = build_test_loader(cfg)
 

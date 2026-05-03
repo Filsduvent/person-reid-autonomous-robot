@@ -15,6 +15,7 @@ from reid.models.build import build_model
 from reid.optim.build import build_center_optimizer, build_optimizer, build_scheduler
 from reid.utils.checkpoint import load_checkpoint, save_checkpoint
 from reid.utils.config import load_config, save_yaml, validate_reid_config
+from reid.utils.config_schema import validate_config
 from reid.utils.device import device_summary, select_device
 from reid.utils.io import ensure_dir
 from reid.utils.logger import setup_logger
@@ -319,6 +320,7 @@ def save_training_plots(plots_dir, topk, loss_history, eval_history, logger):
 def main():
     args = parse_args()
     cfg = load_config(args.config, overrides=args.opts)
+    validate_config(cfg)
     validate_reid_config(cfg)
 
     from reid.engine.evaluator import evaluate_reid

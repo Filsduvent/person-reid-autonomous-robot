@@ -127,11 +127,13 @@ def main():
     from reid.models.build import build_model
     from reid.utils.checkpoint import load_checkpoint
     from reid.utils.config import load_config, save_yaml, validate_reid_config
+    from reid.utils.config_schema import validate_config
     from reid.utils.device import device_summary, select_device
     from reid.utils.io import ensure_dir
     from reid.utils.logger import setup_logger
 
     cfg = load_config(args.config, overrides=args.opts)
+    validate_config(cfg)
     validate_reid_config(cfg)
 
     exp_dir = resolve_repo_relative_path(cfg["experiment"]["output_dir"])

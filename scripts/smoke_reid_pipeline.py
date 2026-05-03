@@ -13,6 +13,7 @@ from reid.losses.build import build_criterion
 from reid.models.build import build_model
 from reid.models.outputs import ensure_output_dict
 from reid.utils.config import load_config, validate_reid_config
+from reid.utils.config_schema import validate_config
 from reid.utils.device import select_device
 
 
@@ -98,6 +99,7 @@ def describe_eval_batch(batch):
 
 def run_smoke(args):
     cfg = load_config(args.config, overrides=_base_overrides(args))
+    validate_config(cfg)
     validate_reid_config(cfg)
 
     train_loader, batch_size = build_train_loader(cfg)

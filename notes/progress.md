@@ -6,6 +6,78 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### YAML Configuration Schema Lock
+
+Implemented:
+- experiment-level YAML schema validator added:
+  - `reid/utils/config_schema.py`
+  - public API: `validate_config(cfg: dict) -> None`
+- required top-level sections are now checked:
+  - `experiment`
+  - `system`
+  - `repro`
+  - `logging`
+  - `data`
+  - `model`
+  - `loss`
+  - `optim`
+  - `sched`
+  - `train`
+  - `eval`
+- required keys are now checked:
+  - `experiment.name`
+  - `experiment.output_dir`
+  - `system.device`
+  - `data.train.dataset.name`
+  - `data.test.dataset.name`
+  - `model.name`
+  - `optim.name`
+  - `train.epochs`
+  - `eval.topk`
+- `system.device` is constrained to:
+  - `auto`
+  - `cpu`
+  - `cuda`
+- validation errors are explicit:
+  - missing section: `Missing config section: data`
+  - missing key: `Missing config key: experiment.name`
+  - bad device: `Invalid config value for system.device: 'gpu'. Expected one of: auto, cpu, cuda.`
+- schema validation is wired into full-config entrypoints:
+  - `scripts/train.py`
+  - `scripts/evaluate.py`
+  - `scripts/smoke_reid_pipeline.py`
+  - `scripts/debug_transforms.py`
+  - `scripts/smoke_cuhk03_dataset.py`
+- validation runs after `load_config(..., overrides=...)`, so command-line overrides can still repair or change config values before schema checks
+- schema tests added:
+  - `tests/test_config_schema.py`
+
+What It Locks:
+- one YAML controls the whole experiment before dataset/model/loss builders run
+- invalid experiment YAML fails early with a clear error instead of surfacing later as an unrelated builder or key error
+- model/loss semantic validation remains separate in `validate_reid_config`
+- partial unit-test configs can still call lower-level builders directly without pretending to be full experiment configs
+
+Validation:
+- full framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_config_schema.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_rerank.py tests/test_model_forward.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py`
+- result in this environment: `168 passed, 4 skipped in 51.13s`
+- locked dataset baseline configs validated:
+  - `configs/baseline_market1501_resnet50_triplet.yaml`
+  - `configs/baseline_cuhk03_resnet50_triplet.yaml`
+  - `configs/baseline_duke_resnet50_triplet.yaml`
+  - `configs/baseline_msmt17_resnet50_triplet.yaml`
+
+How To Test:
+- focused schema checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_config_schema.py`
+- validate locked configs manually:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python - <<'PY'`
+  - `from reid.utils.config import load_config`
+  - `from reid.utils.config_schema import validate_config`
+  - `for p in ['configs/baseline_market1501_resnet50_triplet.yaml', 'configs/baseline_cuhk03_resnet50_triplet.yaml', 'configs/baseline_duke_resnet50_triplet.yaml', 'configs/baseline_msmt17_resnet50_triplet.yaml']: validate_config(load_config(p)); print('ok', p)`
+  - `PY`
+
 ### Offline Framework Foundation Check
 
 Implemented:

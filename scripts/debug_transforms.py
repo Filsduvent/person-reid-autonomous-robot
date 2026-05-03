@@ -7,6 +7,7 @@ from torchvision.utils import save_image
 
 from reid.data.build import build_train_loader
 from reid.utils.config import load_config, validate_reid_config
+from reid.utils.config_schema import validate_config
 from reid.utils.io import ensure_dir
 from reid.utils.seed import set_seed
 
@@ -33,6 +34,7 @@ def main():
     args = parser.parse_args()
 
     cfg = load_config(args.config)
+    validate_config(cfg)
     validate_reid_config(cfg)
 
     exp_dir = resolve_repo_relative_path(cfg["experiment"]["output_dir"])
