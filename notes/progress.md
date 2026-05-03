@@ -6,6 +6,55 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Offline Framework Foundation Check
+
+Implemented:
+- verified the expected project foundation exists:
+  - `configs/`
+  - `scripts/train.py`
+  - `scripts/evaluate.py`
+  - `reid/data/`
+  - `reid/models/`
+  - `reid/losses/`
+  - `reid/optim/`
+  - `reid/engine/`
+  - `reid/metrics/`
+  - `reid/utils/`
+  - `tests/`
+  - `exp/`
+- scanned orchestration and framework boundaries:
+  - no dataset-specific logic in `scripts/train.py`
+  - no model-specific logic in `reid/engine/evaluator.py`
+  - no raw dataset paths outside YAML/dataset modules
+- hardened the training loop to be more future-model/future-loss friendly:
+  - `train_one_epoch(...)` now accepts a generic `aux_optimizer` instead of a center-specific optimizer argument
+  - loss-specific center-gradient scaling moved from `reid/engine/train_loop.py` into `LossBundle.prepare_auxiliary_optimizer_step()`
+  - training-loop logging now consumes generic `logs` keys returned by the criterion instead of hardcoding `triplet`, `id`, and `center`
+  - TensorBoard logging now writes any criterion-provided loss keys dynamically
+- updated call sites and tests:
+  - `scripts/train.py`
+  - `tests/test_train_loop_optim.py`
+
+Why It Matters:
+- future model additions should not require changes to dataset loaders, samplers, evaluator, checkpointing, logging, or artifact export
+- future loss additions can provide their own log keys and optional auxiliary-optimizer preparation without editing `train_one_epoch`
+- existing center-loss behavior is preserved, but the center-specific rule now lives with the loss bundle instead of the engine loop
+- the training loop is now closer to a pure engine: move tensors, run model, call criterion, step optimizers, log generic metrics
+
+Validation:
+- full focused framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_rerank.py tests/test_model_forward.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py`
+- result in this environment: `143 passed, 4 skipped in 77.46s`
+- static checks:
+  - required foundation paths exist
+  - `reid/engine/train_loop.py` no longer contains hardcoded `triplet`, `center_loss`, `w_center`, `loss/id`, `loss/triplet`, or `loss/center` handling
+
+How To Test:
+- focused train-loop/loss hardening checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py`
+- broader framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_rerank.py tests/test_model_forward.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py`
+
 ### Shared Pipeline Smoke Test
 
 Implemented:

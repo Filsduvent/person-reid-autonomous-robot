@@ -404,7 +404,7 @@ def main():
                 loader=train_loader,
                 criterion=criterion,
                 optimizer=optimizer,
-                center_optimizer=center_optimizer,
+                aux_optimizer=center_optimizer,
                 device=device,
                 amp=amp,
                 log_interval=log_interval,

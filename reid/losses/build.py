@@ -70,6 +70,21 @@ class LossBundle(nn.Module):
         logs["loss/total"] = float(total.detach().cpu())
         return total, logs
 
+    def prepare_auxiliary_optimizer_step(self) -> bool:
+        """
+        Prepare optional loss-owned parameters for their auxiliary optimizer.
+
+        Center loss needs its gradients rescaled because the center term is
+        multiplied by a small weight in the total loss. Keeping that rule here
+        avoids teaching the training loop about any specific loss.
+        """
+        if self.center_loss is None or self.w_center <= 0.0:
+            return False
+        for param in self.center_loss.parameters():
+            if param.grad is not None:
+                param.grad.data.mul_(1.0 / self.w_center)
+        return True
+
 
 def build_criterion(cfg, num_classes: int | None, feat_dim: int | None):
     lcfg = cfg["loss"]

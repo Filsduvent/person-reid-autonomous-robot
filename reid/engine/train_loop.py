@@ -8,7 +8,7 @@ def train_one_epoch(
     loader,
     criterion,
     optimizer,
-    center_optimizer,
+    aux_optimizer,
     device,
     amp: bool,
     log_interval: int,
@@ -25,9 +25,7 @@ def train_one_epoch(
     t0 = time.time()
     last_log_time = t0
     running_total = 0.0
-    running_triplet = 0.0
-    running_id = 0.0
-    running_center = 0.0
+    running_logs = {}
     running_acc_id = 0.0
     acc_steps = 0
 
@@ -36,8 +34,8 @@ def train_one_epoch(
         labels = labels.to(device, non_blocking=True)
 
         optimizer.zero_grad(set_to_none=True)
-        if center_optimizer is not None:
-            center_optimizer.zero_grad(set_to_none=True)
+        if aux_optimizer is not None:
+            aux_optimizer.zero_grad(set_to_none=True)
 
         with torch.amp.autocast(device_type=amp_device, enabled=amp):
             outputs = ensure_output_dict(model(imgs))
@@ -45,26 +43,23 @@ def train_one_epoch(
 
         scaler.scale(loss).backward()
 
-        center_weight = float(getattr(criterion, "w_center", 0.0))
-        center_loss = getattr(criterion, "center_loss", None)
-        if center_loss is None:
-            center_loss = getattr(criterion, "center", None)
-        if center_optimizer is not None and center_loss is not None and center_weight > 0.0:
-            for param in center_loss.parameters():
-                if param.grad is not None:
-                    param.grad.data.mul_(1.0 / center_weight)
+        step_aux_optimizer = aux_optimizer is not None
+        prepare_aux_step = getattr(criterion, "prepare_auxiliary_optimizer_step", None)
+        if step_aux_optimizer and prepare_aux_step is not None:
+            step_aux_optimizer = bool(prepare_aux_step())
 
         scaler.step(optimizer)
-        if center_optimizer is not None and center_loss is not None and center_weight > 0.0:
-            scaler.step(center_optimizer)
+        if step_aux_optimizer:
+            scaler.step(aux_optimizer)
         scaler.update()
         if scheduler is not None:
             scheduler.step()
 
         running_total += float(loss.detach().cpu())
-        running_triplet += float(logs.get("loss/triplet", 0.0))
-        running_id += float(logs.get("loss/id", 0.0))
-        running_center += float(logs.get("loss/center", 0.0))
+        for key, value in logs.items():
+            if key == "loss/total":
+                continue
+            running_logs[key] = running_logs.get(key, 0.0) + float(value)
         logits = outputs.get("logits")
         batch_acc = None
         if logits is not None:
@@ -101,12 +96,10 @@ def train_one_epoch(
                 msg += f" lr/bias={bias_lr:.6g}"
             if avg_acc is not None:
                 msg += f" acc_id={avg_acc:.4f}"
-            if running_triplet > 0.0:
-                msg += f" triplet={running_triplet / step:.4f}"
-            if running_id > 0.0:
-                msg += f" id={running_id / step:.4f}"
-            if running_center > 0.0:
-                msg += f" center={running_center / step:.4f}"
+            for key in sorted(running_logs):
+                avg_value = running_logs[key] / step
+                if avg_value > 0.0:
+                    msg += f" {key.split('/')[-1]}={avg_value:.4f}"
             msg += f" time/batch={time_per_batch:.4f}s speed={speed:.2f} imgs/s elapsed={dt:.1f}s"
             if logger is not None:
                 logger.info(msg)
@@ -116,9 +109,9 @@ def train_one_epoch(
             if tb_writer is not None:
                 global_step = epoch * 100000 + step
                 tb_writer.add_scalar("loss/total", avg, global_step=global_step)
-                tb_writer.add_scalar("loss/triplet", logs.get("loss/triplet", 0.0), global_step=global_step)
-                tb_writer.add_scalar("loss/id", logs.get("loss/id", 0.0), global_step=global_step)
-                tb_writer.add_scalar("loss/center", logs.get("loss/center", 0.0), global_step=global_step)
+                for key, value in logs.items():
+                    if key != "loss/total":
+                        tb_writer.add_scalar(key, value, global_step=global_step)
                 tb_writer.add_scalar("lr", current_lr, global_step=global_step)
                 tb_writer.add_scalar("lr/base", current_lr, global_step=global_step)
                 tb_writer.add_scalar("time/batch", time_per_batch, global_step=global_step)
