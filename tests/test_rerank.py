@@ -7,6 +7,50 @@ from reid.metrics.rerank import re_ranking
 from reid.models.baseline import ReidBaseline
 
 
+def test_msmt17_rerank_warning_is_dataset_specific(capsys):
+    from reid.engine.evaluator import MSMT17_RERANK_WARNING, _warn_rerank_memory
+
+    cfg = {
+        "data": {
+            "test": {
+                "dataset": {
+                    "name": "msmt17",
+                }
+            }
+        }
+    }
+
+    _warn_rerank_memory(cfg)
+
+    assert MSMT17_RERANK_WARNING in capsys.readouterr().out
+
+
+def test_msmt17_rerank_warning_uses_logger():
+    from reid.engine.evaluator import MSMT17_RERANK_WARNING, _warn_rerank_memory
+
+    class Logger:
+        def __init__(self):
+            self.messages = []
+
+        def warning(self, message):
+            self.messages.append(message)
+
+    logger = Logger()
+    cfg = {
+        "data": {
+            "test": {
+                "dataset": {
+                    "name": "msmt17",
+                }
+            }
+        }
+    }
+
+    _warn_rerank_memory(cfg, logger=logger)
+
+    assert logger.messages == [MSMT17_RERANK_WARNING]
+
+
 def test_re_ranking_returns_query_gallery_matrix():
     q_g_dist = np.array(
         [

@@ -5,6 +5,7 @@ from reid.data.cuhk03 import CUHK03ProcessedTest, CUHK03ProcessedTrain
 from reid.data.duke import DukeProcessedTest, DukeProcessedTrain, DukeRawTest, DukeRawTrain
 from reid.data.market1501 import Market1501FromPartitions, Market1501RawTrain
 from reid.data.market1501_test import Market1501RawTest, Market1501TestFromPartitions
+from reid.data.msmt17 import MSMT17RawTest, MSMT17RawTrain
 from reid.data.protocol import validate_eval_dataset, validate_train_dataset
 from reid.data.samplers import PKBatchSampler
 from reid.data.transforms import build_train_tf, build_test_tf
@@ -80,6 +81,18 @@ def _build_duke_test_dataset(root, split, dataset_format, transform):
     raise ValueError(f"Unsupported Duke test dataset format '{dataset_format}'. Use 'processed' or 'raw'.")
 
 
+def _build_msmt17_train_dataset(root, split, dataset_format, transform):
+    if dataset_format == "raw":
+        return MSMT17RawTrain(root=root, split=split, transform=transform)
+    raise ValueError(f"Unsupported MSMT17 train dataset format '{dataset_format}'. Use 'raw'.")
+
+
+def _build_msmt17_test_dataset(root, split, dataset_format, transform):
+    if dataset_format == "raw":
+        return MSMT17RawTest(root=root, split=split, transform=transform)
+    raise ValueError(f"Unsupported MSMT17 test dataset format '{dataset_format}'. Use 'raw'.")
+
+
 def _print_reid_train_stats(dataset_name, dataset_format, dataset):
     print(f"[{dataset_name}] format={dataset_format}")
     print(f"train identities: {int(dataset.num_classes)}")
@@ -132,6 +145,30 @@ def _print_duke_test_stats(dataset_format, dataset):
     print(f"num cameras: {_camera_count(dataset)}")
 
 
+def _print_msmt17_train_stats(dataset_format, dataset):
+    print(f"[MSMT17] format={dataset_format} split={dataset.split}")
+    print(f"num images: {len(dataset)}")
+    print(f"num identities: {int(dataset.num_classes)}")
+    print(f"num cameras: {_camera_count(dataset)}")
+
+
+def _pid_count_for_mark(dataset, mark):
+    return len({
+        int(pid)
+        for pid, sample_mark in zip(dataset.pids, dataset.marks)
+        if int(sample_mark) == mark and int(pid) >= 0
+    })
+
+
+def _print_msmt17_test_stats(dataset_format, dataset):
+    print(f"[MSMT17] format={dataset_format} split={dataset.split}")
+    print(f"query images: {int(getattr(dataset, 'num_query', _mark_count(dataset, 0)))}")
+    print(f"gallery images: {int(getattr(dataset, 'num_gallery', _mark_count(dataset, 1)))}")
+    print(f"query identities: {_pid_count_for_mark(dataset, 0)}")
+    print(f"gallery identities: {_pid_count_for_mark(dataset, 1)}")
+    print(f"cameras: {_camera_count(dataset)}")
+
+
 def build_train_loader(cfg):
     root = cfg["data"]["root"]
     tcfg = cfg["data"]["train"]
@@ -154,13 +191,17 @@ def build_train_loader(cfg):
         dataset = _build_cuhk03_train_dataset(root, split, dataset_format, dataset_cfg, tf)
     elif ds_name == "duke":
         dataset = _build_duke_train_dataset(root, split, dataset_format, tf)
+    elif ds_name == "msmt17":
+        dataset = _build_msmt17_train_dataset(root, split, dataset_format, tf)
     else:
-        raise NotImplementedError(f"Train loader supports market1501, cuhk03, and duke only, got {ds_name}")
+        raise NotImplementedError(f"Train loader supports market1501, cuhk03, duke, and msmt17 only, got {ds_name}")
     validate_train_dataset(dataset)
     if ds_name == "cuhk03":
         _print_cuhk03_train_stats(dataset_format, dataset)
     elif ds_name == "duke":
         _print_duke_train_stats(dataset_format, dataset)
+    elif ds_name == "msmt17":
+        _print_msmt17_train_stats(dataset_format, dataset)
     else:
         _print_reid_train_stats(ds_name, dataset_format, dataset)
 
@@ -232,13 +273,17 @@ def build_test_loader(cfg):
         dataset = _build_cuhk03_test_dataset(root, split, dataset_format, dataset_cfg, tf)
     elif ds_name == "duke":
         dataset = _build_duke_test_dataset(root, split, dataset_format, tf)
+    elif ds_name == "msmt17":
+        dataset = _build_msmt17_test_dataset(root, split, dataset_format, tf)
     else:
-        raise NotImplementedError(f"Test loader supports market1501, cuhk03, and duke only, got {ds_name}")
+        raise NotImplementedError(f"Test loader supports market1501, cuhk03, duke, and msmt17 only, got {ds_name}")
     validate_eval_dataset(dataset)
     if ds_name == "cuhk03":
         _print_cuhk03_test_stats(dataset_format, dataset)
     elif ds_name == "duke":
         _print_duke_test_stats(dataset_format, dataset)
+    elif ds_name == "msmt17":
+        _print_msmt17_test_stats(dataset_format, dataset)
     else:
         _print_reid_test_stats(ds_name, dataset_format, dataset)
     loader = DataLoader(

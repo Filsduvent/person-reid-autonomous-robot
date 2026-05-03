@@ -10,6 +10,9 @@ from reid.models.outputs import ensure_output_dict
 from reid.utils.io import ensure_dir
 
 
+MSMT17_RERANK_WARNING = "[Warning] MSMT17 reranking may require large memory due to gallery size."
+
+
 @torch.no_grad()
 def extract_features(model, loader, device):
     model.eval()
@@ -31,6 +34,28 @@ def extract_features(model, loader, device):
             np.hstack(cams),
             np.hstack(names),
             np.hstack(marks))
+
+
+def _test_dataset_name(cfg):
+    return str(
+        cfg.get("data", {})
+        .get("test", {})
+        .get("dataset", {})
+        .get("name", "")
+    ).lower()
+
+
+def _warn_rerank_memory(cfg, logger=None):
+    if _test_dataset_name(cfg) == "msmt17":
+        message = MSMT17_RERANK_WARNING
+    else:
+        message = "Re-ranking enabled. This may use significant CPU memory for large galleries."
+
+    if logger is not None:
+        logger.warning(message)
+    else:
+        print(message)
+
 
 def evaluate_reid(cfg, model, test_loader, device, logger=None):
     feat, ids, cams, im_names, marks = extract_features(model, test_loader, device)
@@ -73,10 +98,7 @@ def evaluate_reid(cfg, model, test_loader, device, logger=None):
 
     rerank_cfg = cfg["eval"].get("rerank", {})
     if rerank_cfg.get("enabled", False):
-        if logger is not None:
-            logger.warning("Re-ranking enabled. This may use significant CPU memory for large galleries.")
-        else:
-            print("[Eval] Re-ranking enabled. This may use significant CPU memory for large galleries.")
+        _warn_rerank_memory(cfg, logger=logger)
         q_q_dist = compute_dist(q_feat, q_feat, metric=cfg["eval"]["distance"])
         g_g_dist = compute_dist(g_feat, g_feat, metric=cfg["eval"]["distance"])
         rerank_dist = re_ranking(

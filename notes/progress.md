@@ -6,6 +6,110 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### MSMT17 Raw Dataset Lock
+
+Implemented:
+- raw MSMT17 dataset support added in `reid/data/msmt17.py`
+  - `MSMT17RawTrain`
+  - `MSMT17RawTest`
+  - `parse_msmt17_list`
+- MSMT17 uses the same global ReID dataset protocol as Market1501, CUHK03, and Duke
+  - train samples return `(image, label)`
+  - eval samples return `(image, pid, camid, image_name, mark)`
+  - `mark=0` means query and `mark=1` means gallery
+- supported official raw layout:
+  - `root/msmt17/MSMT17_V2/mask_train_v2`
+  - `root/msmt17/MSMT17_V2/mask_test_v2`
+  - `root/msmt17/MSMT17_V2/list_train.txt`
+  - `root/msmt17/MSMT17_V2/list_val.txt`
+  - `root/msmt17/MSMT17_V2/list_query.txt`
+  - `root/msmt17/MSMT17_V2/list_gallery.txt`
+- supported train splits:
+  - `train`
+  - `val`
+  - `trainval`
+- supported eval split:
+  - `test`
+- MSMT17 list parsing reads official rows:
+  - `relative/image/path.jpg pid`
+  - extracts camera id with the original convention: `rel_path.split("_")[2]`
+  - converts pids to `int`
+  - normalizes camera ids to zero-based when the list is one-based
+  - keeps already zero-based camera ids unchanged
+  - raises clear errors for malformed rows, invalid pids, or ambiguous camera-id base
+- train datasets expose:
+  - `samples`
+  - `labels`
+  - `num_classes`
+  - `pids`
+  - `cams`
+  - `im_names`
+  - `num_cameras`
+- test datasets expose:
+  - `samples`
+  - `pids`
+  - `cams`
+  - `marks`
+  - `im_names`
+  - `num_query`
+  - `num_gallery`
+  - `num_cameras`
+- raw test ordering is locked:
+  - query samples first with `mark=0`
+  - gallery samples second with `mark=1`
+- MSMT17 constructors fail early with `FileNotFoundError(path)` for missing:
+  - `MSMT17_V2`
+  - `mask_train_v2`
+  - `mask_test_v2`
+  - `list_train.txt`
+  - `list_val.txt` when `split=val` or `split=trainval`
+  - `list_query.txt`
+  - `list_gallery.txt`
+- `reid/data/build.py` now dispatches Market1501, CUHK03, Duke, and MSMT17
+  - MSMT17 currently supports `format: raw`
+  - unsupported MSMT17 formats raise a clear `ValueError`
+- MSMT17 dataset statistics are printed by the builders:
+  - train: `[MSMT17] format=raw split=train`
+  - train stats: `num images`, `num identities`, `num cameras`
+  - test: `[MSMT17] format=raw split=test`
+  - test stats: `query images`, `gallery images`, `query identities`, `gallery identities`, `cameras`
+- MSMT17 baseline config added:
+  - `configs/baseline_msmt17_resnet50_triplet.yaml`
+  - default train dataset: `name=msmt17`, `split=train`, `format=raw`
+  - default test dataset: `name=msmt17`, `split=test`, `format=raw`
+  - default `data.num_workers=8`
+  - default `data.test.batch.size=64`
+  - default `eval.rerank.enabled=false`
+- MSMT17 re-ranking warning added in `reid/engine/evaluator.py`
+  - message: `[Warning] MSMT17 reranking may require large memory due to gallery size.`
+  - warning only appears when MSMT17 evaluation has reranking explicitly enabled
+- processed MSMT17 support is intentionally deferred
+  - do not add `MSMT17ProcessedTrain` or `MSMT17ProcessedTest` until a standard `images/partitions.pkl` contract exists or the alternate `data/data.pkl` format is inspected
+
+What It Locks:
+- MSMT17 raw train/eval can plug into the same train loop, sampler, loss, model, and evaluator as Market1501, CUHK03, and Duke
+- train labels are contiguous labels for the training split
+- `num_classes` is exposed by train datasets
+- `num_query` and `num_gallery` are exposed by the test dataset
+- query/gallery ordering is deterministic and tested
+- camera ids are normalized consistently to the pipeline's zero-based convention
+- evaluator ranking logic remains dataset-agnostic; only a memory warning was added for MSMT17 reranking
+
+Validation:
+- `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_dataset_protocol.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_rerank.py`
+- result in this environment: `105 passed in 6.50s`
+
+How To Test:
+- focused MSMT17/unit checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_msmt17_dataset.py tests/test_dataset_protocol.py`
+- focused dataset regression checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_dataset_protocol.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py`
+- reranking warning checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_rerank.py`
+- real-data raw smoke check on Constantine:
+  - set `data.root` to the parent directory containing `msmt17/MSMT17_V2`
+  - run the normal train/eval loader path with `configs/baseline_msmt17_resnet50_triplet.yaml`
+
 ### DukeMTMC-ReID Dataset Lock
 
 Implemented:

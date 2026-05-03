@@ -508,3 +508,107 @@ def test_build_loaders_reject_unknown_duke_format(monkeypatch):
 
     with pytest.raises(ValueError, match="Unsupported Duke test dataset format"):
         build_test_loader(test_cfg)
+
+
+def test_build_train_loader_uses_raw_msmt17_when_configured(monkeypatch, capsys):
+    used = {}
+
+    class MSMT17TrainDataset(_TrainDataset):
+        def __init__(self, root=None, split=None, transform=None):
+            super().__init__(root=root, split=split, transform=transform)
+            self.split = split
+            self.cams = [0, 0, 1, 1]
+            used.update({"root": root, "split": split, "format": "raw"})
+
+    monkeypatch.setattr("reid.data.build.MSMT17RawTrain", MSMT17TrainDataset)
+    monkeypatch.setattr("reid.data.build.build_train_tf", lambda image_size, aug_cfg: None)
+    cfg = copy.deepcopy(TRAIN_CFG)
+    cfg["data"]["train"]["dataset"] = {
+        "name": "msmt17",
+        "split": "train",
+        "format": "raw",
+    }
+
+    loader, _ = build_train_loader(cfg)
+    out = capsys.readouterr().out
+
+    assert loader.dataset.num_classes == 2
+    assert used == {
+        "root": "/tmp/unused",
+        "split": "train",
+        "format": "raw",
+    }
+    assert "[MSMT17] format=raw split=train" in out
+    assert "num images: 4" in out
+    assert "num identities: 2" in out
+    assert "num cameras: 2" in out
+
+
+def test_build_test_loader_uses_raw_msmt17_when_configured(monkeypatch, capsys):
+    used = {}
+
+    class MSMT17TestDataset(_EvalDataset):
+        def __init__(self, root=None, split=None, transform=None):
+            del transform
+            super().__init__(marks=[MARK_QUERY, MARK_QUERY, MARK_GALLERY, MARK_GALLERY])
+            self.split = split
+            self.pids = [1, 2, 1, 3]
+            self.cams = [0, 1, 0, 2]
+            self.num_query = 2
+            self.num_gallery = 2
+            used.update({"root": root, "split": split, "format": "raw"})
+
+    monkeypatch.setattr("reid.data.build.MSMT17RawTest", MSMT17TestDataset)
+    monkeypatch.setattr(
+        "reid.data.build.build_test_tf",
+        lambda image_size, mean, std: None,
+    )
+    cfg = copy.deepcopy(TEST_CFG)
+    cfg["data"]["test"]["dataset"] = {
+        "name": "msmt17",
+        "split": "test",
+        "format": "raw",
+    }
+
+    loader = build_test_loader(cfg)
+    out = capsys.readouterr().out
+
+    assert loader.dataset.marks == [MARK_QUERY, MARK_QUERY, MARK_GALLERY, MARK_GALLERY]
+    assert used == {
+        "root": "/tmp/unused",
+        "split": "test",
+        "format": "raw",
+    }
+    assert "[MSMT17] format=raw split=test" in out
+    assert "query images: 2" in out
+    assert "gallery images: 2" in out
+    assert "query identities: 2" in out
+    assert "gallery identities: 2" in out
+    assert "cameras: 3" in out
+
+
+def test_build_loaders_reject_unknown_msmt17_format(monkeypatch):
+    monkeypatch.setattr("reid.data.build.build_train_tf", lambda image_size, aug_cfg: None)
+    train_cfg = copy.deepcopy(TRAIN_CFG)
+    train_cfg["data"]["train"]["dataset"] = {
+        "name": "msmt17",
+        "split": "train",
+        "format": "processed",
+    }
+
+    with pytest.raises(ValueError, match="Unsupported MSMT17 train dataset format"):
+        build_train_loader(train_cfg)
+
+    monkeypatch.setattr(
+        "reid.data.build.build_test_tf",
+        lambda image_size, mean, std: None,
+    )
+    test_cfg = copy.deepcopy(TEST_CFG)
+    test_cfg["data"]["test"]["dataset"] = {
+        "name": "msmt17",
+        "split": "test",
+        "format": "processed",
+    }
+
+    with pytest.raises(ValueError, match="Unsupported MSMT17 test dataset format"):
+        build_test_loader(test_cfg)
