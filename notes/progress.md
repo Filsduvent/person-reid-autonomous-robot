@@ -6,6 +6,45 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Optimizer And Scheduler Recipe Lock
+
+Implemented:
+- expanded `tests/test_optim_build.py`
+- verified optimizer support remains locked for:
+  - SGD
+  - Adam
+  - AdamW
+  - `bias_lr_factor`
+  - `weight_decay_bias`
+- verified scheduler support remains locked for:
+  - `WarmupMultiStepLR`
+  - PyTorch `MultiStepLR`
+  - disabled scheduler config
+- verified optional center optimizer is created only when center loss is enabled and exposes trainable center-loss parameters
+- added an arbitrary model fixture with:
+  - regular weight parameters
+  - bias parameters
+  - no-bias parameters
+  - frozen parameters
+- verified `build_optimizer(cfg, model)` works on that arbitrary model, skips frozen parameters, and applies bias overrides only to bias parameter groups
+
+What It Locks:
+- optimization recipes are shared by future models as long as they expose standard `named_parameters()`
+- future model builders do not need optimizer-specific code
+- scheduler milestones remain config-driven and can be converted from epochs to iteration milestones with `steps_per_epoch`
+
+Validation:
+- syntax check and focused optimizer/scheduler regression:
+  - `/home/filsduvent/environments/windflow_env/bin/python -m py_compile tests/test_optim_build.py && PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_optim_build.py tests/test_train_loop_optim.py tests/test_checkpoint.py tests/test_train_orchestration.py tests/test_resnet50_strong_baseline.py`
+- result in this environment: `37 passed, 3 skipped in 38.37s`
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_config_schema.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_data_transforms.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_rerank.py tests/test_resnet50_strong_baseline.py tests/test_model_interface.py tests/test_model_forward.py tests/test_loss_interface.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py tests/test_optim_build.py`
+- result in this environment: `219 passed, 4 skipped in 55.71s`
+
+How To Test:
+- run the focused Phase 12 checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_optim_build.py tests/test_train_loop_optim.py tests/test_checkpoint.py tests/test_train_orchestration.py tests/test_resnet50_strong_baseline.py`
+
 ### Loss Interface Lock
 
 Implemented:

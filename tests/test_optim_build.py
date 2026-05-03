@@ -2,6 +2,7 @@ import copy
 
 import pytest
 import torch
+import torch.nn as nn
 
 from reid.losses.build import build_criterion
 from reid.models.build import build_model
@@ -72,6 +73,19 @@ def _make_cfg():
     return copy.deepcopy(BASE_CFG)
 
 
+class _AnyModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.stem = nn.Linear(8, 4)
+        self.proj = nn.Linear(4, 4, bias=False)
+        self.frozen = nn.Linear(4, 4)
+        for param in self.frozen.parameters():
+            param.requires_grad_(False)
+
+    def forward(self, x):
+        return self.proj(self.stem(x))
+
+
 @pytest.mark.parametrize(
     ("optim_name", "expected_type"),
     [
@@ -89,6 +103,28 @@ def test_build_optimizer_supports_all_expected_types(optim_name, expected_type):
 
     assert isinstance(optimizer, expected_type)
     assert optimizer.param_groups
+
+
+@pytest.mark.parametrize(
+    ("optim_name", "expected_type"),
+    [
+        ("sgd", torch.optim.SGD),
+        ("adam", torch.optim.Adam),
+        ("adamw", torch.optim.AdamW),
+    ],
+)
+def test_build_optimizer_supports_any_model_named_parameters(optim_name, expected_type):
+    cfg = _make_cfg()
+    cfg["optim"]["name"] = optim_name
+    model = _AnyModel()
+
+    optimizer = build_optimizer(cfg, model)
+
+    assert isinstance(optimizer, expected_type)
+    param_names = {group["param_name"] for group in optimizer.param_groups}
+    assert param_names == {"stem.weight", "stem.bias", "proj.weight"}
+    assert "frozen.weight" not in param_names
+    assert "frozen.bias" not in param_names
 
 
 def test_build_optimizer_applies_bias_group_overrides():
@@ -131,6 +167,26 @@ def test_build_optimizer_stores_param_names_and_applies_group_values_per_param()
         else:
             assert group["lr"] == pytest.approx(base_lr)
             assert group["weight_decay"] == pytest.approx(base_wd)
+
+
+def test_build_optimizer_applies_bias_overrides_on_arbitrary_model():
+    cfg = _make_cfg()
+    model = _AnyModel()
+
+    optimizer = build_optimizer(cfg, model)
+
+    base_lr = float(cfg["optim"]["lr"])
+    bias_lr = base_lr * float(cfg["optim"]["bias_lr_factor"])
+    base_wd = float(cfg["optim"]["weight_decay"])
+    bias_wd = float(cfg["optim"]["weight_decay_bias"])
+    groups_by_name = {group["param_name"]: group for group in optimizer.param_groups}
+
+    assert groups_by_name["stem.weight"]["lr"] == pytest.approx(base_lr)
+    assert groups_by_name["stem.weight"]["weight_decay"] == pytest.approx(base_wd)
+    assert groups_by_name["proj.weight"]["lr"] == pytest.approx(base_lr)
+    assert groups_by_name["proj.weight"]["weight_decay"] == pytest.approx(base_wd)
+    assert groups_by_name["stem.bias"]["lr"] == pytest.approx(bias_lr)
+    assert groups_by_name["stem.bias"]["weight_decay"] == pytest.approx(bias_wd)
 
 
 def test_build_optimizer_supports_sgd_nesterov_flag():
@@ -216,3 +272,12 @@ def test_build_scheduler_supports_legacy_step_config():
     scheduler = build_scheduler(cfg, optimizer)
 
     assert isinstance(scheduler, torch.optim.lr_scheduler.MultiStepLR)
+
+
+def test_build_scheduler_can_be_disabled_from_config():
+    cfg = _make_cfg()
+    cfg["sched"] = {"name": "none"}
+    model = _AnyModel()
+    optimizer = build_optimizer(cfg, model)
+
+    assert build_scheduler(cfg, optimizer, steps_per_epoch=1) is None
