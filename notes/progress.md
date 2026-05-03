@@ -6,6 +6,46 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### ResNet50 Strong Baseline Plug-In Verification
+
+Implemented:
+- added `tests/test_resnet50_strong_baseline.py`
+- verified the Market1501 ResNet50 baseline config declares the expected strong-baseline pieces:
+  - ResNet50 backbone
+  - configurable `last_conv_stride`
+  - BNNeck
+  - Triplet loss
+  - ID loss
+  - label smoothing
+  - optional center loss config
+  - random erasing in train preprocessing only
+  - `WarmupMultiStepLR`
+  - bias LR factor support
+  - PK sampler config
+  - reranking evaluation config
+- added YAML-only smoke coverage for:
+  - Triplet only
+  - ID only
+  - Triplet + ID
+  - Triplet + ID + Center
+
+What It Locks:
+- the current ResNet50 baseline is plugged into the same locked model, loss, optimizer, scheduler, transform, sampler, and evaluator contracts
+- switching between the four supported baseline modes requires config changes only
+- no dataset, evaluator, training-loop, or checkpoint code changes are needed for those modes
+
+Validation:
+- syntax check and focused strong-baseline regression:
+  - `/home/filsduvent/environments/windflow_env/bin/python -m py_compile tests/test_resnet50_strong_baseline.py && PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_resnet50_strong_baseline.py tests/test_model_interface.py tests/test_model_forward.py tests/test_reid_loss_modes.py tests/test_train_loop_optim.py tests/test_data_transforms.py tests/test_sampler.py tests/test_optim_build.py tests/test_rerank.py`
+- result in this environment: `69 passed, 4 skipped in 47.22s`
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_config_schema.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_data_transforms.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_rerank.py tests/test_resnet50_strong_baseline.py tests/test_model_interface.py tests/test_model_forward.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py tests/test_optim_build.py`
+- result in this environment: `206 passed, 4 skipped in 64.20s`
+
+How To Test:
+- run the focused Phase 10 checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_resnet50_strong_baseline.py tests/test_model_interface.py tests/test_model_forward.py tests/test_reid_loss_modes.py tests/test_train_loop_optim.py tests/test_data_transforms.py tests/test_sampler.py tests/test_optim_build.py tests/test_rerank.py`
+
 ### Model Interface Lock
 
 Implemented:
