@@ -205,13 +205,23 @@ def build_eval_payload(cfg, scores, epoch=None, checkpoint_name=""):
 
 
 def save_eval_metrics(metrics_dir, cfg, epoch, scores, checkpoint_name=""):
-    latest_path = osp.join(metrics_dir, "latest_val.json")
-    epoch_path = osp.join(metrics_dir, f"val_epoch_{epoch:03d}.json")
+    latest_path = osp.join(metrics_dir, "latest_test.json")
+    epoch_path = osp.join(metrics_dir, f"test_epoch_{epoch:03d}.json")
     payload = build_eval_payload(cfg, scores, epoch=epoch, checkpoint_name=checkpoint_name)
     with open(latest_path, "w") as f:
         json.dump(payload, f, indent=2)
     with open(epoch_path, "w") as f:
         json.dump(payload, f, indent=2)
+    return {
+        "latest": latest_path,
+        "epoch": epoch_path,
+    }
+
+
+def is_better_score(scores, metric_name: str, best_metric: float) -> bool:
+    if metric_name not in scores:
+        raise KeyError(f"Configured checkpoint metric '{metric_name}' not found in eval scores.")
+    return float(scores[metric_name]) > float(best_metric)
 
 
 def save_training_plots(plots_dir, topk, loss_history, eval_history, logger):
@@ -447,9 +457,8 @@ def main():
                 )
 
                 if save_best:
-                    cur = float(scores[best_name])
-                    if cur > best_metric:
-                        best_metric = cur
+                    if is_better_score(scores, best_name, best_metric):
+                        best_metric = float(scores[best_name])
                         best_path = checkpoint_paths["best"]
                         save_checkpoint(
                             path=best_path,

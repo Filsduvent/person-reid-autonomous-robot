@@ -6,6 +6,67 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Logging And Checkpointing Lock
+
+Implemented:
+- verified checkpoint payload contract in `reid/utils/checkpoint.py`
+  - `epoch`
+  - `model`
+  - `optimizer`
+  - `scheduler`
+  - `center_optimizer`
+  - `scores`
+  - `cfg`
+- verified training checkpoint paths:
+  - `checkpoints/ckpt_last.pth`
+  - `checkpoints/ckpt_best.pth`
+- training metric artifacts now use the required test naming:
+  - `metrics/latest_test.json`
+  - `metrics/test_epoch_XXX.json`
+- best-checkpoint selection now goes through `is_better_score(scores, metric_name, best_metric)`
+  - raises a clear `KeyError` if `train.save.metric` is missing from eval scores
+  - preserves `train.save.metric: mAP` behavior
+- standalone evaluation from `ckpt_best.pth` is covered by tests:
+  - checkpoint num classes can be inferred from classifier weights
+  - `load_checkpoint(...)` restores the model state from `ckpt_best.pth`
+- logging artifacts are verified:
+  - `train.log` is created by `setup_logger(..., filename="train.log")`
+  - train-loop log lines include epoch/iteration, `loss_total`, LR, timing, and speed
+- tests updated:
+  - `tests/test_checkpoint.py`
+  - `tests/test_train_orchestration.py`
+
+What It Locks:
+- training can stop and resume from `ckpt_last.pth`
+- standalone evaluation can load `ckpt_best.pth`
+- best checkpoint selection is controlled by YAML:
+  - `train.save.metric`
+- metrics are written with stable test artifact names for downstream tooling
+- logs contain enough runtime information to diagnose training progress:
+  - epoch
+  - loss
+  - LR
+  - eval metrics
+  - speed
+
+Validation:
+- focused logging/checkpoint checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_checkpoint.py tests/test_train_orchestration.py tests/test_train_loop_optim.py`
+- result in this environment: `16 passed, 3 skipped in 29.40s`
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_config_schema.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_rerank.py tests/test_model_forward.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py`
+- result in this environment: `176 passed, 4 skipped in 50.07s`
+
+How To Test:
+- focused:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_checkpoint.py tests/test_train_orchestration.py tests/test_train_loop_optim.py`
+- after a real run, verify artifacts under `exp/<experiment>/`:
+  - `logs/train.log`
+  - `checkpoints/ckpt_last.pth`
+  - `checkpoints/ckpt_best.pth`
+  - `metrics/latest_test.json`
+  - `metrics/test_epoch_XXX.json`
+
 ### Reproducibility Controls Lock
 
 Implemented:

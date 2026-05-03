@@ -1,4 +1,5 @@
 import copy
+import json
 import logging
 from pathlib import Path
 
@@ -9,7 +10,14 @@ from reid.losses.build import build_criterion
 from reid.models.build import build_model
 from reid.optim import build_center_optimizer, build_optimizer, build_scheduler
 from reid.utils.checkpoint import save_checkpoint
-from scripts.train import get_checkpoint_paths, maybe_resume_training, save_resolved_config
+from reid.utils.logger import setup_logger
+from scripts.train import (
+    get_checkpoint_paths,
+    is_better_score,
+    maybe_resume_training,
+    save_eval_metrics,
+    save_resolved_config,
+)
 
 
 BASE_CFG = {
@@ -91,6 +99,60 @@ def test_get_checkpoint_paths_uses_ckpt_names(tmp_path):
 
     assert paths["best"].endswith("ckpt_best.pth")
     assert paths["last"].endswith("ckpt_last.pth")
+
+
+def test_train_logger_writes_train_log(tmp_path):
+    logger = setup_logger("test.train.log.artifact", str(tmp_path), filename="train.log")
+
+    logger.info("epoch=1 loss_total=1.0 lr=0.001 speed=10 imgs/s")
+
+    for handler in logger.handlers:
+        handler.flush()
+    log_text = (tmp_path / "train.log").read_text(encoding="utf-8")
+    assert "epoch=1" in log_text
+    assert "loss_total=1.0" in log_text
+    assert "lr=0.001" in log_text
+    assert "speed=10 imgs/s" in log_text
+
+
+def test_save_eval_metrics_writes_latest_and_epoch_test_files(tmp_path):
+    cfg = {
+        "data": {
+            "test": {
+                "dataset": {
+                    "name": "market1501",
+                    "split": "test",
+                }
+            }
+        }
+    }
+    scores = {
+        "mAP": 0.5,
+        "mINP": 0.4,
+        "Rank1": 0.7,
+        "Rank5": 0.8,
+        "Rank10": 0.9,
+    }
+
+    paths = save_eval_metrics(str(tmp_path), cfg, epoch=3, scores=scores, checkpoint_name="ckpt_last.pth")
+
+    assert paths["latest"].endswith("latest_test.json")
+    assert paths["epoch"].endswith("test_epoch_003.json")
+    latest = json.loads((tmp_path / "latest_test.json").read_text())
+    epoch = json.loads((tmp_path / "test_epoch_003.json").read_text())
+    assert latest == epoch
+    assert latest["dataset"] == "market1501"
+    assert latest["split"] == "test"
+    assert latest["checkpoint"] == "ckpt_last.pth"
+    assert latest["mAP"] == 0.5
+
+
+def test_is_better_score_uses_configured_metric():
+    assert is_better_score({"mAP": 0.6, "Rank1": 0.8}, "mAP", 0.5) is True
+    assert is_better_score({"mAP": 0.4, "Rank1": 0.8}, "mAP", 0.5) is False
+
+    with pytest.raises(KeyError, match="Configured checkpoint metric"):
+        is_better_score({"Rank1": 0.8}, "mAP", 0.5)
 
 
 def test_maybe_resume_training_restores_epoch_metric_and_full_state(tmp_path):

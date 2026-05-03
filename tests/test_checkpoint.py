@@ -8,6 +8,7 @@ from reid.optim.build import build_optimizer, build_scheduler
 from reid.losses.build import build_criterion
 from reid.optim import build_center_optimizer
 from reid.utils.checkpoint import load_checkpoint, save_checkpoint
+from scripts.evaluate import infer_num_classes_from_checkpoint
 
 
 BASE_CFG = {
@@ -85,7 +86,19 @@ def test_save_checkpoint_writes_complete_training_state(tmp_path):
     )
 
     assert path.exists()
+    assert set(payload) == {
+        "epoch",
+        "model",
+        "optimizer",
+        "scheduler",
+        "center_optimizer",
+        "scores",
+        "cfg",
+    }
     assert payload["epoch"] == 7
+    assert payload["model"].keys() == model.state_dict().keys()
+    for key, value in model.state_dict().items():
+        assert torch.equal(payload["model"][key], value)
     assert payload["optimizer"] is not None
     assert payload["scheduler"] is not None
     assert payload["center_optimizer"] is not None
@@ -189,5 +202,30 @@ def test_load_checkpoint_strips_dataparallel_module_prefix(tmp_path):
     model2 = build_model(cfg, num_classes=3)
     load_checkpoint(path=path, model=model2, map_location="cpu")
 
+    for key, value in model.state_dict().items():
+        assert torch.equal(value, model2.state_dict()[key])
+
+
+def test_standalone_evaluation_can_infer_classes_and_load_best_checkpoint(tmp_path):
+    cfg = BASE_CFG
+    model = build_model(cfg, num_classes=3)
+    path = Path(tmp_path) / "checkpoints" / "ckpt_best.pth"
+
+    checkpoint = save_checkpoint(
+        path=path,
+        model=model,
+        epoch=9,
+        scores={"mAP": 0.91},
+        cfg=cfg,
+        is_best=True,
+    )
+
+    assert infer_num_classes_from_checkpoint(checkpoint) == 3
+
+    model2 = build_model(cfg, num_classes=3)
+    loaded = load_checkpoint(path=path, model=model2, map_location="cpu")
+
+    assert loaded["epoch"] == 9
+    assert loaded["scores"] == {"mAP": 0.91}
     for key, value in model.state_dict().items():
         assert torch.equal(value, model2.state_dict()[key])
