@@ -42,14 +42,18 @@ def test_save_run_artifacts_writes_command_environment_and_git_commit(tmp_path, 
         cwd=str(tmp_path),
     )
 
-    assert set(paths) == {"command", "environment", "git_commit"}
+    assert set(paths) == {"artifacts_dir", "command", "environment", "git_commit"}
+    assert (tmp_path / "artifacts" / "command.txt").read_text(encoding="utf-8").strip() == (
+        "python scripts/train.py --config configs/test.yaml"
+    )
     assert (tmp_path / "command.txt").read_text(encoding="utf-8").strip() == (
         "python scripts/train.py --config configs/test.yaml"
     )
-    environment = (tmp_path / "environment.txt").read_text(encoding="utf-8")
+    environment = (tmp_path / "artifacts" / "environment.txt").read_text(encoding="utf-8")
     assert "python:" in environment
     assert "torch:" in environment
     assert "cuda_available:" in environment
+    assert (tmp_path / "artifacts" / "git_commit.txt").read_text(encoding="utf-8").strip() == "abc123"
     assert (tmp_path / "git_commit.txt").read_text(encoding="utf-8").strip() == "abc123"
 
 
@@ -58,7 +62,8 @@ def test_save_run_artifacts_skips_git_commit_when_unavailable(tmp_path, monkeypa
 
     paths = save_run_artifacts(str(tmp_path), argv=["train"])
 
-    assert set(paths) == {"command", "environment"}
+    assert set(paths) == {"artifacts_dir", "command", "environment"}
+    assert not (tmp_path / "artifacts" / "git_commit.txt").exists()
     assert not (tmp_path / "git_commit.txt").exists()
 
 

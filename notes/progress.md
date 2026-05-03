@@ -6,6 +6,66 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Artifact Format Lock
+
+Implemented:
+- added `reid/utils/metrics_artifacts.py`
+- added `tests/test_artifact_format.py`
+- standardized metric JSON payloads for train and standalone evaluation:
+  - `dataset`
+  - `split`
+  - `model`
+  - `epoch`
+  - `checkpoint`
+  - `mAP`
+  - `mINP`
+  - `Rank1`
+  - `Rank5`
+  - `Rank10`
+- preserved optional reranking fields in the same payload without replacing original metrics:
+  - `rerank_mAP`
+  - `rerank_mINP`
+  - `rerank_Rank1`
+  - `rerank_Rank5`
+  - `rerank_Rank10`
+- training metrics now share one schema across:
+  - `metrics/latest_test.json`
+  - `metrics/test_epoch_XXX.json`
+  - `metrics/final_test.json`
+- standalone evaluation now writes:
+  - `metrics/eval_<checkpoint>.json`
+  - `metrics/final_test.json`
+- run artifacts now live under:
+  - `artifacts/command.txt`
+  - `artifacts/environment.txt`
+  - `artifacts/git_commit.txt` when available
+- kept root-level `command.txt`, `environment.txt`, and `git_commit.txt` as compatibility aliases
+- TensorBoard output directory is now `tensorboard/`
+- experiment directory creation now includes:
+  - `metrics/`
+  - `checkpoints/`
+  - `logs/`
+  - `plots/`
+  - `artifacts/`
+  - `tensorboard/`
+
+What It Locks:
+- all datasets and all models write comparable metric JSON schemas
+- training and standalone evaluation share the same metric payload builder
+- rerank metrics, plots, logs, checkpoints, resolved config, command, and environment artifacts remain preserved
+
+Validation:
+- syntax check and focused artifact regression:
+  - `/home/filsduvent/environments/windflow_env/bin/python -m py_compile reid/utils/artifacts.py reid/utils/metrics_artifacts.py scripts/train.py scripts/evaluate.py tests/test_artifact_format.py tests/test_reproducibility_artifacts.py tests/test_train_orchestration.py && PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_artifact_format.py tests/test_reproducibility_artifacts.py tests/test_train_orchestration.py tests/test_checkpoint.py`
+- result in this environment: `22 passed in 24.80s`
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_artifact_format.py tests/test_config_schema.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_data_transforms.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_evaluation_harness.py tests/test_rerank.py tests/test_resnet50_strong_baseline.py tests/test_model_interface.py tests/test_model_forward.py tests/test_loss_interface.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py tests/test_optim_build.py`
+- result in this environment: `229 passed, 4 skipped in 75.88s`
+
+How To Test:
+- run the focused Phase 14 checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_artifact_format.py tests/test_reproducibility_artifacts.py tests/test_train_orchestration.py tests/test_checkpoint.py`
+
 ### Evaluation Harness Lock
 
 Implemented:

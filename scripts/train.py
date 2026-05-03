@@ -20,6 +20,7 @@ from reid.utils.config_schema import validate_config
 from reid.utils.device import device_summary, select_device
 from reid.utils.io import ensure_dir
 from reid.utils.logger import setup_logger
+from reid.utils.metrics_artifacts import build_metric_payload, save_final_eval_metrics, save_train_eval_metrics
 from reid.utils.seed import set_seed
 
 
@@ -140,10 +141,14 @@ def create_experiment_dirs(exp_dir):
     checkpoints_dir = osp.join(exp_dir, "checkpoints")
     logs_dir = osp.join(exp_dir, "logs")
     plots_dir = osp.join(exp_dir, "plots")
+    artifacts_dir = osp.join(exp_dir, "artifacts")
+    tensorboard_dir = osp.join(exp_dir, "tensorboard")
     ensure_dir(metrics_dir)
     ensure_dir(checkpoints_dir)
     ensure_dir(logs_dir)
     ensure_dir(plots_dir)
+    ensure_dir(artifacts_dir)
+    ensure_dir(tensorboard_dir)
     return metrics_dir, checkpoints_dir, logs_dir, plots_dir
 
 
@@ -152,7 +157,7 @@ def setup_tensorboard(cfg, exp_dir):
     if cfg["logging"]["tensorboard"]:
         from torch.utils.tensorboard import SummaryWriter
 
-        tb_dir = osp.join(exp_dir, "tb")
+        tb_dir = osp.join(exp_dir, "tensorboard")
         ensure_dir(tb_dir)
         tb = SummaryWriter(tb_dir)
     return tb
@@ -182,40 +187,11 @@ def maybe_resume_training(logger, cfg, model, optimizer, scheduler, center_optim
 
 
 def build_eval_payload(cfg, scores, epoch=None, checkpoint_name=""):
-    payload = {
-        "dataset": cfg["data"]["test"]["dataset"]["name"],
-        "split": cfg["data"]["test"]["dataset"]["split"],
-        "epoch": epoch,
-        "checkpoint": checkpoint_name,
-        "mAP": float(scores["mAP"]),
-        "mINP": float(scores["mINP"]),
-        "Rank1": float(scores["Rank1"]) if scores.get("Rank1") is not None else None,
-        "Rank5": float(scores["Rank5"]) if scores.get("Rank5") is not None else None,
-        "Rank10": float(scores["Rank10"]) if scores.get("Rank10") is not None else None,
-    }
-    if "rerank_mAP" in scores:
-        payload.update({
-            "rerank_mAP": float(scores["rerank_mAP"]),
-            "rerank_mINP": float(scores["rerank_mINP"]),
-            "rerank_Rank1": float(scores["rerank_Rank1"]) if scores.get("rerank_Rank1") is not None else None,
-            "rerank_Rank5": float(scores["rerank_Rank5"]) if scores.get("rerank_Rank5") is not None else None,
-            "rerank_Rank10": float(scores["rerank_Rank10"]) if scores.get("rerank_Rank10") is not None else None,
-        })
-    return payload
+    return build_metric_payload(cfg, scores, epoch=epoch, checkpoint_name=checkpoint_name)
 
 
 def save_eval_metrics(metrics_dir, cfg, epoch, scores, checkpoint_name=""):
-    latest_path = osp.join(metrics_dir, "latest_test.json")
-    epoch_path = osp.join(metrics_dir, f"test_epoch_{epoch:03d}.json")
-    payload = build_eval_payload(cfg, scores, epoch=epoch, checkpoint_name=checkpoint_name)
-    with open(latest_path, "w") as f:
-        json.dump(payload, f, indent=2)
-    with open(epoch_path, "w") as f:
-        json.dump(payload, f, indent=2)
-    return {
-        "latest": latest_path,
-        "epoch": epoch_path,
-    }
+    return save_train_eval_metrics(metrics_dir, cfg, epoch, scores, checkpoint_name=checkpoint_name)
 
 
 def is_better_score(scores, metric_name: str, best_metric: float) -> bool:
@@ -416,6 +392,8 @@ def main():
         save_last = bool(cfg["train"]["save"].get("save_last", True))
         loss_history = []
         eval_history = []
+        final_scores = None
+        final_eval_epoch = None
 
         for ep in range(start_epoch, epochs + 1):
             avg_loss = train_one_epoch(
@@ -439,6 +417,8 @@ def main():
             if (ep % eval_interval) == 0:
                 scores = evaluate_reid(cfg, model, test_loader, device, logger=logger)
                 latest_scores = scores
+                final_scores = scores
+                final_eval_epoch = ep
                 eval_history.append({"epoch": ep, "scores": scores})
                 logger.info(
                     "[Eval] epoch=%d mAP=%.4f Rank1=%.4f mINP=%.4f",
@@ -486,6 +466,15 @@ def main():
                     scores=latest_scores,
                     cfg=cfg,
                 )
+
+        if final_scores is not None:
+            save_final_eval_metrics(
+                metrics_dir,
+                cfg,
+                epoch=final_eval_epoch,
+                scores=final_scores,
+                checkpoint_name=osp.basename(checkpoint_paths["best"] if save_best else checkpoint_paths["last"]),
+            )
 
     finally:
         if tb is not None:

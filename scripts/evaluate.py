@@ -88,35 +88,16 @@ def infer_num_classes_from_checkpoint(checkpoint):
 
 
 def build_eval_payload(cfg, scores, epoch=None, checkpoint_name=""):
-    payload = {
-        "dataset": cfg["data"]["test"]["dataset"]["name"],
-        "split": cfg["data"]["test"]["dataset"]["split"],
-        "epoch": epoch,
-        "checkpoint": checkpoint_name,
-        "mAP": float(scores["mAP"]),
-        "mINP": float(scores["mINP"]),
-        "Rank1": float(scores["Rank1"]) if scores.get("Rank1") is not None else None,
-        "Rank5": float(scores["Rank5"]) if scores.get("Rank5") is not None else None,
-        "Rank10": float(scores["Rank10"]) if scores.get("Rank10") is not None else None,
-    }
-    if "rerank_mAP" in scores:
-        payload.update({
-            "rerank_mAP": float(scores["rerank_mAP"]),
-            "rerank_mINP": float(scores["rerank_mINP"]),
-            "rerank_Rank1": float(scores["rerank_Rank1"]) if scores.get("rerank_Rank1") is not None else None,
-            "rerank_Rank5": float(scores["rerank_Rank5"]) if scores.get("rerank_Rank5") is not None else None,
-            "rerank_Rank10": float(scores["rerank_Rank10"]) if scores.get("rerank_Rank10") is not None else None,
-        })
-    return payload
+    from reid.utils.metrics_artifacts import build_metric_payload
+
+    return build_metric_payload(cfg, scores, epoch=epoch, checkpoint_name=checkpoint_name)
 
 
 def save_eval_metrics(metrics_dir, cfg, checkpoint_name, scores, epoch=None):
-    stem = Path(checkpoint_name).stem
-    out_path = osp.join(metrics_dir, f"eval_{stem}.json")
-    payload = build_eval_payload(cfg, scores, epoch=epoch, checkpoint_name=checkpoint_name)
-    with open(out_path, "w") as f:
-        json.dump(payload, f, indent=2)
-    return out_path
+    from reid.utils.metrics_artifacts import save_standalone_eval_metrics
+
+    paths = save_standalone_eval_metrics(metrics_dir, cfg, checkpoint_name, scores, epoch=epoch)
+    return paths["eval"]
 
 
 def main():

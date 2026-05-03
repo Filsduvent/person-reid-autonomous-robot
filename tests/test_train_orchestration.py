@@ -117,6 +117,12 @@ def test_train_logger_writes_train_log(tmp_path):
 
 def test_save_eval_metrics_writes_latest_and_epoch_test_files(tmp_path):
     cfg = {
+        "model": {
+            "name": "reid_baseline",
+            "backbone": {
+                "name": "resnet50",
+            },
+        },
         "data": {
             "test": {
                 "dataset": {
@@ -143,6 +149,8 @@ def test_save_eval_metrics_writes_latest_and_epoch_test_files(tmp_path):
     assert latest == epoch
     assert latest["dataset"] == "market1501"
     assert latest["split"] == "test"
+    assert latest["model"] == "resnet50_baseline"
+    assert latest["epoch"] == 3
     assert latest["checkpoint"] == "ckpt_last.pth"
     assert latest["mAP"] == 0.5
 

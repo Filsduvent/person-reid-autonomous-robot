@@ -48,27 +48,39 @@ def collect_environment_text() -> str:
 def save_run_artifacts(exp_dir: str, argv: Sequence[str] | None = None, cwd: str | None = None) -> dict:
     exp_dir = os.path.abspath(exp_dir)
     ensure_dir(exp_dir)
+    artifacts_dir = os.path.join(exp_dir, "artifacts")
+    ensure_dir(artifacts_dir)
 
     if argv is None:
         argv = sys.argv
-    command_path = os.path.join(exp_dir, "command.txt")
+    command_path = os.path.join(artifacts_dir, "command.txt")
+    command_text = shlex.join([str(arg) for arg in argv]) + "\n"
     with open(command_path, "w", encoding="utf-8") as f:
-        f.write(shlex.join([str(arg) for arg in argv]))
-        f.write("\n")
+        f.write(command_text)
+    # Compatibility alias for older tooling that read artifacts from exp root.
+    with open(os.path.join(exp_dir, "command.txt"), "w", encoding="utf-8") as f:
+        f.write(command_text)
 
-    environment_path = os.path.join(exp_dir, "environment.txt")
+    environment_path = os.path.join(artifacts_dir, "environment.txt")
+    environment_text = collect_environment_text()
     with open(environment_path, "w", encoding="utf-8") as f:
-        f.write(collect_environment_text())
+        f.write(environment_text)
+    with open(os.path.join(exp_dir, "environment.txt"), "w", encoding="utf-8") as f:
+        f.write(environment_text)
 
     paths = {
+        "artifacts_dir": artifacts_dir,
         "command": command_path,
         "environment": environment_path,
     }
 
     commit = get_git_commit(cwd=cwd)
     if commit is not None:
-        git_commit_path = os.path.join(exp_dir, "git_commit.txt")
+        git_commit_path = os.path.join(artifacts_dir, "git_commit.txt")
         with open(git_commit_path, "w", encoding="utf-8") as f:
+            f.write(commit)
+            f.write("\n")
+        with open(os.path.join(exp_dir, "git_commit.txt"), "w", encoding="utf-8") as f:
             f.write(commit)
             f.write("\n")
         paths["git_commit"] = git_commit_path
