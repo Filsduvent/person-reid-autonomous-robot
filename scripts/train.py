@@ -58,6 +58,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, required=True)
     parser.add_argument(
+        "-o",
         "--opts",
         nargs=argparse.REMAINDER,
         default=[],

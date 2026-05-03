@@ -6,6 +6,57 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Framework Smoke Test Matrix
+
+Implemented:
+- added `scripts/smoke_test.py`
+- added `tests/test_smoke_test_matrix.py`
+- verified the smoke matrix covers:
+  - Market1501 + ResNet50
+  - DukeMTMC-ReID + ResNet50
+  - CUHK03 + ResNet50
+  - MSMT17 + ResNet50
+- smoke matrix drives `scripts/train.py`, so each real-data smoke run performs:
+  - train loader build
+  - test loader build
+  - one training epoch
+  - evaluation
+  - checkpoint writing
+  - metric artifact writing
+- added `-o` as an alias for `scripts/train.py --opts`
+- default smoke overrides:
+  - `train.epochs=1`
+  - `train.eval_interval=1`
+  - `data.train.batch.P=4`
+  - `data.train.batch.K=2`
+  - `data.train.batch.batch_size=8`
+  - `data.test.batch.size=8`
+  - `data.num_workers=0`
+  - `model.backbone.pretrained=false`
+  - `logging.tensorboard=false`
+
+What It Locks:
+- before full training, the same command structure can verify every dataset through the full train/eval/checkpoint/metrics pipeline
+- the matrix uses YAML overrides only; no dataset/model/training code edits are needed per dataset
+
+Validation:
+- syntax check and focused smoke-matrix regression:
+  - `/home/filsduvent/environments/windflow_env/bin/python -m py_compile scripts/smoke_test.py scripts/train.py tests/test_smoke_test_matrix.py && PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_smoke_test_matrix.py tests/test_smoke_reid_pipeline.py tests/test_train_orchestration.py tests/test_artifact_format.py`
+- result in this environment: `21 passed in 13.98s`
+- dry-run command verification:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python scripts/smoke_test.py --dry-run`
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_artifact_format.py tests/test_config_schema.py tests/test_smoke_test_matrix.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_data_transforms.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_evaluation_harness.py tests/test_rerank.py tests/test_resnet50_strong_baseline.py tests/test_model_interface.py tests/test_model_forward.py tests/test_loss_interface.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py tests/test_optim_build.py`
+- result in this environment: `232 passed, 4 skipped in 54.88s`
+
+How To Test:
+- print the smoke matrix commands:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python scripts/smoke_test.py --dry-run`
+- run the full matrix on a machine with all datasets configured:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python scripts/smoke_test.py --root /path/to/Dataset`
+- run one dataset smoke:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python scripts/smoke_test.py --datasets market1501 --root /path/to/Dataset`
+
 ### Artifact Format Lock
 
 Implemented:
