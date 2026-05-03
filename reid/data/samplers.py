@@ -1,5 +1,6 @@
 from collections import defaultdict
 from typing import Dict, Iterator, List
+import copy
 import random
 import numpy as np
 from torch.utils.data import Sampler
@@ -56,4 +57,10 @@ class PKBatchSampler(Sampler[List[int]]):
         yield from self._build_batches()
 
     def __len__(self) -> int:
-        return len(self._build_batches())
+        rng_state = self.rng.getstate()
+        np_rng_state = copy.deepcopy(self.np_rng.bit_generator.state)
+        try:
+            return len(self._build_batches())
+        finally:
+            self.rng.setstate(rng_state)
+            self.np_rng.bit_generator.state = np_rng_state

@@ -216,6 +216,11 @@ def build_train_loader(cfg):
     else:
         raise ValueError(f"Unsupported train sampler '{sampler_name}'. Use 'pk' or 'random'.")
 
+    if len(loader) <= 0:
+        raise ValueError(
+            "Train loader has zero batches. Check dataset size, sampler mode, batch size, and PK sampler P/K values."
+        )
+
     loader.effective_batch_size = batch_size
     return loader, int(dataset.num_classes)
 

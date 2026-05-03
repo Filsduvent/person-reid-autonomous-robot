@@ -39,6 +39,18 @@ def test_pk_batch_sampler_iteration_is_finite():
         assert len(batch) == 4
 
 
+def test_pk_batch_sampler_len_does_not_advance_epoch_state():
+    labels = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3]
+    sampler_with_len = PKBatchSampler(labels, P=2, K=2, seed=42)
+    sampler_for_length_reference = PKBatchSampler(labels, P=2, K=2, seed=42)
+    sampler_without_len = PKBatchSampler(labels, P=2, K=2, seed=42)
+
+    length = len(sampler_with_len)
+
+    assert length == len(list(iter(sampler_for_length_reference)))
+    assert list(iter(sampler_with_len)) == list(iter(sampler_without_len))
+
+
 BASE_CFG = {
     "repro": {"seed": 42},
     "data": {
@@ -131,6 +143,18 @@ def test_build_train_loader_rejects_mismatched_pk_batch_size(monkeypatch):
     cfg["data"]["train"]["batch"]["batch_size"] = 5
 
     with pytest.raises(ValueError, match=r"PK sampler requires batch_size == P\*K"):
+        build_train_loader(cfg)
+
+
+def test_build_train_loader_rejects_zero_length_epoch(monkeypatch):
+    monkeypatch.setattr("reid.data.build.Market1501FromPartitions", _DummyDataset)
+    monkeypatch.setattr("reid.data.build.build_train_tf", lambda image_size, aug_cfg: None)
+    cfg = copy.deepcopy(BASE_CFG)
+    cfg["data"]["train"]["batch"]["P"] = 5
+    cfg["data"]["train"]["batch"]["K"] = 2
+    cfg["data"]["train"]["batch"]["batch_size"] = 10
+
+    with pytest.raises(ValueError, match="Train loader has zero batches"):
         build_train_loader(cfg)
 
 

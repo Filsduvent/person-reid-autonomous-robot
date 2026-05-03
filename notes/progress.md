@@ -6,6 +6,50 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Preprocessing And Sampler Lock
+
+Implemented:
+- verified train and test preprocessing stay separated in `reid/data/transforms.py`
+- locked train transform order:
+  - resize
+  - random horizontal flip when enabled
+  - padding when enabled
+  - random crop when enabled
+  - to tensor
+  - normalize
+  - random erasing when enabled
+- locked test transform order:
+  - resize
+  - to tensor
+  - normalize
+- hardened `PKBatchSampler.__len__` so length checks are side-effect-free and do not advance the sampler RNG state
+- added a train-loader guard that raises a clear error when sampler/batch settings produce a zero-batch epoch
+- kept triplet validation in `build_train_loader`:
+  - triplet loss requires `sampler: pk`
+  - PK `batch_size` must equal `P*K`
+  - `P > 1` and `K > 1`
+
+What It Locks:
+- all models receive the same train/eval input distribution from config-driven transforms
+- ID-only training can use `sampler: random`
+- triplet and triplet+ID training must use `sampler: pk`
+- `len(train_loader)` is finite and valid before training starts
+- scheduler construction still derives `steps_per_epoch` from `len(train_loader)` instead of a hardcoded step count
+
+Validation:
+- syntax check:
+  - `/home/filsduvent/environments/windflow_env/bin/python -m py_compile reid/data/build.py reid/data/samplers.py tests/test_data_transforms.py tests/test_sampler.py`
+- focused preprocessing/sampler/training regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_data_transforms.py tests/test_sampler.py tests/test_dataset_protocol.py tests/test_train_loop_optim.py tests/test_optim_build.py`
+- result in this environment: `56 passed, 3 skipped in 14.72s`
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_config_schema.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_data_transforms.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_rerank.py tests/test_model_forward.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py tests/test_optim_build.py`
+- result in this environment: `195 passed, 4 skipped in 68.64s`
+
+How To Test:
+- run the focused Phase 8 checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_data_transforms.py tests/test_sampler.py tests/test_dataset_protocol.py tests/test_train_loop_optim.py tests/test_optim_build.py`
+
 ### Dataset Protocol Details Lock
 
 Implemented:
