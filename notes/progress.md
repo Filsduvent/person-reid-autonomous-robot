@@ -6,6 +6,41 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Model Interface Lock
+
+Implemented:
+- added `tests/test_model_interface.py`
+- locked the required model output dictionary keys:
+  - `feat_raw`
+  - `feat_bn`
+  - `emb`
+  - `logits`
+- verified the current ResNet50 baseline satisfies the interface with and without the classifier head
+- verified `emb` follows `model.head.eval_feat`:
+  - `eval_feat: raw` uses `feat_raw`
+  - `eval_feat: bn` uses `feat_bn`
+- verified `logits` is present only when the classifier head is enabled
+- verified the baseline preserves `model.head.metric_feat` for metric-loss selection
+
+What It Locks:
+- future models must return the same dict-shaped interface before they can pass the model test suite
+- evaluator continues to use `emb`
+- ID loss continues to use `logits`
+- triplet and center losses continue to use the feature selected by `model.head.metric_feat`
+- new models should only need a model file, builder entry, YAML config, and optional custom loss
+
+Validation:
+- syntax check and focused model/loss regression:
+  - `/home/filsduvent/environments/windflow_env/bin/python -m py_compile tests/test_model_interface.py && PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_model_interface.py tests/test_model_forward.py tests/test_reid_loss_modes.py`
+- result in this environment: `26 passed, 1 skipped in 37.20s`
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_config_schema.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_data_transforms.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_rerank.py tests/test_model_interface.py tests/test_model_forward.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py tests/test_optim_build.py`
+- result in this environment: `201 passed, 4 skipped in 62.50s`
+
+How To Test:
+- run the model interface checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_model_interface.py tests/test_model_forward.py tests/test_reid_loss_modes.py`
+
 ### Preprocessing And Sampler Lock
 
 Implemented:
