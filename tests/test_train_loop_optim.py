@@ -111,7 +111,10 @@ def test_train_loop_runs_with_expected_optimizers_and_logs_lr(cfg, expect_center
     )
 
     captured = capsys.readouterr()
-    assert avg_loss > 0.0
+    if cfg["loss"]["id"]["enabled"] or cfg["loss"]["center"]["enabled"]:
+        assert avg_loss > 0.0
+    else:
+        assert avg_loss >= 0.0
     assert "lr=" in captured.out
     assert "time/batch=" in captured.out
     assert "speed=" in captured.out

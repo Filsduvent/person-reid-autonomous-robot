@@ -6,6 +6,38 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Loss Interface Lock
+
+Implemented:
+- added `tests/test_loss_interface.py`
+- locked `criterion(outputs, labels)` to return:
+  - scalar tensor loss
+  - log dictionary with standard keys such as `loss/total`, `loss/triplet`, `loss/id`, and `loss/center`
+- verified the loss builder is model-agnostic by building criteria from a minimal config that only contains `model.head.metric_feat`
+- verified feature routing:
+  - Triplet loss uses `feat_raw` or `feat_bn` according to `model.head.metric_feat`
+  - Center loss uses the same metric feature as Triplet
+  - ID loss uses `logits`
+- verified clear errors for missing selected metric features and missing logits
+- tightened the train-loop test for triplet-only mode because batch-hard triplet can validly be exactly zero when a random batch already satisfies the margin
+
+What It Locks:
+- loss code depends on the locked model output dictionary, not on model class names
+- future models do not need loss-layer changes if they return `feat_raw`, `feat_bn`, `emb`, and `logits`
+- metric feature selection stays YAML-controlled through `model.head.metric_feat`
+
+Validation:
+- syntax check and focused loss regression:
+  - `/home/filsduvent/environments/windflow_env/bin/python -m py_compile tests/test_loss_interface.py && PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_loss_interface.py tests/test_reid_loss_modes.py tests/test_train_loop_optim.py tests/test_resnet50_strong_baseline.py`
+- result in this environment: `27 passed, 3 skipped in 22.45s`
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_config_schema.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_data_transforms.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_rerank.py tests/test_resnet50_strong_baseline.py tests/test_model_interface.py tests/test_model_forward.py tests/test_loss_interface.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py tests/test_optim_build.py`
+- result in this environment: `214 passed, 4 skipped in 62.82s`
+
+How To Test:
+- run the focused Phase 11 checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_loss_interface.py tests/test_reid_loss_modes.py tests/test_train_loop_optim.py tests/test_resnet50_strong_baseline.py`
+
 ### ResNet50 Strong Baseline Plug-In Verification
 
 Implemented:
