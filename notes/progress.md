@@ -6,6 +6,44 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Strong Baseline Protocol Freeze
+
+Implemented:
+- added `docs/baseline_protocol_v1.md`
+- added `tests/test_baseline_protocol_doc.py`
+- froze the ResNet50 strong baseline protocol across:
+  - config schema
+  - dataset preparation
+  - train transforms
+  - test transforms
+  - sampler
+  - model settings and output contract
+  - loss recipe
+  - optimizer recipe
+  - scheduler recipe
+  - evaluation metrics and reranking behavior
+  - checkpoint format
+  - artifact and metric JSON schema
+  - smoke matrix
+  - future model plug-in rule
+
+What It Locks:
+- future model configs must inherit the v1 protocol unless a future protocol version explicitly changes it
+- future models should only add a model file, builder entry, model-specific YAML, and optional model-specific loss
+- dataset, sampler, transform, train loop, evaluator, checkpoint, logging, and artifact code are considered frozen baseline infrastructure
+
+Validation:
+- syntax check and focused protocol-doc regression:
+  - `/home/filsduvent/environments/windflow_env/bin/python -m py_compile tests/test_baseline_protocol_doc.py && PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_baseline_protocol_doc.py tests/test_config_schema.py tests/test_dataset_protocol.py tests/test_data_transforms.py tests/test_sampler.py tests/test_model_interface.py tests/test_loss_interface.py tests/test_optim_build.py tests/test_evaluation_harness.py tests/test_artifact_format.py tests/test_smoke_test_matrix.py`
+- result in this environment: `111 passed in 16.65s`
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_artifact_format.py tests/test_baseline_protocol_doc.py tests/test_config_schema.py tests/test_smoke_test_matrix.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_data_transforms.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_evaluation_harness.py tests/test_rerank.py tests/test_resnet50_strong_baseline.py tests/test_model_plugin_contract.py tests/test_model_interface.py tests/test_model_forward.py tests/test_loss_interface.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py tests/test_optim_build.py`
+- result in this environment: `234 passed, 4 skipped in 51.34s`
+
+How To Test:
+- run the protocol freeze checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_baseline_protocol_doc.py tests/test_config_schema.py tests/test_dataset_protocol.py tests/test_data_transforms.py tests/test_sampler.py tests/test_model_interface.py tests/test_loss_interface.py tests/test_optim_build.py tests/test_evaluation_harness.py tests/test_artifact_format.py tests/test_smoke_test_matrix.py`
+
 ### Model Plug-In Contract Validation
 
 Implemented:
