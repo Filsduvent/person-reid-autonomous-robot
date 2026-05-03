@@ -76,9 +76,11 @@ def evaluate_reid(cfg, model, test_loader, device, logger=None):
     dist = compute_dist(q_feat, g_feat, metric=cfg["eval"]["distance"])
 
     mAP = mean_ap(dist, q_ids, g_ids, q_cams, g_cams, average=True)
+    topk = cfg["eval"]["topk"]
+    metric_topk = max(max(topk), 10)
     cmc_scores = cmc(
         dist, q_ids, g_ids, q_cams, g_cams,
-        topk=max(cfg["eval"]["topk"]),
+        topk=metric_topk,
         separate_camera_set=False,
         single_gallery_shot=False,
         first_match_break=True,
@@ -86,7 +88,6 @@ def evaluate_reid(cfg, model, test_loader, device, logger=None):
     )
     mINP = mean_inp(dist, q_ids, g_ids, q_cams, g_cams, average=True)
 
-    topk = cfg["eval"]["topk"]
     out = {
         "mAP": float(mAP),
         "mINP": float(mINP),
@@ -113,7 +114,7 @@ def evaluate_reid(cfg, model, test_loader, device, logger=None):
         rerank_map = mean_ap(rerank_dist, q_ids, g_ids, q_cams, g_cams, average=True)
         rerank_cmc = cmc(
             rerank_dist, q_ids, g_ids, q_cams, g_cams,
-            topk=max(topk),
+            topk=metric_topk,
             separate_camera_set=False,
             single_gallery_shot=False,
             first_match_break=True,

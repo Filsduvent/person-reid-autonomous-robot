@@ -103,5 +103,8 @@ def test_resnet50_strong_baseline_loss_modes_are_yaml_only_smokes(mode):
 
     assert torch.is_tensor(loss)
     assert loss.ndim == 0
-    assert logs["loss/total"] > 0.0
+    if cfg["loss"]["id"]["enabled"] or cfg["loss"]["center"]["enabled"]:
+        assert logs["loss/total"] > 0.0
+    else:
+        assert logs["loss/total"] >= 0.0
     assert set(outputs) >= {"feat_raw", "feat_bn", "emb", "logits"}

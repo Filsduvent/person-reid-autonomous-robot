@@ -6,6 +6,48 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Evaluation Harness Lock
+
+Implemented:
+- added `tests/test_evaluation_harness.py`
+- verified `evaluate_reid` works with a dummy model that returns only:
+  - `{"emb": tensor}`
+- verified evaluator reports core metrics for both distance modes:
+  - `mAP`
+  - `mINP`
+  - `Rank1`
+  - `Rank5`
+  - `Rank10`
+- updated evaluator to compute at least rank 10 internally, even when `eval.topk` only requests lower CMC export ranks
+- verified configured `cmc` output still follows `eval.topk`
+- verified reranking metrics are reported separately and do not replace original metrics:
+  - `rerank_mAP`
+  - `rerank_mINP`
+  - `rerank_Rank1`
+  - `rerank_Rank5`
+  - `rerank_Rank10`
+- verified models missing `outputs["emb"]` fail with a clear error
+
+What It Locks:
+- evaluator depends only on the locked model output key `emb`
+- the same evaluator works for ResNet50 and will work for PCB/MGN/TransReID-style models if they return `emb`
+- original metrics and reranking metrics are both preserved when reranking is enabled
+
+Validation:
+- syntax check and focused evaluation regression:
+  - `/home/filsduvent/environments/windflow_env/bin/python -m py_compile reid/engine/evaluator.py tests/test_evaluation_harness.py && PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_evaluation_harness.py tests/test_rerank.py tests/test_model_forward.py`
+- result in this environment: `21 passed, 1 skipped in 17.13s`
+- focused evaluation/baseline regression after triplet-only smoke assertion fix:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_evaluation_harness.py tests/test_rerank.py tests/test_model_forward.py tests/test_resnet50_strong_baseline.py`
+- result in this environment: `26 passed, 1 skipped in 35.35s`
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_config_schema.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_data_transforms.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_evaluation_harness.py tests/test_rerank.py tests/test_resnet50_strong_baseline.py tests/test_model_interface.py tests/test_model_forward.py tests/test_loss_interface.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py tests/test_optim_build.py`
+- result in this environment: `223 passed, 4 skipped in 63.63s`
+
+How To Test:
+- run the focused Phase 13 checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_evaluation_harness.py tests/test_rerank.py tests/test_model_forward.py`
+
 ### Optimizer And Scheduler Recipe Lock
 
 Implemented:
