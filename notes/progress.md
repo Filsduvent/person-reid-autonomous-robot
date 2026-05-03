@@ -6,6 +6,49 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Shared Pipeline Smoke Test
+
+Implemented:
+- shared smoke-test entrypoint added:
+  - `scripts/smoke_reid_pipeline.py`
+- the script loads a normal training config and applies safe smoke defaults:
+  - `data.num_workers=0`
+  - `system.device=cpu` unless overridden
+  - `model.backbone.pretrained=false` unless `--use-config-pretrained` is passed
+- supported flags:
+  - `--config`
+  - `--root`
+  - `--device`
+  - `--skip-batch`
+  - `--skip-model`
+  - `--use-config-pretrained`
+  - `--opts key=value ...`
+- smoke checks include:
+  - config load and validation
+  - train loader construction
+  - test loader construction
+  - train dataset `num_classes`
+  - one train batch contract: `(imgs, labels)`
+  - one eval batch contract: `(imgs, pids, camids, names, marks)`
+  - model construction with `num_classes`
+  - one train forward pass
+  - one loss computation
+  - one eval forward pass
+- script tests added in `tests/test_smoke_reid_pipeline.py`
+  - override behavior
+  - train batch contract validation
+  - eval batch contract validation
+
+How To Test:
+- local unit checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_smoke_reid_pipeline.py`
+- Constantine loader-only smoke:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python scripts/smoke_reid_pipeline.py --config configs/baseline_msmt17_resnet50_triplet.yaml --root /path/to/Dataset --skip-batch`
+- Constantine full smoke:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python scripts/smoke_reid_pipeline.py --config configs/baseline_msmt17_resnet50_triplet.yaml --root /path/to/Dataset`
+- for limited GPU memory, lower eval batch size:
+  - `--opts data.test.batch.size=32`
+
 ### MSMT17 Raw Dataset Lock
 
 Implemented:
