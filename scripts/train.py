@@ -358,14 +358,15 @@ def main():
 
         tb = setup_tensorboard(cfg, exp_dir)
 
-        train_loader, batch_size = build_train_loader(cfg)
+        train_loader, train_num_classes = build_train_loader(cfg)
+        batch_size = getattr(train_loader, "effective_batch_size", None)
         train_dataset = train_loader.dataset
 
         classifier_enabled = bool(cfg["model"]["head"].get("classifier", False))
         center_enabled = bool(cfg["loss"].get("center", {}).get("enabled"))
         num_classes = None
         if classifier_enabled or bool(cfg["loss"].get("id", {}).get("enabled")) or center_enabled:
-            num_classes = getattr(train_dataset, "num_classes", None)
+            num_classes = train_num_classes
             if num_classes is None:
                 raise ValueError(
                     "Classifier, ID loss, or center loss enabled but train dataset has no "

@@ -251,7 +251,8 @@ def build_train_loader(cfg):
     else:
         raise ValueError(f"Unsupported train sampler '{sampler_name}'. Use 'pk' or 'random'.")
 
-    return loader, batch_size
+    loader.effective_batch_size = batch_size
+    return loader, int(dataset.num_classes)
 
 
 def build_test_loader(cfg):

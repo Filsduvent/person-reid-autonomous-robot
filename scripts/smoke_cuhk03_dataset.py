@@ -39,10 +39,12 @@ def main():
 
     cfg = load_config(args.config, overrides=overrides)
     validate_config(cfg)
-    train_loader, batch_size = build_train_loader(cfg)
+    train_loader, num_classes = build_train_loader(cfg)
+    batch_size = getattr(train_loader, "effective_batch_size", None)
     test_loader = build_test_loader(cfg)
 
     print(f"train batch size: {batch_size}")
+    print(f"train num classes: {num_classes}")
     print(f"train dataset class: {train_loader.dataset.__class__.__name__}")
     print(f"test dataset class: {test_loader.dataset.__class__.__name__}")
 

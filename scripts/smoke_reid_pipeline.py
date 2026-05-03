@@ -106,11 +106,12 @@ def run_smoke(args):
     cfg["experiment"]["output_dir"] = exp_dir
     artifact_paths = save_run_artifacts(exp_dir, argv=sys.argv)
 
-    train_loader, batch_size = build_train_loader(cfg)
+    train_loader, num_classes = build_train_loader(cfg)
+    batch_size = getattr(train_loader, "effective_batch_size", None)
     test_loader = build_test_loader(cfg)
     train_dataset = train_loader.dataset
     test_dataset = test_loader.dataset
-    num_classes = int(getattr(train_dataset, "num_classes"))
+    num_classes = int(num_classes)
 
     print(f"config: {args.config}")
     print(f"train dataset: {train_dataset.__class__.__name__}")

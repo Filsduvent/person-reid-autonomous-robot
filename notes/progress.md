@@ -6,6 +6,58 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Dataset Interface Lock
+
+Implemented:
+- verified the locked dataset modules remain the source of dataset-specific behavior:
+  - `reid/data/market1501.py`
+  - `reid/data/duke.py`
+  - `reid/data/cuhk03.py`
+  - `reid/data/msmt17.py`
+  - `reid/data/collate.py`
+  - `reid/data/build.py`
+- train dataset contract remains:
+  - item returns `(image, label)`
+  - dataset exposes `labels`
+  - dataset exposes `num_classes`
+- test dataset contract remains:
+  - item returns `(image, pid, camid, image_name, mark)`
+  - `mark=0` query
+  - `mark=1` gallery
+  - `mark=2` multi-query optional and accepted by the protocol
+- `build_train_loader(cfg)` now matches the framework contract:
+  - returns `(train_loader, num_classes)`
+  - stores the effective train batch size on `train_loader.effective_batch_size`
+- updated call sites that need the train batch size:
+  - `scripts/train.py`
+  - `scripts/smoke_reid_pipeline.py`
+  - `scripts/smoke_cuhk03_dataset.py`
+- updated tests that previously treated the second return value as batch size:
+  - `tests/test_sampler.py`
+  - `tests/test_dataset_protocol.py`
+
+What It Locks:
+- every supported dataset plugs into the same train/eval loader interface
+- future training code can get class count directly from `build_train_loader`
+- evaluator remains unchanged and continues to consume only the collated eval batch:
+  - `(imgs, pids, camids, names, marks)`
+- batch-size reporting is still available without overloading the builder return value:
+  - `train_loader.effective_batch_size`
+
+Validation:
+- dataset/sampler/smoke regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_dataset_protocol.py tests/test_sampler.py tests/test_smoke_reid_pipeline.py tests/test_market1501_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_msmt17_dataset.py`
+- result in this environment: `104 passed in 11.47s`
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_config_schema.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_rerank.py tests/test_model_forward.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py`
+- result in this environment: `176 passed, 4 skipped in 55.07s`
+
+How To Test:
+- focused dataset interface checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_dataset_protocol.py tests/test_sampler.py tests/test_smoke_reid_pipeline.py tests/test_market1501_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_msmt17_dataset.py`
+- real-data smoke check on Constantine:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python scripts/smoke_reid_pipeline.py --config configs/baseline_msmt17_resnet50_triplet.yaml --root /path/to/Dataset --skip-model`
+
 ### Logging And Checkpointing Lock
 
 Implemented:

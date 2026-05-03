@@ -83,9 +83,10 @@ def test_build_train_loader_pk_mode_has_finite_length(monkeypatch):
     monkeypatch.setattr("reid.data.build.build_train_tf", lambda image_size, aug_cfg: None)
     cfg = copy.deepcopy(BASE_CFG)
 
-    loader, batch_size = build_train_loader(cfg)
+    loader, num_classes = build_train_loader(cfg)
 
-    assert batch_size == 4
+    assert num_classes == 4
+    assert loader.effective_batch_size == 4
     assert len(loader) > 0
     batch_imgs, batch_labels = next(iter(loader))
     assert batch_imgs.shape[0] == 4
@@ -100,9 +101,10 @@ def test_build_train_loader_random_mode_works_for_id_only(monkeypatch):
     cfg["data"]["train"]["batch"]["sampler"] = "random"
     cfg["data"]["train"]["batch"]["batch_size"] = 4
 
-    loader, batch_size = build_train_loader(cfg)
+    loader, num_classes = build_train_loader(cfg)
 
-    assert batch_size == 4
+    assert num_classes == 4
+    assert loader.effective_batch_size == 4
     assert len(loader) == len(_DummyDataset(None, None, None)) // 4
     batch_imgs, batch_labels = next(iter(loader))
     assert batch_imgs.shape[0] == 4

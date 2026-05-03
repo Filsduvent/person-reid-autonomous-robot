@@ -208,8 +208,9 @@ def test_build_train_loader_uses_raw_market1501_when_configured(monkeypatch):
     cfg = copy.deepcopy(TRAIN_CFG)
     cfg["data"]["train"]["dataset"]["format"] = "raw"
 
-    loader, _ = build_train_loader(cfg)
+    loader, num_classes = build_train_loader(cfg)
 
+    assert num_classes == 2
     assert used["raw_train"] is True
     assert loader.dataset.num_classes == 2
 
@@ -293,9 +294,10 @@ def test_build_train_loader_uses_processed_cuhk03_when_configured(monkeypatch, c
         "split_id": 2,
     }
 
-    loader, _ = build_train_loader(cfg)
+    loader, num_classes = build_train_loader(cfg)
     out = capsys.readouterr().out
 
+    assert num_classes == 2
     assert loader.dataset.num_classes == 2
     assert "[CUHK03] format=processed image_type=labeled split=trainval" in out
     assert "num images: 4" in out
@@ -423,9 +425,10 @@ def test_build_train_loader_uses_duke_when_configured(monkeypatch, capsys, datas
         "format": dataset_format,
     }
 
-    loader, _ = build_train_loader(cfg)
+    loader, num_classes = build_train_loader(cfg)
     out = capsys.readouterr().out
 
+    assert num_classes == 2
     assert loader.dataset.num_classes == 2
     assert used == {
         "root": "/tmp/unused",
@@ -529,9 +532,10 @@ def test_build_train_loader_uses_raw_msmt17_when_configured(monkeypatch, capsys)
         "format": "raw",
     }
 
-    loader, _ = build_train_loader(cfg)
+    loader, num_classes = build_train_loader(cfg)
     out = capsys.readouterr().out
 
+    assert num_classes == 2
     assert loader.dataset.num_classes == 2
     assert used == {
         "root": "/tmp/unused",
