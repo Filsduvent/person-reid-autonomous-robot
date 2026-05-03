@@ -6,6 +6,64 @@ This file is the handoff note for future Codex sessions.
 
 ## Completed
 
+### Reproducibility Controls Lock
+
+Implemented:
+- verified and hardened `reid/utils/seed.py`
+  - `random.seed(seed)`
+  - `np.random.seed(seed)`
+  - `torch.manual_seed(seed)`
+  - `torch.cuda.manual_seed_all(seed)`
+  - `torch.backends.cudnn.deterministic = deterministic`
+  - `torch.backends.cudnn.benchmark = benchmark`
+- run artifact utility added:
+  - `reid/utils/artifacts.py`
+- artifact utility writes:
+  - `command.txt`
+  - `environment.txt`
+  - `git_commit.txt` when a git commit is available
+- `environment.txt` records:
+  - Python version
+  - executable path
+  - platform
+  - current working directory
+  - PyTorch version
+  - CUDA availability/version
+  - cuDNN version
+  - CUDA device names when available
+- run artifact writing is wired into:
+  - `scripts/train.py`
+  - `scripts/evaluate.py`
+  - `scripts/smoke_reid_pipeline.py`
+- existing resolved config artifact remains:
+  - `config.resolved.yaml`
+- tests added:
+  - `tests/test_reproducibility_artifacts.py`
+
+What It Locks:
+- the `repro:` YAML section controls the major deterministic/runtime seed knobs used by training
+- train/evaluate/smoke runs leave enough metadata to reconstruct how the run was launched
+- each real experiment run saves:
+  - `exp/<experiment>/config.resolved.yaml`
+  - `exp/<experiment>/command.txt`
+  - `exp/<experiment>/environment.txt`
+  - `exp/<experiment>/git_commit.txt` when git is available
+- missing git metadata does not fail a run; `git_commit.txt` is optional by design
+
+Validation:
+- broad framework regression:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py tests/test_config_schema.py tests/test_smoke_reid_pipeline.py tests/test_dataset_protocol.py tests/test_msmt17_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_market1501_dataset.py tests/test_sampler.py tests/test_rerank.py tests/test_model_forward.py tests/test_train_loop_optim.py tests/test_reid_loss_modes.py tests/test_train_orchestration.py tests/test_checkpoint.py`
+- result in this environment: `172 passed, 4 skipped in 51.15s`
+
+How To Test:
+- focused reproducibility checks:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python -m pytest -q tests/test_reproducibility_artifacts.py`
+- run a loader-only smoke and inspect artifacts:
+  - `PYTHONPATH=. /home/filsduvent/environments/windflow_env/bin/python scripts/smoke_reid_pipeline.py --config configs/baseline_msmt17_resnet50_triplet.yaml --root /path/to/Dataset --skip-batch`
+  - check `exp/baseline_r50_triplet_msmt17/command.txt`
+  - check `exp/baseline_r50_triplet_msmt17/environment.txt`
+  - check `exp/baseline_r50_triplet_msmt17/git_commit.txt` if git is available
+
 ### YAML Configuration Schema Lock
 
 Implemented:

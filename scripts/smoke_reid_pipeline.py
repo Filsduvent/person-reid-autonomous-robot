@@ -12,6 +12,7 @@ from reid.data.build import build_test_loader, build_train_loader
 from reid.losses.build import build_criterion
 from reid.models.build import build_model
 from reid.models.outputs import ensure_output_dict
+from reid.utils.artifacts import save_run_artifacts
 from reid.utils.config import load_config, validate_reid_config
 from reid.utils.config_schema import validate_config
 from reid.utils.device import select_device
@@ -101,6 +102,9 @@ def run_smoke(args):
     cfg = load_config(args.config, overrides=_base_overrides(args))
     validate_config(cfg)
     validate_reid_config(cfg)
+    exp_dir = str(REPO_ROOT / cfg["experiment"]["output_dir"])
+    cfg["experiment"]["output_dir"] = exp_dir
+    artifact_paths = save_run_artifacts(exp_dir, argv=sys.argv)
 
     train_loader, batch_size = build_train_loader(cfg)
     test_loader = build_test_loader(cfg)
@@ -113,6 +117,8 @@ def run_smoke(args):
     print(f"test dataset: {test_dataset.__class__.__name__}")
     print(f"num_classes: {num_classes}")
     print(f"train batch size: {batch_size}")
+    print(f"command artifact: {artifact_paths['command']}")
+    print(f"environment artifact: {artifact_paths['environment']}")
 
     if args.skip_batch:
         print("batch checks: skipped")

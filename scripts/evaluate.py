@@ -149,11 +149,17 @@ def main():
     try:
         logger = setup_logger("reid.evaluate", exp_dir, filename="evaluate.log")
         resolved_config_path = save_resolved_config(exp_dir, cfg, save_yaml)
+        from reid.utils.artifacts import save_run_artifacts
+        artifact_paths = save_run_artifacts(exp_dir, argv=sys.argv)
 
         device, _ = select_device(cfg["system"]["device"], cfg["system"].get("gpu_id", 0), cfg)
         logger.info("Config path: %s", args.config)
         logger.info("Device: %s", device_summary(device))
         logger.info("Resolved config saved to: %s", resolved_config_path)
+        logger.info("Command saved to: %s", artifact_paths["command"])
+        logger.info("Environment saved to: %s", artifact_paths["environment"])
+        if "git_commit" in artifact_paths:
+            logger.info("Git commit saved to: %s", artifact_paths["git_commit"])
         logger.info("Raw eval stdout saved to: %s", osp.join(logs_dir, "eval_stdout.txt"))
         logger.info("Raw eval stderr saved to: %s", osp.join(logs_dir, "eval_stderr.txt"))
 

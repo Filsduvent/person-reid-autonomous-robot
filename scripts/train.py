@@ -13,6 +13,7 @@ from reid.engine.train_loop import train_one_epoch
 from reid.losses.build import build_criterion
 from reid.models.build import build_model
 from reid.optim.build import build_center_optimizer, build_optimizer, build_scheduler
+from reid.utils.artifacts import save_run_artifacts
 from reid.utils.checkpoint import load_checkpoint, save_checkpoint
 from reid.utils.config import load_config, save_yaml, validate_reid_config
 from reid.utils.config_schema import validate_config
@@ -336,6 +337,7 @@ def main():
     try:
         logger = setup_logger("reid.train", exp_dir, filename="train.log")
         resolved_config_path = save_resolved_config(exp_dir, cfg)
+        artifact_paths = save_run_artifacts(exp_dir, argv=sys.argv)
 
         device, _ = select_device(cfg["system"]["device"], cfg["system"].get("gpu_id", 0), cfg)
         set_seed(
@@ -377,6 +379,10 @@ def main():
         log_startup(logger, args, cfg, device, train_loader, num_classes, optimizer, scheduler, resume_path)
         logger.info("Train batch size: %s", batch_size)
         logger.info("Resolved config saved to: %s", resolved_config_path)
+        logger.info("Command saved to: %s", artifact_paths["command"])
+        logger.info("Environment saved to: %s", artifact_paths["environment"])
+        if "git_commit" in artifact_paths:
+            logger.info("Git commit saved to: %s", artifact_paths["git_commit"])
         logger.info("Raw stdout saved to: %s", osp.join(logs_dir, "stdout.txt"))
         logger.info("Raw stderr saved to: %s", osp.join(logs_dir, "stderr.txt"))
 
