@@ -55,6 +55,7 @@ def test_experiment_dirs_include_locked_artifact_layout(tmp_path):
     assert (tmp_path / "plots").is_dir()
     assert (tmp_path / "artifacts").is_dir()
     assert (tmp_path / "tensorboard").is_dir()
+    assert (tmp_path / "tb").exists()
 
 
 def test_metric_payload_uses_locked_schema_and_model_label():
@@ -86,8 +87,8 @@ def test_metric_payload_preserves_rerank_metrics_separately():
 def test_train_metric_files_share_same_schema(tmp_path):
     paths = save_train_eval_metrics(str(tmp_path), CFG, epoch=3, scores=RERANK_SCORES, checkpoint_name="ckpt_last.pth")
 
-    latest = json.loads((tmp_path / "latest_test.json").read_text(encoding="utf-8"))
-    epoch_payload = json.loads((tmp_path / "test_epoch_003.json").read_text(encoding="utf-8"))
+    latest = json.loads((tmp_path / "latest_val.json").read_text(encoding="utf-8"))
+    epoch_payload = json.loads((tmp_path / "val_epoch_003.json").read_text(encoding="utf-8"))
 
     assert latest == epoch_payload == paths["payload"]
     assert latest["model"] == "resnet50_baseline"

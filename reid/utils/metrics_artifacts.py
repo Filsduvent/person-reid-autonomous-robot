@@ -50,8 +50,8 @@ def write_metric_payload(path, payload):
 def save_train_eval_metrics(metrics_dir, cfg, epoch, scores, checkpoint_name=""):
     ensure_dir(metrics_dir)
     payload = build_metric_payload(cfg, scores, epoch=epoch, checkpoint_name=checkpoint_name)
-    latest_path = os.path.join(metrics_dir, "latest_test.json")
-    epoch_path = os.path.join(metrics_dir, f"test_epoch_{epoch:03d}.json")
+    latest_path = os.path.join(metrics_dir, "latest_val.json")
+    epoch_path = os.path.join(metrics_dir, f"val_epoch_{epoch:03d}.json")
     write_metric_payload(latest_path, payload)
     write_metric_payload(epoch_path, payload)
     return {

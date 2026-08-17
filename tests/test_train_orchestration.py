@@ -142,10 +142,10 @@ def test_save_eval_metrics_writes_latest_and_epoch_test_files(tmp_path):
 
     paths = save_eval_metrics(str(tmp_path), cfg, epoch=3, scores=scores, checkpoint_name="ckpt_last.pth")
 
-    assert paths["latest"].endswith("latest_test.json")
-    assert paths["epoch"].endswith("test_epoch_003.json")
-    latest = json.loads((tmp_path / "latest_test.json").read_text())
-    epoch = json.loads((tmp_path / "test_epoch_003.json").read_text())
+    assert paths["latest"].endswith("latest_val.json")
+    assert paths["epoch"].endswith("val_epoch_003.json")
+    latest = json.loads((tmp_path / "latest_val.json").read_text())
+    epoch = json.loads((tmp_path / "val_epoch_003.json").read_text())
     assert latest == epoch
     assert latest["dataset"] == "market1501"
     assert latest["split"] == "test"

@@ -4,6 +4,75 @@
 
 This file is the handoff note for future Codex sessions.
 
+### MSMT17 Baseline Completion Runbook
+
+Implemented:
+- added `docs/market1501_experiment_series.md`
+- added `docs/msmt17_baseline_experiment_series.md`
+- added `docs/cross_dataset_baseline_experiment_series.md`
+- documented the first dataset-specific experiment campaign on `Market1501`
+- ordered the work as:
+  - `Market1501` configuration sweep first
+  - pick one winner on `Market1501`
+  - only then reproduce the same recipe on the next dataset
+- documented the exact MSMT17 baseline completion campaign before moving to the
+  next model
+- documented the higher-level cross-dataset baseline campaign covering:
+  - `Market1501`
+  - `DukeMTMC-ReID`
+  - `CUHK03`
+  - `MSMT17`
+- included:
+  - one-epoch smoke command
+  - canonical full baseline run
+  - standalone `ckpt_best` / `ckpt_last` evaluation commands
+  - post-hoc rerank evaluation
+  - three-seed reproducibility block
+  - two targeted ablations:
+    - Center loss
+    - last stride 2
+  - explicit gate for when it is acceptable to move to the next architecture
+
+What It Locks:
+- the current stage is no longer "just train once and move on"
+- the next immediate task is not cross-dataset yet; it is the full
+  `Market1501` configuration sweep
+- the current ResNet50 baseline family must be closed per dataset with
+  reproducibility and controlled ablations before the next model is considered
+  fairly
+- the next architecture should be compared against a baseline mean over seeds,
+  not against one isolated run on one dataset
+
+Current Anchor:
+- `exp/baseline_r50_triplet_msmt17/metrics/final_test.json`
+  - `mAP=0.5238`
+  - `mINP=0.8044`
+  - `Rank1=0.7560`
+  - `Rank5=0.8620`
+  - `Rank10=0.8948`
+
+Next Intended Step:
+- execute `docs/market1501_experiment_series.md`
+- current run in progress:
+  `configs/experiment_market1501_resnet50_triplet_only.yaml`
+- next prepared Phase 1 config:
+  `configs/experiment_market1501_resnet50_id_only.yaml`
+- next prepared Phase 1 configs after that:
+  - `configs/experiment_market1501_resnet50_triplet_id.yaml`
+  - `configs/experiment_market1501_resnet50_triplet_id_center.yaml`
+- finish the `Market1501` loss-mode sweep, trick sweep, rerank analysis, and
+  seed validation
+- immediate queue after current run:
+  - `python3 scripts/train.py --config configs/experiment_market1501_resnet50_id_only.yaml`
+  - `python3 scripts/train.py --config configs/experiment_market1501_resnet50_triplet_id.yaml`
+  - `python3 scripts/train.py --config configs/experiment_market1501_resnet50_triplet_id_center.yaml`
+- freeze one canonical `Market1501` recipe
+- only after that, resume `docs/cross_dataset_baseline_experiment_series.md`
+- use `docs/msmt17_baseline_experiment_series.md` as the detailed MSMT17 branch
+- once the per-dataset baseline blocks are done, freeze the canonical
+  cross-dataset baseline table and start the next model under
+  `docs/model_plugin_protocol.md`
+
 ## Completed
 
 ### Lab Validation Handoff

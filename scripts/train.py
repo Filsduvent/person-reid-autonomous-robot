@@ -8,6 +8,10 @@ from pathlib import Path
 
 import torch
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from reid.data.build import build_test_loader, build_train_loader
 from reid.engine.train_loop import train_one_epoch
 from reid.losses.build import build_criterion
@@ -50,8 +54,7 @@ def resolve_repo_relative_path(path_str: str) -> str:
     path = Path(path_str)
     if path.is_absolute():
         return str(path)
-    repo_root = Path(__file__).resolve().parents[1]
-    return str(repo_root / path)
+    return str(REPO_ROOT / path)
 
 
 def parse_args():
@@ -150,6 +153,12 @@ def create_experiment_dirs(exp_dir):
     ensure_dir(plots_dir)
     ensure_dir(artifacts_dir)
     ensure_dir(tensorboard_dir)
+    tb_compat_dir = osp.join(exp_dir, "tb")
+    if not osp.exists(tb_compat_dir):
+        try:
+            os.symlink("tensorboard", tb_compat_dir)
+        except OSError:
+            pass
     return metrics_dir, checkpoints_dir, logs_dir, plots_dir
 
 
