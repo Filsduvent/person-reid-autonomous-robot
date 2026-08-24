@@ -74,14 +74,13 @@ def test_cuhk03_processed_train_uses_selected_image_type_and_returns_image_label
         root=str(tmp_path),
         split="trainval",
         image_type="detected",
-        protocol="new",
-        split_id=0,
+        protocol="processed_partition",
         transform=lambda img: img,
     )
 
     assert dataset.image_type == "detected"
-    assert dataset.protocol == "new"
-    assert dataset.split_id == 0
+    assert dataset.protocol == "processed_partition"
+    assert dataset.split_id is None
     assert dataset.labels == [0, 1]
     assert dataset.pids == [2, 7]
     assert dataset.cams == [1, 2]
@@ -148,14 +147,13 @@ def test_cuhk03_processed_test_uses_selected_image_type_and_returns_eval_tuple(t
         root=str(tmp_path),
         split="test",
         image_type="labeled",
-        protocol="classic",
-        split_id=1,
+        protocol="processed_partition",
         transform=lambda img: img,
     )
 
     assert dataset.image_type == "labeled"
-    assert dataset.protocol == "classic"
-    assert dataset.split_id == 1
+    assert dataset.protocol == "processed_partition"
+    assert dataset.split_id is None
     assert dataset.pids.tolist() == [2, 2]
     assert dataset.cams.tolist() == [1, 2]
     assert dataset.marks.tolist() == [0, 1]
@@ -197,6 +195,21 @@ def test_cuhk03_processed_test_supports_val_split_and_rejects_train_split(tmp_pa
 def test_cuhk03_processed_rejects_invalid_image_type(tmp_path):
     with pytest.raises(ValueError, match="Unsupported CUHK03 image_type"):
         CUHK03ProcessedTrain(root=str(tmp_path), split="trainval", image_type="raw")
+
+
+@pytest.mark.parametrize("protocol", ["new", "classic"])
+def test_cuhk03_processed_rejects_protocols_not_encoded_by_partition_files(tmp_path, protocol):
+    with pytest.raises(ValueError, match="do not encode"):
+        CUHK03ProcessedTrain(
+            root=str(tmp_path), split="trainval", image_type="detected", protocol=protocol
+        )
+
+
+def test_cuhk03_processed_rejects_unrepresented_split_id(tmp_path):
+    with pytest.raises(ValueError, match="split_id"):
+        CUHK03ProcessedTrain(
+            root=str(tmp_path), split="trainval", image_type="detected", split_id=0
+        )
 
 
 def test_cuhk03_processed_train_requires_images_and_partitions(tmp_path):

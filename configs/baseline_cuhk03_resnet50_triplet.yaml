@@ -35,8 +35,9 @@ data:
       split: trainval        # train|trainval
       format: processed      # processed
       image_type: detected   # detected|labeled
-      protocol: new          # new|classic
-      split_id: 0
+      # The supplied partitions do not encode new/classic metadata or split IDs.
+      protocol: processed_partition
+      split_id: null
     images:
       dir: null              # optional explicit override; usually inferred
       size: [256, 128]
@@ -73,8 +74,8 @@ data:
       split: test            # val|test
       format: processed      # processed
       image_type: detected   # detected|labeled
-      protocol: new          # new|classic
-      split_id: 0
+      protocol: processed_partition
+      split_id: null
     images:
       size: [256, 128]
       batch_dims: NCHW

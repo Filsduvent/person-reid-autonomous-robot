@@ -18,6 +18,7 @@ from scripts.train import (
     save_eval_metrics,
     save_resolved_config,
 )
+from reid.utils.metrics_artifacts import save_final_epoch_metrics, save_final_eval_metrics
 
 
 BASE_CFG = {
@@ -161,6 +162,23 @@ def test_is_better_score_uses_configured_metric():
 
     with pytest.raises(KeyError, match="Configured checkpoint metric"):
         is_better_score({"Rank1": 0.8}, "mAP", 0.5)
+
+
+def test_final_epoch_and_selected_checkpoint_metrics_are_separate(tmp_path):
+    cfg = {
+        "model": {"name": "reid_baseline", "backbone": {"name": "resnet50"}},
+        "data": {"test": {"dataset": {"name": "market1501", "split": "test"}}},
+    }
+    scores = {"mAP": 0.5, "mINP": 0.4, "Rank1": 0.7, "Rank5": 0.8, "Rank10": 0.9}
+    save_final_epoch_metrics(str(tmp_path), cfg, epoch=120, scores=scores)
+    save_final_eval_metrics(str(tmp_path), cfg, epoch=110, scores=scores, checkpoint_name="ckpt_best.pth")
+
+    final_epoch = json.loads((tmp_path / "final_epoch_test.json").read_text())
+    selected = json.loads((tmp_path / "final_test.json").read_text())
+    assert final_epoch["checkpoint"] == "ckpt_last.pth"
+    assert final_epoch["epoch"] == 120
+    assert selected["checkpoint"] == "ckpt_best.pth"
+    assert selected["epoch"] == 110
 
 
 def test_maybe_resume_training_restores_epoch_metric_and_full_state(tmp_path):

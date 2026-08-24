@@ -4,6 +4,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from reid.engine.evaluator import evaluate_reid, extract_features
+from reid.metrics.ranking import mean_inp
 
 
 BASE_CFG = {
@@ -99,3 +100,30 @@ def test_evaluator_reports_rerank_metrics_separately_without_replacing_original_
 def test_extract_features_rejects_models_without_embedding_output():
     with pytest.raises(ValueError, match="emb"):
         extract_features(MissingEmbModel(), _loader(), torch.device("cpu"))
+
+
+def test_minp_uses_last_valid_positive_and_excludes_same_camera_matches():
+    # Sorted gallery order is: same-ID/same-camera (excluded), negative,
+    # positive, negative, positive.  The retained positives are ranks 2 and 4,
+    # therefore INP is 2 / 4 rather than 1 / 2.
+    dist = torch.tensor([[0.0, 1.0, 2.0, 3.0, 4.0]]).numpy()
+    score = mean_inp(
+        dist,
+        query_ids=torch.tensor([7]).numpy(),
+        gallery_ids=torch.tensor([7, 3, 7, 4, 7]).numpy(),
+        query_cams=torch.tensor([1]).numpy(),
+        gallery_cams=torch.tensor([1, 2, 2, 2, 3]).numpy(),
+    )
+    assert score == pytest.approx(0.5)
+
+
+def test_minp_averages_only_valid_queries():
+    dist = torch.tensor([[0.0, 1.0], [0.0, 1.0]]).numpy()
+    score = mean_inp(
+        dist,
+        query_ids=torch.tensor([1, 2]).numpy(),
+        gallery_ids=torch.tensor([1, 3]).numpy(),
+        query_cams=torch.tensor([0, 0]).numpy(),
+        gallery_cams=torch.tensor([1, 1]).numpy(),
+    )
+    assert score == pytest.approx(1.0)

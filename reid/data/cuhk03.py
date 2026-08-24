@@ -11,6 +11,7 @@ from reid.utils.io import expand, load_pickle
 
 
 VALID_IMAGE_TYPES = {"detected", "labeled"}
+PROCESSED_PARTITION_PROTOCOL = "processed_partition"
 PROCESSED_REID_PATTERN = re.compile(r"^(\d{8})_(\d{4})_(\d{8})\.(jpg|png)$", re.IGNORECASE)
 
 # TODO: Add raw CUHK03 .mat preprocessing support later if needed.
@@ -56,6 +57,30 @@ def _validate_image_type(image_type: str) -> str:
     return image_type
 
 
+def _validate_protocol(protocol: str, split_id: int | None) -> str:
+    """Validate the protocol represented by the available processed files.
+
+    The repository's processed CUHK03 partitions are flat files containing
+    train/val/test lists.  They contain neither a semantic protocol label nor
+    split identifier, so claiming ``new`` or ``classic`` would be unverifiable.
+    ``processed_partition`` makes that contract explicit.  A future converter
+    can add a protocol-aware loader without changing the common data API.
+    """
+    value = str(protocol).lower()
+    if value != PROCESSED_PARTITION_PROTOCOL:
+        raise ValueError(
+            "CUHK03 processed partitions do not encode 'new' or 'classic' "
+            "protocol metadata. Use protocol='processed_partition' until a "
+            "protocol-aware conversion is supplied."
+        )
+    if split_id is not None:
+        raise ValueError(
+            "CUHK03 split_id is not represented in flat processed partitions; "
+            "set split_id to null."
+        )
+    return value
+
+
 def _require_partition_keys(parts, part_file: str, keys: List[str]) -> None:
     missing = [key for key in keys if key not in parts]
     if missing:
@@ -77,8 +102,8 @@ class CUHK03ProcessedTrain(Dataset):
         root: str,
         split: str,
         image_type: str = "detected",
-        protocol: str = "new",
-        split_id: int = 0,
+        protocol: str = PROCESSED_PARTITION_PROTOCOL,
+        split_id: int | None = None,
         transform=None,
     ):
         if split not in {"train", "trainval"}:
@@ -87,8 +112,8 @@ class CUHK03ProcessedTrain(Dataset):
         self.root = expand(root)
         self.split = split
         self.image_type = _validate_image_type(image_type)
-        self.protocol = str(protocol)
-        self.split_id = int(split_id)
+        self.protocol = _validate_protocol(protocol, split_id)
+        self.split_id = split_id
         self.transform = transform
 
         base_dir = osp.join(self.root, "cuhk03", self.image_type)
@@ -144,8 +169,8 @@ class CUHK03ProcessedTest(Dataset):
         root: str,
         split: str = "test",
         image_type: str = "detected",
-        protocol: str = "new",
-        split_id: int = 0,
+        protocol: str = PROCESSED_PARTITION_PROTOCOL,
+        split_id: int | None = None,
         transform=None,
     ):
         if split not in {"val", "test"}:
@@ -154,8 +179,8 @@ class CUHK03ProcessedTest(Dataset):
         self.root = expand(root)
         self.split = split
         self.image_type = _validate_image_type(image_type)
-        self.protocol = str(protocol)
-        self.split_id = int(split_id)
+        self.protocol = _validate_protocol(protocol, split_id)
+        self.split_id = split_id
         self.transform = transform
 
         base_dir = osp.join(self.root, "cuhk03", self.image_type)

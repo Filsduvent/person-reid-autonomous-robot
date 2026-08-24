@@ -89,6 +89,13 @@ def mean_ap(distmat, query_ids, gallery_ids, query_cams, gallery_cams, average=T
     return aps, is_valid
 
 def mean_inp(distmat, query_ids, gallery_ids, query_cams, gallery_cams, average=True):
+    """Compute mean inverse negative penalty (mINP).
+
+    For each valid query, INP is the fraction of relevant gallery images
+    retrieved up to the rank of its last (hardest) relevant match.  Gallery
+    images of the same identity from the same camera are excluded first,
+    matching the filtering used for CMC and mAP.
+    """
     assert isinstance(distmat, np.ndarray)
     m, n = distmat.shape
     indices = np.argsort(distmat, axis=1)
@@ -104,8 +111,8 @@ def mean_inp(distmat, query_ids, gallery_ids, query_cams, gallery_cams, average=
             continue
         is_valid[i] = 1
         match_idx = np.where(matches[i, valid])[0]
-        first_rank = match_idx[0] + 1
-        inps[i] = 1.0 / first_rank
+        last_rank = match_idx[-1] + 1
+        inps[i] = float(len(match_idx)) / float(last_rank)
 
     if average:
         return float(np.sum(inps) / (np.sum(is_valid) + 1e-12))

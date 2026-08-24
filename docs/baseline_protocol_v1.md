@@ -74,7 +74,10 @@ CUHK03:
 
 - Processed detected: `root/cuhk03/detected/images`, `root/cuhk03/detected/partitions.pkl`
 - Processed labeled: `root/cuhk03/labeled/images`, `root/cuhk03/labeled/partitions.pkl`
-- Supports `image_type: detected|labeled`, `protocol: new|classic`, and `split_id`
+- Supports `image_type: detected|labeled`
+- Canonical current setting: `protocol: processed_partition`, `split_id: null`
+- The supplied flat partition files do not encode CUHK03 `new|classic` metadata
+  or split IDs. Those settings are rejected rather than silently claimed.
 
 MSMT17:
 
@@ -239,6 +242,9 @@ Always reported metrics:
 - `Rank5`
 - `Rank10`
 
+`mINP` uses the last valid positive match after same-identity/same-camera
+filtering: `number_of_valid_positives / rank_of_last_valid_positive`.
+
 Optional reranking metrics:
 
 - `rerank_mAP`
@@ -279,6 +285,9 @@ train:
     metric: mAP
 ```
 
+`ckpt_last.pth` is saved after every epoch. `ckpt_best.pth` is replaced only
+when the configured metric strictly improves at an evaluation epoch.
+
 ## Artifact Schema
 
 Each run writes:
@@ -295,9 +304,10 @@ exp/<experiment.name>/
     ckpt_last.pth
     ckpt_best.pth
   metrics/
-    latest_test.json
-    test_epoch_XXX.json
-    final_test.json
+    latest_val.json
+    val_epoch_XXX.json
+    final_epoch_test.json  # final training checkpoint metrics, ckpt_last.pth
+    final_test.json        # selected checkpoint metrics, normally ckpt_best.pth
   tensorboard/
   plots/
   artifacts/
@@ -322,6 +332,37 @@ Metric JSON schema:
   "Rank10": 0.0
 }
 ```
+
+## Cross-Domain Evaluation
+
+Within-domain evaluation uses the same source and target dataset. Cross-domain
+evaluation loads a source checkpoint directly against a target dataset's normal
+query/gallery protocol. The target labels are used only for retrieval metrics;
+the source classifier is not replaced and is not used for matching.
+
+```bash
+python scripts/evaluate_cross_domain.py \
+  --config configs/baseline_duke_resnet50_triplet.yaml \
+  --checkpoint exp/baseline_r50_triplet_market1501/checkpoints/ckpt_best.pth \
+  --source-dataset market1501 \
+  --target-dataset duke \
+  --output-dir exp/cross_market_to_duke
+```
+
+Each evaluation writes `cross_dataset.json` with source/target datasets,
+architecture, checkpoint path, metrics, timestamp, experiment ID, and resolved
+configuration. `scripts/report_model_selection.py` ranks complete 4x4 result
+matrices by mAP, uses Rank-1 as the tie-breaker, and leaves incomplete
+architectures unranked.
+
+## Common And Architecture-Specific Settings
+
+The common protocol owns dataset splits, transforms, PK sampling, evaluation
+metrics, query/gallery filtering, seed controls, checkpoint artifacts, and
+re-ranking policy. Architectures must expose the locked output contract above.
+Backbone construction, input-tokenization requirements, embedding head details,
+and architecture-specific optimizer or schedule changes remain explicit model
+configuration, rather than being silently inherited by PCB, MGN, or TransReID.
 
 When reranking is enabled, rerank fields are appended to the same payload.
 

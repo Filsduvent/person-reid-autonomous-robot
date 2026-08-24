@@ -72,6 +72,15 @@ def save_final_eval_metrics(metrics_dir, cfg, epoch, scores, checkpoint_name="")
     }
 
 
+def save_final_epoch_metrics(metrics_dir, cfg, epoch, scores, checkpoint_name="ckpt_last.pth"):
+    """Persist metrics measured on the final training epoch without ambiguity."""
+    ensure_dir(metrics_dir)
+    payload = build_metric_payload(cfg, scores, epoch=epoch, checkpoint_name=checkpoint_name)
+    path = os.path.join(metrics_dir, "final_epoch_test.json")
+    write_metric_payload(path, payload)
+    return {"final_epoch": path, "payload": payload}
+
+
 def save_standalone_eval_metrics(metrics_dir, cfg, checkpoint_name, scores, epoch=None):
     ensure_dir(metrics_dir)
     payload = build_metric_payload(cfg, scores, epoch=epoch, checkpoint_name=checkpoint_name)

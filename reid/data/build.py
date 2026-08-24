@@ -93,8 +93,8 @@ def _build_cuhk03_train_dataset(root, split, dataset_format, dataset_cfg, transf
             root=root,
             split=split,
             image_type=dataset_cfg.get("image_type", "detected"),
-            protocol=dataset_cfg.get("protocol", "new"),
-            split_id=dataset_cfg.get("split_id", 0),
+            protocol=dataset_cfg.get("protocol", "processed_partition"),
+            split_id=dataset_cfg.get("split_id"),
             transform=transform,
         )
     raise ValueError(f"Unsupported CUHK03 train dataset format '{dataset_format}'. Use 'processed'.")
@@ -106,8 +106,8 @@ def _build_cuhk03_test_dataset(root, split, dataset_format, dataset_cfg, transfo
             root=root,
             split=split,
             image_type=dataset_cfg.get("image_type", "detected"),
-            protocol=dataset_cfg.get("protocol", "new"),
-            split_id=dataset_cfg.get("split_id", 0),
+            protocol=dataset_cfg.get("protocol", "processed_partition"),
+            split_id=dataset_cfg.get("split_id"),
             transform=transform,
         )
     raise ValueError(f"Unsupported CUHK03 test dataset format '{dataset_format}'. Use 'processed'.")

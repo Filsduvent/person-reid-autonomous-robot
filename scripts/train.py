@@ -24,7 +24,12 @@ from reid.utils.config_schema import validate_config
 from reid.utils.device import device_summary, select_device
 from reid.utils.io import ensure_dir
 from reid.utils.logger import setup_logger
-from reid.utils.metrics_artifacts import build_metric_payload, save_final_eval_metrics, save_train_eval_metrics
+from reid.utils.metrics_artifacts import (
+    build_metric_payload,
+    save_final_epoch_metrics,
+    save_final_eval_metrics,
+    save_train_eval_metrics,
+)
 from reid.utils.seed import set_seed
 
 
@@ -423,6 +428,21 @@ def main():
             loss_history.append({"epoch": ep, "avg_loss": float(avg_loss)})
             logger.info("[Epoch %d] avg_loss=%.4f", ep, avg_loss)
 
+            # Persist this epoch before evaluation so validation metrics that
+            # identify ckpt_last.pth always refer to the evaluated model state.
+            if save_last:
+                last_path = checkpoint_paths["last"]
+                save_checkpoint(
+                    path=last_path,
+                    model=model,
+                    optimizer=optimizer,
+                    scheduler=scheduler,
+                    center_optimizer=center_optimizer,
+                    epoch=ep,
+                    scores=None,
+                    cfg=cfg,
+                )
+
             latest_scores = None
             if (ep % eval_interval) == 0:
                 scores = evaluate_reid(cfg, model, test_loader, device, logger=logger)
@@ -464,26 +484,55 @@ def main():
                         )
                         logger.info("[CKPT] New best %s=%.4f saved: %s", best_name, best_metric, best_path)
 
-            if save_last:
-                last_path = checkpoint_paths["last"]
-                save_checkpoint(
-                    path=last_path,
-                    model=model,
-                    optimizer=optimizer,
-                    scheduler=scheduler,
-                    center_optimizer=center_optimizer,
-                    epoch=ep,
-                    scores=latest_scores,
-                    cfg=cfg,
-                )
+                # Refresh the already-written checkpoint with its evaluation
+                # payload without changing the model state it represents.
+                if save_last:
+                    save_checkpoint(
+                        path=checkpoint_paths["last"],
+                        model=model,
+                        optimizer=optimizer,
+                        scheduler=scheduler,
+                        center_optimizer=center_optimizer,
+                        epoch=ep,
+                        scores=latest_scores,
+                        cfg=cfg,
+                    )
 
         if final_scores is not None:
+            # Keep final-epoch scores separate from the benchmark result of the
+            # selected checkpoint.  Previously final epoch metrics could be
+            # labelled as ckpt_best.pth even when best was from an earlier epoch.
+            save_final_epoch_metrics(
+                metrics_dir,
+                cfg,
+                epoch=final_eval_epoch,
+                scores=final_scores,
+                checkpoint_name=osp.basename(checkpoint_paths["last"]),
+            )
+
+        if save_best and osp.isfile(checkpoint_paths["best"]):
+            best_checkpoint = load_checkpoint(
+                checkpoint_paths["best"], model=model, map_location=device
+            )
+            best_scores = evaluate_reid(cfg, model, test_loader, device, logger=logger)
+            best_epoch = int(best_checkpoint.get("epoch", 0))
+            save_final_eval_metrics(
+                metrics_dir,
+                cfg,
+                epoch=best_epoch,
+                scores=best_scores,
+                checkpoint_name=osp.basename(checkpoint_paths["best"]),
+            )
+            logger.info("[Final Eval] checkpoint=ckpt_best.pth epoch=%d", best_epoch)
+        elif final_scores is not None:
+            # A run without a best checkpoint still produces a truthful final
+            # result, explicitly attributed to the final/last checkpoint.
             save_final_eval_metrics(
                 metrics_dir,
                 cfg,
                 epoch=final_eval_epoch,
                 scores=final_scores,
-                checkpoint_name=osp.basename(checkpoint_paths["best"] if save_best else checkpoint_paths["last"]),
+                checkpoint_name=osp.basename(checkpoint_paths["last"]),
             )
 
     finally:
