@@ -135,14 +135,26 @@ class StageProfiler:
         p95 = vals[p95_idx]
         return {"mean": mean, "median": median, "p95": p95}
 
-    def summarize(self) -> Dict[str, Dict[str, float]]:
-        if not self._history:
+    def measured_history(self, warmup_frames: int = 0) -> List[FrameStats]:
+        if warmup_frames < 0:
+            raise ValueError("warmup_frames must be >= 0")
+        return self._history[warmup_frames:]
+
+    def summarize(self, warmup_frames: int = 0) -> Dict[str, Dict[str, float]]:
+        history = self.measured_history(warmup_frames)
+        if not history:
             return {}
-        totals = [h.dt_ms for h in self._history]
+        totals = [h.dt_ms for h in history]
         out: Dict[str, Dict[str, float]] = {"total": self._summarize(totals)}
         stage_keys = set()
-        for h in self._history:
+        for h in history:
             stage_keys.update(h.stages_ms.keys())
         for k in sorted(stage_keys):
-            out[k] = self._summarize([h.stages_ms.get(k, 0.0) for h in self._history])
+            out[k] = self._summarize([h.stages_ms.get(k, 0.0) for h in history])
         return out
+
+    def rss_summary(self, warmup_frames: int = 0) -> Dict[str, Optional[float]]:
+        values = [h.rss_mb for h in self.measured_history(warmup_frames) if h.rss_mb is not None]
+        if not values:
+            return {"rss_mean_mb": None, "rss_peak_mb": None}
+        return {"rss_mean_mb": sum(values) / len(values), "rss_peak_mb": max(values)}

@@ -16,6 +16,7 @@ SUPPORTED_BACKBONES = (
     "shufflenetv2_x1_0",
     "efficientnet_lite0",
     "efficientnet_lite1",
+    "resnet50_selected",
 )
 
 
@@ -30,7 +31,7 @@ class EmbedderConfig:
 
 def _default_input_size(backbone: str) -> Tuple[int, int]:
     name = backbone.lower()
-    if name.startswith("osnet"):
+    if name.startswith("osnet") or name == "resnet50_selected":
         return (256, 128)
     return (224, 224)
 
@@ -52,14 +53,18 @@ def create_embedder(cfg: EmbedderConfig):
         ocfg = OnnxEmbedderConfig(
             model_path=cfg.weights,
             input_size=input_size,
+            mean=(0.486, 0.459, 0.408) if name == "resnet50_selected" else (0.485, 0.456, 0.406),
         )
         return OnnxReidEmbedder(ocfg)
     if backend == "torch":
+        # The selected project ResNet50 uses its training normalization, not torchvision defaults.
+        mean = (0.486, 0.459, 0.408) if name == "resnet50_selected" else (0.485, 0.456, 0.406)
         tcfg = TorchEmbedderConfig(
             backbone=name,
             device=cfg.device,
             weights=cfg.weights,
             input_size=input_size,
+            mean=mean,
         )
         return TorchReidEmbedder(tcfg)
     raise ValueError(f"Unsupported embedder backend '{cfg.backend}'. Use 'torch' or 'onnx'.")

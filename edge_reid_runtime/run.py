@@ -1,15 +1,19 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import sys
 import time
-from dataclasses import asdict
+import json
+import subprocess
+from datetime import datetime, timezone
+from dataclasses import asdict, replace
 from pathlib import Path
 from typing import Any, Dict
 
-from edge_reid_runtime.core.types import RunConfig
+from edge_reid_runtime.core.types import RunConfig, validate_run_config
 from edge_reid_runtime.core.interfaces import TrackEmbedding
-from edge_reid_runtime.detectors import NullDetector, YoloV8Config, YoloV8PersonDetector
+from edge_reid_runtime.detectors import DetectorConfig, build_detector
 from edge_reid_runtime.embedders import create_embedder, EmbedderConfig
 from edge_reid_runtime.embedders.cropper_extraction import extract_track_crops
 from edge_reid_runtime.gallery import GalleryConfig, GalleryManager, AssignerConfig, IdentityAssigner
@@ -33,7 +37,88 @@ except Exception:  # pragma: no cover
 
 VALID_SOURCES = ("webcam", "video", "robot")
 VALID_DEVICES = ("cpu", "cuda", "auto")
-VALID_DETECTORS = ("yolov8", "null")
+VALID_DETECTORS = ("yolo26", "yolov8", "null")
+
+
+def allocate_run_directory(cfg: RunConfig) -> RunConfig:
+    """Allocate an immutable per-execution artifact directory."""
+    label = cfg.run_name or "runtime"
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    root = cfg.output_dir / label
+    candidate = root / timestamp
+    suffix = 1
+    while candidate.exists():
+        candidate = root / f"{timestamp}_{suffix:02d}"
+        suffix += 1
+    candidate.mkdir(parents=True, exist_ok=False)
+    gallery_path = cfg.gallery_path
+    if cfg.reset_gallery and gallery_path is None:
+        gallery_path = candidate / "gallery.json"
+    return replace(cfg, output_dir=candidate, gallery_path=gallery_path)
+
+
+def _git_commit() -> str | None:
+    try:
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True, stderr=subprocess.DEVNULL).strip()
+    except Exception:
+        return None
+
+
+def _video_metadata(video_path: Path) -> Dict[str, object]:
+    digest = hashlib.sha256()
+    with video_path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    details: Dict[str, object] = {
+        "path": str(video_path),
+        "sha256": digest.hexdigest(),
+        "size_bytes": video_path.stat().st_size,
+    }
+    if cv2 is not None:
+        capture = cv2.VideoCapture(str(video_path))
+        try:
+            if capture.isOpened():
+                details.update({
+                    "frame_count": int(capture.get(cv2.CAP_PROP_FRAME_COUNT)),
+                    "width": int(capture.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                    "height": int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+                    "fps": float(capture.get(cv2.CAP_PROP_FPS)),
+                })
+        finally:
+            capture.release()
+    return details
+
+
+def write_run_metadata(cfg: RunConfig, device: str, embedding_dim: int | None) -> None:
+    import platform
+    metadata = {
+        "run_id": cfg.output_dir.name, "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "source": cfg.source, "detector": cfg.detector, "detector_weights": cfg.yolo_model,
+        "tracker": "deepsort", "reid_model": cfg.reid_backbone, "reid_backend": cfg.embedder_backend,
+        "reid_weights": str(cfg.weights) if cfg.weights else None, "embedding_dim": embedding_dim,
+        "device": device, "python": sys.version, "platform": platform.platform(),
+        "hostname": platform.node(), "git_commit": _git_commit(),
+    }
+    if cfg.source == "video" and cfg.video_path is not None:
+        video_path = Path(cfg.video_path)
+        if video_path.is_file():
+            metadata["input_video"] = _video_metadata(video_path)
+    try:
+        import torch
+        metadata["torch_version"] = torch.__version__
+    except Exception:
+        pass
+    try:
+        import ultralytics
+        metadata["ultralytics_version"] = ultralytics.__version__
+    except Exception:
+        pass
+    try:
+        import onnxruntime
+        metadata["onnxruntime_version"] = onnxruntime.__version__
+    except Exception:
+        pass
+    (cfg.output_dir / "run_metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -49,12 +134,18 @@ def _build_parser() -> argparse.ArgumentParser:
                    help="Compute device selection (placeholder for later).")
     p.add_argument("--output_dir", default=None,
                    help="Directory to write logs/artifacts.")
+    p.add_argument("--run_name", default=None,
+                   help="Readable experiment name; a unique timestamped subdirectory is created.")
+    p.add_argument("--debug_allow_fallback", action="store_true",
+                   help="Permit debug-only tracker fallback. Never use for qualification experiments.")
     p.add_argument("--video_path", default=None,
                    help="Path to video file (required if --source=video).")
     p.add_argument("--webcam_index", type=int, default=0,
                    help="Webcam index (if --source=webcam).")
     p.add_argument("--max_frames", type=int, default=0,
                    help="Stop after N frames (0 = unlimited).")
+    p.add_argument("--warmup_frames", type=int, default=0,
+                   help="Initial frames processed normally but excluded from benchmark summaries.")
     p.add_argument("--print_every", type=int, default=10,
                    help="Print stats every N frames.")
     p.add_argument("--reid_backbone", default=None,
@@ -65,9 +156,9 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--embedder_backend", default="torch",
                    choices=("torch", "onnx"),
                    help="Embedder backend: torch or onnx.")
-    p.add_argument("--detector", default="yolov8", choices=VALID_DETECTORS,
+    p.add_argument("--detector", default="yolo26", choices=VALID_DETECTORS,
                    help="Detector backend (yolo or null).")
-    p.add_argument("--yolo_model", default="yolov8n.pt",
+    p.add_argument("--yolo_model", default="yolo26n.pt",
                    help="Ultralytics YOLO model path/name (e.g., yolov8n.pt).")
     p.add_argument("--det_conf", type=float, default=0.35,
                    help="Detector confidence threshold.")
@@ -145,7 +236,7 @@ def _load_yaml_config(path: str) -> Dict[str, Any]:
 def _apply_config_defaults(args: argparse.Namespace, parser: argparse.ArgumentParser, cfg: Dict[str, Any]) -> None:
     for key, value in cfg.items():
         if not hasattr(args, key):
-            continue
+            raise ValueError(f"Unknown runtime configuration key: '{key}'")
         if getattr(args, key) == parser.get_default(key):
             setattr(args, key, value)
 
@@ -178,6 +269,8 @@ def validate_args(args: argparse.Namespace) -> None:
         raise ValueError("--video_path is required when --source=video")
     if args.source != "video" and args.video_path:
         print("Warning: --video_path is ignored unless --source=video", file=sys.stderr)
+    if args.output_video and not args.save_video:
+        raise ValueError("output_video requires save_video=true")
 
 
 def build_config(args: argparse.Namespace) -> RunConfig:
@@ -185,9 +278,11 @@ def build_config(args: argparse.Namespace) -> RunConfig:
         source=args.source,
         device=args.device,
         output_dir=Path(args.output_dir),
+        run_name=args.run_name,
         video_path=args.video_path if args.video_path else None,
         webcam_index=args.webcam_index,
         max_frames=args.max_frames,
+        warmup_frames=args.warmup_frames,
         print_every=args.print_every,
         reid_backbone=args.reid_backbone,
         weights=args.weights if args.weights else None,
@@ -222,6 +317,7 @@ def build_config(args: argparse.Namespace) -> RunConfig:
         gallery_path=Path(args.gallery_path) if args.gallery_path else None,
         reset_gallery=args.reset_gallery,
         cuda_sync=args.cuda_sync,
+        debug_allow_fallback=args.debug_allow_fallback,
     )
 
 
@@ -243,6 +339,8 @@ def resolve_device(device_flag: str) -> str:
 
 
 def run_minimal_loop(cfg: RunConfig) -> int:
+    validate_run_config(cfg)
+    cfg = allocate_run_directory(cfg)
     logger = setup_logger("edge_reid", cfg.output_dir)
     logger.info(
         "Starting EDGE pipeline scaffold (Phase 3.2+3.3: detector/tracker + stage profiling)."
@@ -250,6 +348,7 @@ def run_minimal_loop(cfg: RunConfig) -> int:
     logger.info(
         f"source={cfg.source} device={cfg.device} detector={cfg.detector} output_dir={cfg.output_dir}"
     )
+    logger.info(f"warmup_frames={cfg.warmup_frames}")
 
     # Save the resolved config for reproducibility
     try:
@@ -258,7 +357,7 @@ def run_minimal_loop(cfg: RunConfig) -> int:
             for k, v in list(cfg_dict.items()):
                 if isinstance(v, Path):
                     cfg_dict[k] = str(v)
-            (cfg.output_dir / "config_used.yaml").write_text(
+            (cfg.output_dir / "resolved_config.yaml").write_text(
                 yaml.safe_dump(cfg_dict, sort_keys=False),
                 encoding="utf-8",
             )
@@ -269,34 +368,15 @@ def run_minimal_loop(cfg: RunConfig) -> int:
     logger.info(f"resolved_device={device_resolved}")
     profiler = StageProfiler(
         fps_window=30,
+        collect_history=True,
         cuda_sync=(device_resolved == "cuda" and cfg.cuda_sync),
     )
 
-    detector_name = getattr(cfg, "detector", "yolov8")
-    if detector_name == "null":
-        detector = NullDetector(mode="empty")
-        cls_name_fn = None
-    else:
-        try:
-            if "/" in cfg.yolo_model or cfg.yolo_model.endswith(".pt"):
-                model_path = Path(cfg.yolo_model)
-                if not model_path.exists():
-                    logger.warning(
-                        f"YOLO model not found at {model_path}; Ultralytics may download it."
-                    )
-            ycfg = YoloV8Config(
-                model=cfg.yolo_model,
-                conf=cfg.det_conf,
-                iou=cfg.det_iou,
-                imgsz=cfg.imgsz,
-                max_det=cfg.max_det,
-                half=(device_resolved != "cpu"),
-            )
-            detector = YoloV8PersonDetector(device=device_resolved, cfg=ycfg)
-            cls_name_fn = detector.cls_name
-        except Exception as e:
-            logger.error(f"Failed to create detector: {e}")
-            return 2
+    try:
+        detector = build_detector(DetectorConfig(cfg.detector, cfg.yolo_model, cfg.det_conf, cfg.det_iou, cfg.imgsz, cfg.max_det, device_resolved != "cpu"), device_resolved)
+        cls_name_fn = getattr(detector, "cls_name", None)
+    except Exception as exc:
+        raise RuntimeError(f"Detector initialization failed: {exc}") from exc
 
     try:
         ts_cfg = DeepSortConfig(
@@ -309,10 +389,12 @@ def run_minimal_loop(cfg: RunConfig) -> int:
         )
         tracker = DeepSortRealtimeTracker(cfg=ts_cfg)
         tracker_name = "deepsort"
-    except Exception as e:
-        logger.warning(f"Failed to init DeepSortRealtimeTracker: {e}; falling back to NullTracker.")
-        tracker = NullTracker()
-        tracker_name = "null"
+    except Exception as exc:
+        if cfg.debug_allow_fallback:
+            logger.warning("DeepSORT failed in debug mode; using NullTracker: %s", exc)
+            tracker = NullTracker(); tracker_name = "null"
+        else:
+            raise RuntimeError(f"DeepSORT initialization failed: {exc}") from exc
     logger.info(
         f"tracker={tracker_name} max_age={cfg.max_age} n_init={cfg.n_init} max_iou_distance={cfg.max_iou_distance}"
     )
@@ -332,8 +414,8 @@ def run_minimal_loop(cfg: RunConfig) -> int:
             logger.info(
                 f"embedder={embedder_name} input_size={embedder.cfg.input_size} dim={embedder.embedding_dim}"
             )
-        except Exception as e:
-            logger.warning(f"Failed to init embedder '{cfg.reid_backbone}': {e}. Embedding disabled.")
+        except Exception as exc:
+            raise RuntimeError(f"ReID embedder initialization failed: {exc}") from exc
 
     gallery_cfg = GalleryConfig(
         known_threshold=cfg.known_threshold,
@@ -342,14 +424,16 @@ def run_minimal_loop(cfg: RunConfig) -> int:
         max_identities=cfg.max_identities,
         id_prefix=cfg.id_prefix,
         id_width=cfg.id_width,
+        model_id=f"{cfg.reid_backbone}:{cfg.embedder_backend}",
+        embedding_dim=embedder.embedding_dim if embedder is not None else None,
     )
     gallery = GalleryManager(cfg=gallery_cfg)
     if cfg.gallery_path and not cfg.reset_gallery:
         try:
             gallery.load(cfg.gallery_path)
             logger.info(f"gallery_loaded path={cfg.gallery_path} size={len(gallery)}")
-        except Exception as e:
-            logger.warning(f"Failed to load gallery from {cfg.gallery_path}: {e}")
+        except Exception as exc:
+            raise RuntimeError(f"Gallery persistence load failed: {exc}") from exc
     assigner_cfg = AssignerConfig(
         stable_age=cfg.stable_age,
         stable_hits=cfg.stable_hits,
@@ -364,6 +448,7 @@ def run_minimal_loop(cfg: RunConfig) -> int:
         reacquire_cooldown_frames=cfg.reacquire_cooldown_frames,
     )
     assigner = IdentityAssigner(gallery, cfg=assigner_cfg)
+    write_run_metadata(cfg, device_resolved, embedder.embedding_dim if embedder is not None else None)
 
     src = None
     jsonl = None
@@ -406,6 +491,7 @@ def run_minimal_loop(cfg: RunConfig) -> int:
             deleted_ids = sorted(list(prev_ids - active_ids))
             prev_ids = active_ids
             assigner.mark_missed_tracks(frame.frame_id, active_ids)
+            assigner.forget_tracks(set(deleted_ids))
 
             embeddings: list[TrackEmbedding] = []
             num_crops = 0
@@ -487,6 +573,7 @@ def run_minimal_loop(cfg: RunConfig) -> int:
 
             record: Dict[str, Any] = {
                 "frame_id": stats.frame_id,
+                "is_warmup": frames < cfg.warmup_frames,
                 "timestamp_s": stats.timestamp_s,
                 "dt_ms": stats.dt_ms,
                 "fps_rolling": stats.fps_rolling,
@@ -552,9 +639,27 @@ def run_minimal_loop(cfg: RunConfig) -> int:
                     msg += f" rss={stats.rss_mb:.1f}MB"
                 logger.info(msg)
 
-        t_total = time.time() - t_start
-        fps_avg = frames / t_total if t_total > 0 else 0.0
-        logger.info(f"Finished. frames={frames} total_s={t_total:.2f} fps_avg={fps_avg:.2f}")
+        elapsed_s = time.time() - t_start
+        measured_frames = max(0, frames - cfg.warmup_frames)
+        stages = profiler.summarize(cfg.warmup_frames)
+        measured_elapsed_s = sum(stat.dt_ms for stat in profiler.measured_history(cfg.warmup_frames)) / 1000.0
+        benchmark_fps = measured_frames / measured_elapsed_s if measured_elapsed_s > 0 else 0.0
+        summary = {
+            "processed_frames_total": frames,
+            "warmup_frames": cfg.warmup_frames,
+            "measured_frames": measured_frames,
+            "elapsed_s": elapsed_s,
+            "measured_elapsed_s": measured_elapsed_s,
+            "benchmark_fps": benchmark_fps,
+            "stages": stages,
+            "gallery_size": len(gallery),
+            **profiler.rss_summary(cfg.warmup_frames),
+        }
+        logger.info(
+            "Finished. frames=%s measured=%s total_s=%.2f benchmark_fps=%.2f",
+            frames, measured_frames, elapsed_s, benchmark_fps,
+        )
+        (cfg.output_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
         return 0
 
     except KeyboardInterrupt:
@@ -593,8 +698,8 @@ def run_minimal_loop(cfg: RunConfig) -> int:
             try:
                 gallery.save(cfg.gallery_path)
                 logger.info(f"gallery_saved path={cfg.gallery_path} size={len(gallery)}")
-            except Exception as e:
-                logger.warning(f"Failed to save gallery to {cfg.gallery_path}: {e}")
+            except Exception as exc:
+                logger.error(f"Gallery persistence save failed: {exc}")
         if id_jsonl is not None:
             try:
                 id_jsonl.close()

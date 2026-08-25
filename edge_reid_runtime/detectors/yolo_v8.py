@@ -19,6 +19,7 @@ class YoloV8Config:
     imgsz: int = 640
     half: bool = False
     max_det: int = 100
+    end2end: bool = False
 
 
 class YoloV8PersonDetector(Detector):
@@ -49,13 +50,15 @@ class YoloV8PersonDetector(Detector):
         )
         self._names = names
         self._person_id = self._find_person_class_id(names)
+        if self._person_id is None:
+            raise RuntimeError("Loaded detector metadata has no COCO 'person' class.")
 
     @staticmethod
-    def _find_person_class_id(names: Dict[int, str]) -> int:
+    def _find_person_class_id(names: Dict[int, str]) -> Optional[int]:
         for k, v in names.items():
             if str(v).lower() == "person":
                 return int(k)
-        return 0
+        return None
 
     def cls_name(self, cls_id: int) -> str:
         return str(self._names.get(int(cls_id), str(cls_id)))
@@ -73,6 +76,7 @@ class YoloV8PersonDetector(Detector):
             half=self.cfg.half,
             max_det=self.cfg.max_det,
             classes=[self._person_id],
+            end2end=self.cfg.end2end,
             verbose=False,
         )
         if not results:

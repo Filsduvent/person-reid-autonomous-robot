@@ -38,3 +38,4 @@ class MatchResult:
     second_score: float
     margin: float
     is_known: bool
+    status: str = "unknown"

@@ -76,6 +76,11 @@ class IdentityAssigner:
             if tid not in active_ids and st.last_seen_frame == frame_id - 1:
                 st.consecutive_hits = 0
 
+    def forget_tracks(self, track_ids: set[int]) -> None:
+        """Discard state when the tracker deletes a track ID."""
+        for track_id in track_ids:
+            self._track_state.pop(int(track_id), None)
+
     def _step_track_state(self, frame_id: int, track: Track) -> _TrackState:
         tid = int(track.track_id)
         st = self._track_state.setdefault(tid, _TrackState())
@@ -155,7 +160,12 @@ class IdentityAssigner:
         else:
             skip_reason = UpdateSkipReason.NOT_KNOWN
 
-        label = "Known" if best_id != "unknown" else "Unknown"
+        # A match in the threshold gap is explicitly not a confirmed identity.
+        if match.status == "uncertain":
+            best_id = "uncertain"
+            label = "Uncertain"
+        else:
+            label = "Known" if best_id != "unknown" else "Unknown"
         return Assignment(
             track_id=int(track.track_id),
             identity_id=best_id,

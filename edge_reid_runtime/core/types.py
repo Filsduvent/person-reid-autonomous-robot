@@ -13,6 +13,7 @@ class RunConfig:
     video_path: Optional[Union[Path, str]] = None
     webcam_index: int = 0
     max_frames: int = 0         # 0 => unlimited
+    warmup_frames: int = 0      # Processed normally but excluded from benchmark summaries
     print_every: int = 10
     reid_backbone: Optional[str] = None
     weights: Optional[Union[Path, str]] = None
@@ -47,6 +48,8 @@ class RunConfig:
     gallery_path: Optional[Path] = None
     reset_gallery: bool = False
     cuda_sync: bool = False
+    debug_allow_fallback: bool = False
+    run_name: Optional[str] = None
 
 
 def validate_run_config(cfg: RunConfig) -> None:
@@ -56,6 +59,8 @@ def validate_run_config(cfg: RunConfig) -> None:
         raise ValueError("webcam_index is only applicable when source='webcam'")
     if cfg.max_frames < 0:
         raise ValueError("max_frames must be >= 0 (0 means unlimited)")
+    if cfg.warmup_frames < 0:
+        raise ValueError("warmup_frames must be >= 0")
     if cfg.print_every <= 0:
         raise ValueError("print_every must be > 0")
     if cfg.max_age < 0:
@@ -96,3 +101,11 @@ def validate_run_config(cfg: RunConfig) -> None:
         raise ValueError("id_width must be >= 1")
     if cfg.reacquire_cooldown_frames < 0:
         raise ValueError("reacquire_cooldown_frames must be >= 0")
+    if cfg.detector not in ("yolo26", "yolov8", "null"):
+        raise ValueError("detector must be 'yolo26', 'yolov8', or 'null'")
+    if cfg.detector != "null" and not cfg.yolo_model:
+        raise ValueError("yolo_model is required for a YOLO detector")
+    if cfg.reid_backbone is None and not cfg.debug_allow_fallback:
+        raise ValueError("reid_backbone is required for scientific runtime experiments")
+    if cfg.output_video is not None and not cfg.save_video:
+        raise ValueError("output_video requires save_video=true")

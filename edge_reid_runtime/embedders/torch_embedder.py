@@ -67,6 +67,8 @@ class TorchReidEmbedder(Embedder):
         with torch.no_grad():
             feats = self.model(batch)
 
+        if isinstance(feats, dict):
+            feats = feats["emb"]
         if isinstance(feats, (tuple, list)):
             feats = feats[0]
         if feats.ndim > 2:
@@ -93,6 +95,8 @@ class TorchReidEmbedder(Embedder):
         dummy = torch.zeros((1, 3, h, w), device=self.device)
         with torch.no_grad():
             out = self.model(dummy)
+        if isinstance(out, dict):
+            out = out["emb"]
         if isinstance(out, (tuple, list)):
             out = out[0]
         if out.ndim > 2:
@@ -101,6 +105,21 @@ class TorchReidEmbedder(Embedder):
 
     def _build_model(self, backbone: str, weights: Optional[str]):
         name = backbone.lower()
+
+        if name == "resnet50_selected":
+            if not weights:
+                raise ValueError("resnet50_selected requires the selected MSMT17 checkpoint path.")
+            from pathlib import Path
+            from reid.models.build import build_model
+            checkpoint = torch.load(weights, map_location="cpu", weights_only=False)
+            source_cfg = checkpoint.get("cfg")
+            if not isinstance(source_cfg, dict):
+                raise RuntimeError("Selected ResNet50 checkpoint has no resolved training configuration.")
+            classifier_weight = checkpoint.get("model", {}).get("classifier.weight")
+            num_classes = int(classifier_weight.shape[0]) if classifier_weight is not None else None
+            model = build_model(source_cfg, num_classes=num_classes)
+            model.load_state_dict(checkpoint["model"], strict=True)
+            return model
 
         if name.startswith("osnet"):
             try:

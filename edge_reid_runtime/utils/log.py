@@ -24,7 +24,7 @@ def setup_logger(name: str, output_dir: Path, level: int = logging.INFO) -> logg
     ch.setFormatter(fmt)
     logger.addHandler(ch)
 
-    fh = logging.FileHandler(output_dir / "run.log", encoding="utf-8")
+    fh = logging.FileHandler(output_dir / "runtime.log", encoding="utf-8")
     fh.setLevel(level)
     fh.setFormatter(fmt)
     logger.addHandler(fh)
@@ -36,7 +36,7 @@ class JsonlWriter:
     def __init__(self, path: Path):
         self.path = path
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self._f: Optional[IO[str]] = open(self.path, "a", encoding="utf-8")
+        self._f: Optional[IO[str]] = open(self.path, "x", encoding="utf-8")
 
     def write(self, record: Dict[str, Any]) -> None:
         if self._f is None:
@@ -45,7 +45,7 @@ class JsonlWriter:
         self._f.flush()
 
     def close(self) -> None:
-        if self._f is None:
+        if getattr(self, "_f", None) is None:
             return
         try:
             self._f.close()

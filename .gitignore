@@ -74,6 +74,7 @@ configs/*.yml
 !configs/baseline_*.yaml
 !configs/baseline_*.yml
 !configs/ablation_stride2.yaml
+!configs/runtime_qualification_*.yaml
 
 # Environment
 venv/

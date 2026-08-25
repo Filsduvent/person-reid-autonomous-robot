@@ -21,6 +21,8 @@ class GalleryConfig:
     max_identities: int = 500
     id_prefix: str = "person_"
     id_width: int = 4
+    model_id: str = "unknown"
+    embedding_dim: Optional[int] = None
 
 
 class GalleryManager:
@@ -86,18 +88,20 @@ class GalleryManager:
 
     def match(self, embedding: np.ndarray) -> MatchResult:
         if not self._entries:
-            return MatchResult(best_id=None, best_score=-1.0, second_score=-1.0, margin=0.0, is_known=False)
+            return MatchResult(best_id=None, best_score=-1.0, second_score=-1.0, margin=0.0, is_known=False, status="unknown")
         scores = self.search(embedding, topk=2)
         best_id, best_score = scores[0]
         second_score = scores[1][1] if len(scores) > 1 else -1.0
         margin = best_score - second_score if second_score > -1.0 else best_score
         is_known = best_score >= self.cfg.known_threshold
+        status = "known" if is_known else ("unknown" if best_score < self.cfg.unknown_threshold else "uncertain")
         return MatchResult(
             best_id=best_id,
             best_score=float(best_score),
             second_score=float(second_score),
             margin=float(margin),
             is_known=is_known,
+            status=status,
         )
 
     def get_entry(self, identity: str) -> Optional[IdentityRecord]:
@@ -107,6 +111,10 @@ class GalleryManager:
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         data = {
+            "schema_version": 2,
+            "model_id": self.cfg.model_id,
+            "embedding_dim": self.cfg.embedding_dim,
+            "next_id": self._next_id,
             "config": {
                 "known_threshold": self.cfg.known_threshold,
                 "unknown_threshold": self.cfg.unknown_threshold,
@@ -137,7 +145,16 @@ class GalleryManager:
         path = Path(path)
         if not path.exists():
             return
-        raw = json.loads(path.read_text(encoding="utf-8"))
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise RuntimeError(f"Invalid gallery state: {path}") from exc
+        if raw.get("schema_version") != 2:
+            raise RuntimeError("Unsupported or legacy gallery schema; reset the gallery explicitly.")
+        if raw.get("model_id") != self.cfg.model_id:
+            raise RuntimeError("Gallery model_id is incompatible with the active ReID model.")
+        if raw.get("embedding_dim") != self.cfg.embedding_dim:
+            raise RuntimeError("Gallery embedding dimension is incompatible with the active ReID model.")
         entries = raw.get("entries", [])
         self._entries = {}
         for e in entries:
@@ -152,7 +169,8 @@ class GalleryManager:
                 meta=e.get("meta", {}) or {},
             )
             self._entries[rec.identity_id] = rec
-        # ensure new identities don't overwrite old ones
+        self._next_id = int(raw.get("next_id", 1))
+        # Backstop for galleries written before a correct next_id value.
         if self._entries:
             max_id = 0
             for key in self._entries.keys():
@@ -162,4 +180,4 @@ class GalleryManager:
                         max_id = max(max_id, int(suffix))
                     except ValueError:
                         continue
-            self._next_id = max_id + 1 if max_id > 0 else 1
+            self._next_id = max(self._next_id, max_id + 1 if max_id > 0 else 1)
