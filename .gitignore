@@ -155,3 +155,10 @@ __pycache__/
 *.pyo
 
 .codex
+
+# Local qualification artifacts and incomplete local-only configuration
+data/
+results/resnet50_selected_matrix/
+nohup.out
+:memory:.ses
+configs/runtime_qualification_common.yaml
