@@ -1,0 +1,722 @@
+# PCB implementation and validation roadmap
+
+Created: 2026-10-02. Operational source of truth for PCB integration, validation, training, within-domain evaluation, and cross-domain evaluation.
+
+## Current authorization and session protocol
+
+**Only documentation creation/correction and validation of this document are authorized in the documentation sessions. Phase 4 and all later work are NOT STARTED and NOT AUTHORIZED. No PCB code, configuration presets, tests, or training runs have been created by this task.**
+
+At the beginning of every future PCB session:
+
+1. Read this entire plan and inspect current Git state, applicable repository guidance, and implementation records.
+2. Identify the first incomplete step that the user has explicitly authorized. A listed next step is not authorization.
+3. Verify prerequisites, including review of preceding steps. If authorization or a scientific decision is missing, report it; do not implement dependent work.
+4. Implement ONLY that step, within its listed scope. Do not bundle later phases for convenience.
+5. Execute that step's meaningful validation and record commands, environment, results, failures, artifacts, and limitations.
+6. Update this plan, report the result for user review, and STOP. Never automatically continue to the next step.
+
+The user is learning and reviewing the model and framework incrementally. This user-requested review cadence overrides ordinary autonomous continuation. No commit, push, or deployment is implied.
+
+Status convention:
+
+| Marker | Meaning |
+| --- | --- |
+| `[ ]` | NOT STARTED |
+| `[~]` | IN PROGRESS |
+| `[x]` | IMPLEMENTED + VALIDATED; for Phases 0–3, the completed deliverable is investigation/documentation, not implementation |
+| `[!]` | BLOCKED; record concrete blocker and required resolution |
+| `[?]` | NEEDS HUMAN REVIEW |
+
+Track completion and review separately: after validation passes, use completion `[x]` and review `[?]`, then STOP. Failed or unexecuted required validation cannot be marked complete. Review acceptance does not authorize the next phase unless the user says to proceed. Every future record must identify the authorization message/scope.
+
+Both supplied roadmap attachments end during Phase 7's test list, at “no parameter sharing”. Phases 0–7 below preserve the supplied sequence. Completion of Phase 7's validation and Phases 8–25 are a documented continuation derived from the frozen contract and requested end-to-end scope, not recovered missing attachment text. Their ordering is a planning proposal pending review, not execution authorization.
+
+## Scientific scope and precedence
+
+Method: established architecture → defensible strong/reference implementation → faithful adaptation to one modular framework → behavior validation → train ourselves → within-domain evaluation → cross-domain evaluation → architecture comparison → model selection → later robotic/edge analysis.
+
+Architecture sequence: ResNet50 + Bag of Tricks qualification completed; PCB current; MGN and TransReID future. Completion of ResNet50 qualification does not mean every historical artifact is available locally or every reported result has been independently reverified.
+
+Use ImageNet backbone initialization as part of the selected recipe. Do not substitute downloaded final PCB ReID weights for our trained experimental models. One selected PCB configuration; no planned Triplet, Center, erasing, PK, shared-reduction, stripe-count, feature-width, or alternative-loss ablation campaign. Synthetic checks, overfit checks, and diagnostic smokes verify implementation and are not scientific ablations.
+
+Keep one configuration system and common `scripts/train.py`, `scripts/evaluate.py`, and `scripts/evaluate_cross_domain.py`. No architecture-specific training/evaluation entry points. Keep common dataset interfaces/partitions, CMC, Rank-1/5/10, mAP, mINP, checkpoint persistence, periodic checkpoint evaluation, best-checkpoint selection, artifacts, and reproducibility recording; architecture recipes may differ.
+
+Proposed preset paths: `configs/pcb/market1501.yaml`, `duke.yaml`, `cuhk03.yaml`, `msmt17.yaml`. `load_config()` in `reid/utils/config.py:112` accepts arbitrary paths; no config inheritance mechanism is implied. Do not move existing ResNet50 presets for symmetry.
+
+The user's **120-epoch project decision** supersedes the preceding Phase 3 report's proposed 60-epoch project run; reference duration remains 60. The subsequent checkpoint-policy correction supersedes the earlier final-epoch-only selection proposal: project training lasts 120 epochs, evaluation occurs every 10 epochs, and the selected model is `ckpt_best.pth` by strictly improving periodic mAP. `ckpt_last.pth` records the latest training state and reaches epoch 120 after successful completion. The epoch-41 LR decay is unchanged. Equal epochs do not imply equal compute, batches, or optimization updates across architectures/datasets.
+
+**Common framework behavior:** datasets and dataset protocol; evaluation and metrics; checkpoint persistence; periodic checkpoint evaluation; best-checkpoint selection; artifact infrastructure; within-domain and cross-domain evaluation.
+
+**Architecture-specific behavior:** architecture, input resolution, heads, embedding construction, loss formulation, optimizer, learning rates, scheduler, sampling, augmentation, and architecture-specific hyperparameters. This distinction also governs future MGN and TransReID integration.
+
+**Known methodological limitation:** the established ResNet50 protocol evaluates the configured test query/gallery split periodically rather than an independent validation split. ResNet50, PCB, and future integrated architectures deliberately use this common checkpoint-selection protocol for experimental consistency unless a later project-wide methodological revision is explicitly approved. Preserve and disclose the test-split selection limitation in dissertation methodology; do not introduce PCB-only validation selection or refactor dataset splitting here.
+
+`docs/model_plugin_protocol.md` currently forbids several generic extensions and mandates positive `feat_dim` and tensor logits. Those older restrictions conflict with the user's explicit verified PCB contract. This plan governs PCB scope; the old document must be reconciled in Phase 10. Do not invent a new approval gate from the stale document, change it during this document-only task, or remove legitimate regression tests just to conceal incompatibility.
+
+## Baseline evidence and limits
+
+Creation-session read-only checks (2026-10-02):
+
+- Repository: `/home/filsduvent/UFPR/person-reid-autonomous-robot`; branch `main`, tracking `origin/main`; HEAD `37ed8a50dedc5aba0bade8765f2190824e217482`; clean before creating this plan.
+- Reference: `/home/filsduvent/UFPR/beyond-part-models`; clean `master`, tracking `origin/master`; HEAD `1686e889eb01c28a54b633051418012e15d9c9f3`.
+- Interpreter: `/home/filsduvent/environments/Reid/bin/python`, Python 3.12.3, torch 2.7.1+cpu, torchvision 0.22.1+cpu; CUDA unavailable. This machine cannot validate GPU feasibility or authoritative GPU training.
+- No applicable `AGENTS.md` found in the repository listing or checked ancestors `/`, `/home`, `/home/filsduvent`, `/home/filsduvent/UFPR`.
+- Shell sandbox currently fails with `mountinfo path is not absolute`; approved escalation was needed for read-only shell checks. This is environment state, not a request to bypass future permissions.
+
+Prior-session audit evidence, not rerun during plan creation:
+
+- Focused baseline suite: 51 passed, 1 deselected, 7.49 s; sampler, evaluation harness, experiment matrix, model interface, and config schema coverage. Invocation used the Reid interpreter, `-B`, `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`, `OMP_NUM_THREADS=1`, `MKL_NUM_THREADS=1`, pytest `-p no:cacheprovider --assert=plain -s`; the file-writing override test was excluded. The exact deselection command is not preserved here; do not present this as a fresh, reproducible full-suite result.
+- Selected local ResNet50 checkpoint strictly loaded and a two-image synthetic forward produced 2048-D descriptors and 1041-way logits. Checkpoint: `exp/msmt17_no_label_smoothing/checkpoints/ckpt_best.pth`, SHA256 `5c751a6a2f3d2b19456684d66c72b3f86ad8d8a7cf7ab061aacd2071720bfc3f`.
+- Baseline outputs: `feat_raw` before BNNeck, `feat_bn` after BNNeck, configured retrieval `emb`, single tensor/optional `logits`; preserve numerical behavior. `feat_dim` currently feeds Center-loss width. Evaluator consumes only `emb`.
+- Only the selected MSMT17 offline checkpoint was located. Complete other-source checkpoints and the raw 4×4 offline matrix were not available in the audit. Historical mINP in the selected checkpoint is stale; do not mix it with corrected metrics. Dataset roots in historical configs were absent; available replacement roots were not proven partition-equivalent.
+- Full tests and GPU training were not performed. Exact resume equivalence is not established: existing checkpointing lacks RNG/sampler/scaler state, and the unrelated Center-loss parameter persistence issue remains. PCB disables Center and AMP; do not claim this fixes general resume reproducibility.
+
+## Frozen reference and implementation contract
+
+Primary reference: [huanghoujing/beyond-part-models](https://github.com/huanghoujing/beyond-part-models), commit `1686e889eb01c28a54b633051418012e15d9c9f3`, independent 1×1 reduction variant. Original paper and [authors' implementation](https://github.com/syfafterzy/PCB_RPP_for_reID) provide provenance only. Previously inspected authors' commit: `e29cf54486427d1423277d4c793e39ac0eeff87c`. Do not import its shared reduction, dropout, pre-reduction 12288-D descriptor, per-part normalization, or optimizer choices into an unnamed hybrid.
+
+External non-reranked README results are Market Rank-1/mAP 92.87/78.54%, Duke 84.47/69.94%, CUHK03 59.14/53.93%. These are not our results or acceptance thresholds. At equal precision, 1536-D descriptors use one-eighth the descriptor storage of 12288-D descriptors; no proportional network-speed claim follows.
+
+### Architecture and initialization
+
+- RGB input `[B,3,384,128]`; ResNet50 bottleneck stages `[3,4,6,3]`; stride on bottleneck 3×3 convolution; last-stage first bottleneck/projection stride 1, dilation 1; feature map `[B,2048,24,8]`. No ImageNet FC/global pooling in the feature backbone.
+- Six top-to-bottom, non-overlapping height slices. Require positive spatial extent and feature-map height divisible by six; reject invalid heights explicitly. For standard input, each stripe is `[B,2048,4,8]`; average its whole height and width to `[B,2048,1,1]`. Do not use adaptive pooling to silently accept incompatible heights.
+- Six independent `Conv2d(2048,256,1,bias=True)` → `BatchNorm2d(256)` → in-place ReLU modules. Keep the four-dimensional pooled tensor through Conv/BN, then flatten to `[B,256]`.
+- Six independent `Linear(256,source_num_classes,bias=True)` classifiers. Weights `Normal(mean=0,std=0.001)`; biases zero. No global branch, shared reduction, dropout, or extra BNNeck.
+- Backbone initialization: historical ImageNet `resnet50-19c8e357.pth`, with only ImageNet `fc.*` excluded and any justified modern BN buffer compatibility explicitly validated. No silent ImageNet V2 substitution. Record fetched weight provenance/hash during implementation; do not invent a full hash now. Reconstructing trained checkpoints must disable initialization downloads and strictly load the trained state.
+- Reduction convolution weight and bias: historical uniform distribution `[-1/sqrt(2048), +1/sqrt(2048)]`.
+- Reduction BN: affine/trainable scale and bias; epsilon `1e-5`, momentum `0.1`, running mean zero/variance one; **scale initialized Uniform[0,1], bias zero**. This is PyTorch 0.3 constructor behavior inherited by Huang's heads, not modern unit-scale BN initialization. Backbone BN is independently initialized/loaded. No blanket initializer may overwrite pretrained weights or these head choices.
+- Train/eval use the same output structure; BN changes statistics behavior normally. Single-item training batches are incompatible with pooled BN; configured random loader drops the incomplete final batch. Evaluation with one image must work.
+
+Reference anchors (paths relative to the reference checkout): `bpm/model/PCBModel.py:9–70`; `bpm/model/resnet.py:56–147,182–190`; `script/experiment/train_pcb.py:39–128,196–205,260–277,340–352,437–495`. Historical initializer evidence: [PyTorch 0.3 BatchNorm](https://raw.githubusercontent.com/pytorch/pytorch/v0.3.0/torch/nn/modules/batchnorm.py), `_BatchNorm.__init__/reset_parameters` lines 11–37, and [convolution](https://raw.githubusercontent.com/pytorch/pytorch/v0.3.0/torch/nn/modules/conv.py), `_ConvNd.reset_parameters` lines 37–44. Source lines are audit anchors; recheck by function after changes.
+
+### Outputs, loss, dimensions, and logging
+
+```text
+PCB.embedding_dim = 1536          # retrieval width
+PCB.feat_dim = None               # no exposed legacy metric-loss feature
+{
+  "emb": Tensor[B,1536],          # concatenate six post-BN/ReLU parts, top to bottom
+  "feat_raw": None,
+  "feat_bn": None,
+  "logits": (Tensor[B,C], ... six heads ...)
+}
+```
+
+No per-part or global model-side L2 normalization. `extract_features()` collects descriptors. The evaluator globally normalizes once, then uses Euclidean distance. Keep `eval.normalize_feat=true`, `topk=[1,5,10]`, reranking false. Reference normalization divides by `norm + float32 epsilon`; framework uses `norm + 1e-12`. Preserve the common numerical policy and document it; both leave an all-zero descriptor zero, but small-norm results are not exactly equivalent.
+
+Generic logits: one `[B,C]` floating tensor, nonempty flat ordered tuple/list of such tensors, or `None`. Validate rank, equal batch/class dimensions, label batch size, compatible device/dtype; reject malformed/nested/mixed sequences clearly. Generic consumers do not hardcode six. Keep tensor-only ResNet50 arithmetic unchanged.
+
+Ordinary batch-mean CE per head, then sum six scalars. `loss.id.head_aggregation` is a planned generic `sum|mean` field, default `sum`; PCB uses only sum, weight 1, smoothing 0. Triplet/Center explicitly disabled. Do not average logits. Missing metric features fail only when enabled metric losses require them; positive width remains mandatory for Center construction. Remove unconditional positive `feat_dim` in orchestration. `embedding_dim` is retrieval metadata, not a redefinition of ResNet50's metric width.
+
+Single-head `acc/id` remains unchanged. Multi-head `acc/id_mean_heads` is the arithmetic mean of independently computed head accuracies, detached/no-grad and diagnostic only. No per-head logs or designated-head option initially. Keep aggregate loss logs. Do not label head LR as `lr/bias`; use generic group labels when prefix rules are active, preserving existing labels without rules.
+
+### Project recipe and explicit adaptations
+
+| Setting | Project PCB |
+| --- | --- |
+| Duration | **120 epochs; reference is 60** |
+| Training batch | 64; random shuffled images, drop incomplete batch |
+| Evaluation batch | 32 initially, no shuffle, keep final batch |
+| Optimizer | SGD, momentum 0.9, Nesterov false |
+| Weight decay | 0.0005 for all trainable parameters, including bias and BN |
+| LR | backbone 0.01; all new layers 0.1 |
+| Schedule | decay ×0.1 beginning epoch 41; no later milestones; no warmup |
+| Augmentation | resize 384×128; horizontal flip p=0.5; no padding/crop/erasing |
+| Pixels | RGB /255; mean [0.486,0.459,0.408]; std [0.229,0.224,0.225] |
+| Precision | FP32, AMP disabled |
+| Reproducibility | seed 42, deterministic false, cuDNN benchmark true |
+| Retrieval | 1536-D concat; evaluator global normalization; Euclidean |
+| Test-time flip / reranking | disabled |
+| Periodic evaluation / selection | Every 10 epochs; strict improvement in mAP updates `checkpoints/ckpt_best.pth` |
+| Authoritative selected checkpoint | `checkpoints/ckpt_best.pth`; best epoch may be 10,20,…,120 |
+| Latest/final training state | `checkpoints/ckpt_last.pth`; epoch 120 after successful completion |
+
+Existing common torchvision preprocessing is retained rather than Huang's OpenCV `INTER_LINEAR`; pixel-identical reproduction is not claimed. Reference defaults to unseeded training, with an optional seed-1 path disabling cuDNN; project seeding is a recorded adaptation. Keep existing benchmark dataset membership authoritative; a `trainval` name alone does not prove equivalence. CUHK03 partition/image-type provenance requires evidence. MSMT17 is a new application of the chosen recipe, not reproduction of a Huang MSMT17 result.
+
+Training batch 64 is the target. If hardware makes it infeasible, record evidence and request a methodological decision before an authoritative run; do not silently reduce it, rescale LR, enable AMP, or equate gradient accumulation with BN batch 64. Smaller bounded diagnostic batches are explicitly non-authoritative. Evaluation batch may be reduced for memory after checking equivalent outputs.
+
+Planned generic optimizer schema (not implemented yet):
+
+```yaml
+optim:
+  name: sgd
+  lr: 0.1
+  momentum: 0.9
+  nesterov: false
+  weight_decay: 0.0005
+  bias_lr_factor: 1.0
+  weight_decay_bias: 0.0005
+  param_groups:
+    - prefix: "backbone."
+      lr_mult: 0.1
+sched:
+  name: warmup_multistep
+  milestones: [40]
+  gamma: 0.1
+  warmup_iters: 0
+  warmup_factor: 1.0
+  warmup_method: linear
+train:
+  epochs: 120
+  eval_interval: 10
+  save:
+    save_best: true
+    save_last: true
+    metric: mAP
+    resume: ""
+```
+
+Each trainable parameter occurs exactly once. Unmatched parameters use multiplier 1. Reject ambiguous overlapping rules and unmatched rules. Effective LR = base LR × prefix multiplier × applicable existing bias multiplier. Existing bias decay policy remains; no rules means unchanged historical behavior. Integrated PCB backbone module is named `backbone`.
+
+Scheduler advances after each optimizer update. For fixed `S=len(train_loader)`, updates 1 through `40S` use 0.01/0.1; update `40S+1` through `120S` use 0.001/0.01. A log immediately after update `40S` can show the next update's LR. Verify constructor behavior, boundary, terminal value, and restored optimizer/scheduler state. `milestones:[41]` is wrong for this builder. Do not use the legacy iteration-stepped `step` branch with epoch units. If the intended trace cannot be achieved, block/report; do not shift milestones silently.
+
+### Common checkpoint protocol and selection provenance
+
+Evaluate the current model through the common evaluator at epochs 10,20,30,…,120. On each strict mAP improvement over the previously recorded best, save/update `ckpt_best.pth`; equal mAP does not replace the earlier best. Continue persisting `ckpt_last.pth` as latest training state, reaching epoch 120. The authoritative selected PCB model for within-domain and cross-domain evaluation is `ckpt_best.pth`, not automatically the last checkpoint. Keep final-epoch metrics distinct from selected-best metrics and label both with their actual checkpoint and epoch.
+
+For every source model record: dataset; training epochs = 120; evaluation interval = 10; selection metric = mAP; best epoch; best mAP at selection; `ckpt_best` SHA256; `ckpt_last` epoch = 120; `ckpt_last` SHA256. Persist this evidence in the eventual experiment manifest/artifacts and dissertation evidence. The selected best epoch must belong to {10,20,…,120} and agree with the full periodic evaluation history, using the first occurrence of the maximum when mAP ties.
+
+Run directories must be fresh or explicitly validated for resume; stale checkpoints from unrelated runs must never be selected. The existing resume helper initializes best mAP from resumed checkpoint scores, which may not preserve the historical maximum. Before any resumed authoritative run, verify preservation of the historical best checkpoint and full selection history; if not established, block that run and report a separately scoped generic correction rather than silently selecting a worse checkpoint. No resume code is changed by this plan update.
+
+Source checkpoint selection uses only that source run's configured within-domain query/gallery evaluation. Freeze the resulting `ckpt_best.pth` hash across the entire matrix row, including its diagonal; never choose source epochs based on cross-domain target scores. Disclose the common test-split selection limitation for all architectures. This checkpoint protocol does not change the frozen PCB optimization recipe.
+
+### Reconstruction and cross-domain ownership
+
+Add versioned reconstruction metadata containing model identity, variant, source `num_classes`, `embedding_dim`, contract version, and resolved configuration (the existing top-level `cfg` may remain the single canonical configuration). Validate consistency among metadata, config, and tensors; reject unsupported versions and mismatches. Preserve legacy ResNet50 `classifier.weight` inference. Strip a uniform `module.` prefix before inference/load; mixed-prefix state must not be silently rewritten. Rebuild without pretrained downloads; strict state loading stays mandatory. Never use target class count to rebuild source heads.
+
+For cross-domain evaluation, preserve the trained source architecture, resolution, pixel normalization, descriptor, and evaluation policy. Substitute target root/dataset/split/format/protocol; target batch/workers/device are execution settings and must be applied intentionally. Current whole-`data.test` replacement must be corrected. A target 256×128 baseline preset must not override PCB's 384×128 preprocessing. No adaptation, fine-tuning, target-label training, or target-driven model selection.
+
+## Compatibility map and source/test index
+
+| Requirement | Classification | Owner / evidence at audited HEAD |
+| --- | --- | --- |
+| YAML loader and common entry points | REUSE AS-IS / CONFIGURE | `reid/utils/config.py:112`, `scripts/train.py` |
+| PCB backbone, stripes, heads, descriptor | MODEL-SPECIFIC IMPLEMENTATION | proposed `reid/models/pcb.py`; reference `PCBModel.py` |
+| Model dispatch before baseline parsing | GENERIC EXTENSION | `reid/models/build.py:4–35` |
+| Dictionary transport | REUSE AS-IS | `reid/models/outputs.py:4–31`; add shared logits validation here if appropriate |
+| Multi-head CE / disabled metric semantics | GENERIC EXTENSION | `reid/losses/build.py:44–63,89–117`; `reid/utils/config.py:130` |
+| Optional metric width | GENERIC EXTENSION | `scripts/train.py:371`; `scripts/smoke_reid_pipeline.py:146` |
+| Accuracy / LR labels | GENERIC EXTENSION | `reid/engine/train_loop.py:63–96,115–122` |
+| Prefix LR groups | GENERIC EXTENSION | `reid/optim/build.py:9–42` |
+| Exact epoch-41 schedule | CONFIGURE | `reid/optim/build.py:88–103`; `reid/optim/lr_scheduler.py:34–45` |
+| Random loader / transformations | CONFIGURE | `reid/data/build.py:144–225`; `reid/data/transforms.py:51–95` |
+| Four dataset parsers / partitions | REUSE AS-IS | `reid/data/build.py` and imported dataset implementations |
+| Embedding evaluator / ranking | REUSE AS-IS | `reid/engine/evaluator.py:17–36,60–98`; `reid/metrics/` |
+| Reconstruction metadata and strict helper | GENERIC EXTENSION | `reid/utils/checkpoint.py`; `scripts/evaluate.py:80`; `scripts/evaluate_cross_domain.py:38` |
+| Source preprocessing preservation | GENERIC EXTENSION | `scripts/evaluate_cross_domain.py:43–54` |
+| Common metrics/artifacts / periodic mAP best-selection policy | REUSE AS-IS / CONFIGURE | `reid/utils/metrics_artifacts.py`; `scripts/train.py:404–528` |
+| Historical protocol documentation | GENERIC EXTENSION | `docs/model_plugin_protocol.md` and its documentation tests |
+| Matrix aggregation | REUSE AS-IS, verify later | `reid/utils/experiment_matrix.py`; `scripts/aggregate_results.py`; `scripts/report_model_selection.py` |
+| New dataset loaders, sampler, evaluator, ranking | NOT REQUIRED | no changes planned |
+| Runtime/export/deployment, MGN, TransReID, ablations | NOT REQUIRED | outside this PCB execution scope |
+
+Existing tests to retain/extend by owner: `tests/test_checkpoint.py`, `test_evaluation_harness.py`, `test_model_interface.py`, `test_model_plugin_contract.py`, `test_model_plugin_protocol_doc.py`, `test_model_forward.py`, `test_loss_interface.py`, `test_reid_loss_modes.py`, `test_train_loop_optim.py`, `test_optim_build.py`, `test_train_orchestration.py`, `test_config_schema.py`, `test_sampler.py`, `test_data_transforms.py`, `test_dataset_protocol.py`, `test_market1501_dataset.py`, `test_duke_dataset.py`, `test_cuhk03_dataset.py`, `test_msmt17_dataset.py`, `test_smoke_reid_pipeline.py`, `test_artifact_format.py`, `test_reproducibility_artifacts.py`, `test_experiment_matrix.py`, `test_resnet50_strong_baseline.py`. These filenames exist; new test filenames below are explicitly proposed, not claimed to exist.
+
+## Execution phases
+
+All phases must update their implementation record, decisions/deviations, review notes, and this plan. Listed expected changes are future bounds, not authorization. Every phase ends in STOP for review.
+
+### Phase 0 — Freeze pre-PCB baseline
+
+- **Objective:** Preserve the starting repository/environment/ResNet50 contract.
+- **Why this step exists:** Prevent accidental attribution of old behavior or missing evidence to PCB.
+- **Prerequisites:** Repository audit and read-only current-state checks.
+- **Files to inspect:** `reid/models/baseline.py`, `docs/baseline_protocol_v1.md`, baseline configurations, baseline evidence above.
+- **Files expected to change:** `plan.md` only for this documentation deliverable.
+- **Implementation tasks:** Record branch, HEAD, status, environment, prior test evidence, behavior, and limitations.
+- **Validation/tests:** Current Git/environment inspection; distinguish historical tests from newly run tests.
+- **Exit criteria:** Pre-PCB state recorded without asserting a new full-suite pass.
+- **Status:** Completion `[x]` audit/documentation; review `[?]` consolidated record.
+- **Implementation record:** Prior audit completed; branch/HEAD/clean state and CPU environment rechecked 2026-10-02. No baseline tests rerun in roadmap creation.
+- **Decisions/deviations:** Revalidate affected baseline tests during implementation; full coverage remains a later gate.
+- **Review notes:** Historical command/artifact limits are explicit above.
+- **Next step:** Phase 1 documentation; no implementation authorized.
+
+### Phase 1 — Freeze reference specification
+
+- **Objective:** Identify one unambiguous executable PCB variant.
+- **Why this step exists:** Prevent mixing Huang and original-author behaviors.
+- **Prerequisites:** Reference investigation and selection completed.
+- **Files to inspect:** Reference `README.md`, `bpm/model/PCBModel.py`, `resnet.py`, `script/experiment/train_pcb.py`, `bpm/dataset/TestSet.py`, `PreProcessImage.py`, `bpm/utils/distance.py`.
+- **Files expected to change:** `plan.md` only.
+- **Implementation tasks:** Record pinned commit, architecture, objective, descriptor, optimizer, preprocessing, initialization, and provenance differences.
+- **Validation/tests:** Source-based Phase 3 findings; local reference HEAD/status rechecked during creation.
+- **Exit criteria:** Selected variant and historical-default dependencies are explicit.
+- **Status:** Completion `[x]` investigation/documentation; review `[?]` consolidated record.
+- **Implementation record:** Commit verified; frozen contract and source anchors preserved above. No model executed in this phase's documentation task.
+- **Decisions/deviations:** Historical BN initialization is explicit; modern defaults must not silently replace it.
+- **Review notes:** README results remain external claims, not reproduced measurements.
+- **Next step:** Phase 2 documentation.
+
+### Phase 2 — Freeze compatibility map
+
+- **Objective:** Assign every integration requirement to a framework owner.
+- **Why this step exists:** Keep architecture implementation separate from necessary generic extensions.
+- **Prerequisites:** Framework audit and Phase 1.
+- **Files to inspect:** Source/test index and compatibility table above.
+- **Files expected to change:** `plan.md` only.
+- **Implementation tasks:** Classify reuse, configuration, generic extension, model implementation, and excluded work.
+- **Validation/tests:** Cross-check current filenames, entry-point dependencies, and actual test inventory.
+- **Exit criteria:** Every frozen requirement has an owner; no duplicate training pipeline planned.
+- **Status:** Completion `[x]` analysis/documentation; review `[?]` consolidated record.
+- **Implementation record:** Prior compatibility investigation consolidated; source/test inventory checked 2026-10-02.
+- **Decisions/deviations:** Stale plug-in protocol restrictions explicitly superseded by user contract; reconcile later.
+- **Review notes:** Test updates must strengthen intended contracts, not erase baseline behavior checks.
+- **Next step:** Phase 3 documentation.
+
+### Phase 3 — Freeze integration contract
+
+- **Objective:** Record decisions sufficient to start bounded implementation.
+- **Why this step exists:** Prevent silent methodological changes between sessions.
+- **Prerequisites:** Phases 0–2; user's current roadmap instructions.
+- **Files to inspect:** Frozen contract above and prior Phase 3 report.
+- **Files expected to change:** `plan.md` only.
+- **Implementation tasks:** Consolidate outputs, dimensions, loss, statistics, groups, normalization, metadata, preprocessing ownership, 120-epoch decision, and common periodic mAP checkpoint selection.
+- **Validation/tests:** Document consistency checks; verify 120 training epochs, 10-epoch evaluation, mAP-selected best, and separate latest/final state throughout the plan.
+- **Exit criteria:** No unresolved architectural contract blocks Phase 4; operational training prerequisites remain explicit later gates.
+- **Status:** Completion `[x]` contract documentation; review `[?]` roadmap and derived continuation.
+- **Implementation record:** Original verification completed read-only; project duration is 120 epochs; the subsequent user correction restores common periodic mAP best-checkpoint selection. This plan persists both decisions.
+- **Decisions/deviations:** 120 epochs, decay still epoch 41; evaluate every 10 epochs, select strict-best mAP, retain epoch-120 last state. Common test-split selection limitation remains explicit.
+- **Review notes:** No future phase authorized by creation of this document.
+- **Next step:** Phase 4, only after explicit authorization.
+
+### Phase 4 — Generic checkpoint reconstruction
+
+- **Objective:** Remove reconstruction's exclusive dependency on `classifier.weight`.
+- **Why this step exists:** Multi-head checkpoints must rebuild source classifiers without downloads or target-class leakage.
+- **Prerequisites:** Reviewed contract and explicit Phase 4 authorization; inspect current checkpoint API/tests.
+- **Files to inspect:** `reid/utils/checkpoint.py`, `reid/models/build.py`, `scripts/train.py`, `scripts/evaluate.py`, `scripts/evaluate_cross_domain.py`, `tests/test_checkpoint.py`.
+- **Files expected to change:** Those checkpoint/build/entry-point files only as needed for generic reconstruction, `tests/test_checkpoint.py`; proposed `tests/test_checkpoint_reconstruction.py`; `plan.md`.
+- **Implementation tasks:** Add versioned metadata and a common reconstruction path; validate metadata/config/tensors; preserve legacy fallback; normalize uniform prefixes; disable initialization downloads; retain strict loading and source class count. Do not implement PCB here.
+- **Validation/tests:** Historical ResNet50 fallback; synthetic metadata single/multi-head round trips; prefix handling; unknown version/mismatch rejection; target identity count independence; missing/unexpected/shape-mismatched tensors; download function patched to fail if called. Existing checkpoint test asserts exact payload keys and needs intentional additive-schema coverage.
+- **Exit criteria:** Generic reconstruction verified with test-only multi-head surrogate; no PCB production code required. Actual PCB round trip is a mandatory Phase 10/18 gate, not falsely marked passed here.
+- **Status:** Completion `[x] IMPLEMENTED + VALIDATED` on 2026-10-05; review `[?] NEEDS HUMAN REVIEW`. Phase 4 was explicitly authorized by the user attachment `153f6c9b-9749-40f1-ada8-5786a11e6838/Pasted text.txt`. Earlier documentation-session statements elsewhere in this plan are historical; this Phase 4 authorization/record supersedes them for Phase 4 only.
+- **Implementation record:** Phase 4 only completed on 2026-10-05. Starting branch `main` tracking `origin/main`, HEAD `37ed8a50dedc5aba0bade8765f2190824e217482`; starting Git status `?? plan.md`, all tracked files clean. Read the complete roadmap, confirmed Phases 0–3 recorded complete and the latest 120-epoch/every-10-epoch strict-best-mAP policy, and inspected checkpoint callers/tests before editing. No applicable AGENTS.md was found in the repository or checked ancestors.
+
+  Exact changed files:
+  - `reid/utils/checkpoint.py`: metadata construction/validation, shared state normalization, metadata-first class resolution, strict source-model reconstruction; additive metadata saving and preserved optimizer/scheduler loading.
+  - `reid/models/build.py`: explicit metadata declaration and keyword-only `initialize_pretrained` override, default true; model computations/state tensors unchanged.
+  - `scripts/evaluate.py`: shared class helper compatibility wrapper and shared reconstruction call.
+  - `scripts/evaluate_cross_domain.py`: shared class helper compatibility wrapper and shared reconstruction call; existing data-config merge intentionally unchanged.
+  - `tests/test_checkpoint.py`: existing exact-payload assertion updated for additive `reconstruction` field.
+  - `tests/test_checkpoint_reconstruction.py`: new tests using a test-only single/multi-head surrogate, actual baseline models, and a mocked cross-domain entry-point test.
+  - `plan.md`: only this Phase 4 section updated.
+
+  Design and persisted schema:
+  ```yaml
+  reconstruction:
+    schema_version: 1
+    output_contract_version: 1
+    model_name: reid_baseline  # selected builder identity
+    variant: null             # cfg.model.variant when relevant
+    num_classes: 1041         # example source classifier count; null for classifier-free model
+    embedding_dim: 2048       # example retrieval width
+  cfg: ...                    # existing canonical resolved config; not duplicated in metadata
+  model: ...                  # unchanged state_dict representation
+  ```
+  Builders declare `model.checkpoint_metadata` via `make_reconstruction_metadata(cfg, num_classes, embedding_dim)`. Saving a declared model with cfg persists a copied reconstruction block; DataParallel/DDP declarations are read from the wrapped module. Unknown/undeclared models retain the existing save API but cannot use metadata-based reconstruction until their builder declares the contract. `save_checkpoint(..., cfg=None)` remains supported and omits self-describing metadata; reconstruction then requires a caller-supplied legacy baseline source configuration.
+
+  `reconstruct_model(checkpoint, cfg=None)` normalizes wrapped/raw state, strips a uniform `module.` prefix (including PyTorch state-version metadata), rejects mixed prefixes, validates versions/identity/variant/dimensions against canonical source config, resolves source classes, invokes the common builder with `initialize_pretrained=False`, checks the constructed declaration, then strictly loads tensors. Unsupported/null/incomplete explicit metadata never silently falls back. Metadata-free reconstruction is bounded to historical `reid_baseline`; only its `classifier.weight` is inferred (or None for classifier-free state). Embedded source cfg takes precedence; caller cfg is a fallback only for old/raw checkpoints without cfg. Dataset/target class counts are never used. Future architectures must register their normal builder and declare metadata; no production surrogate or PCB registry entry was added.
+
+  Validation environment: `/home/filsduvent/environments/Reid/bin/python`, Python 3.12.3, torch 2.7.1+cpu, torchvision 0.22.1+cpu. Exact focused commands, from repository root:
+  ```bash
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -p no:cacheprovider tests/test_checkpoint_reconstruction.py tests/test_checkpoint.py > /tmp/phase4-focused.log 2>&1
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -p no:cacheprovider tests/test_checkpoint_reconstruction.py tests/test_checkpoint.py > /tmp/phase4-focused-final.log 2>&1
+  ```
+  Initial captured focused result: **33 passed in 17.58 s**. After preserving optional-cfg saves and adding configuration-save rejection/cross-domain entry-point coverage, final focused result: **36 passed in 18.30 s**. The initial streaming test invocation's session handle was not retained, so it was allowed to finish and rerun with captured output; its uncollected result is not counted. No test failures were observed in the captured runs.
+
+  Exact affected regression command:
+  ```bash
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -p no:cacheprovider tests/test_train_orchestration.py tests/test_model_interface.py tests/test_model_forward.py tests/test_model_plugin_contract.py tests/test_loss_interface.py tests/test_reid_loss_modes.py tests/test_optim_build.py tests/test_train_loop_optim.py tests/test_evaluation_harness.py tests/test_config_schema.py tests/test_experiment_matrix.py tests/test_artifact_format.py tests/test_reproducibility_artifacts.py tests/test_resnet50_strong_baseline.py > /tmp/phase4-regression.log 2>&1
+  ```
+  Result: **112 passed, 4 skipped in 36.76 s**. Skips are CUDA-only: one model-forward case and three parameterized training-loop cases; CUDA is unavailable. Final focused plus affected regressions total **148 passed, 4 skipped**; repeated earlier focused runs are not added. Not a claim of a full repository/GPU suite.
+
+  Covered failures: unsupported schema/output versions; malformed/missing/null metadata; identity/variant/config dimension conflicts; source class-count mismatches; mixed prefixes; missing/unexpected/shape-incompatible state tensors; constructed declaration mismatch. Positive coverage: legacy raw/wrapped baseline and uniform prefixes, exact baseline forward equality, new metadata single/multi-head round trips, independent source classes despite target count 999, DataParallel state-version metadata, classifier-free baseline, optimizer/scheduler restoration, no pretrained calls, and preserved optional-cfg API. Network-dependent initialization is forbidden by assertions/mocks in reconstruction tests.
+
+  Additional read-only historical checkpoint validation used `OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -` with this inline script:
+  ```python
+  from pathlib import Path
+  import hashlib
+  import torch
+  from reid.utils.checkpoint import reconstruct_model
+  p=Path('exp/msmt17_no_label_smoothing/checkpoints/ckpt_best.pth')
+  if not p.is_file():
+      raise SystemExit('Historical checkpoint missing; read-only verification unavailable.')
+  def digest():
+      with p.open('rb') as f:
+          return hashlib.file_digest(f,'sha256').hexdigest()
+  before=digest()
+  checkpoint=torch.load(p,map_location='cpu',weights_only=True)
+  assert 'reconstruction' not in checkpoint
+  from torchvision.models import ResNet50_Weights
+  original=type(ResNet50_Weights.IMAGENET1K_V2).get_state_dict
+  def no_download(*a,**k):
+      raise AssertionError('Pretrained initialization requested')
+  type(ResNet50_Weights.IMAGENET1K_V2).get_state_dict=no_download
+  try:
+      model=reconstruct_model(checkpoint).eval()
+      with torch.no_grad():
+          outputs=model(torch.zeros(2,3,256,128))
+      assert outputs['emb'].shape==(2,2048)
+      assert outputs['logits'].shape==(2,1041)
+      assert torch.isfinite(outputs['emb']).all()
+  finally:
+      type(ResNet50_Weights.IMAGENET1K_V2).get_state_dict=original
+  assert digest()==before
+  print('PASS historical checkpoint: strict legacy reconstruction; no pretraining; emb(2,2048), logits(2,1041); epoch',checkpoint['epoch'],'unchanged SHA256',before)
+  ```
+  Result: PASS; checkpoint epoch 120; expected shapes; file unchanged at SHA256 `5c751a6a2f3d2b19456684d66c72b3f86ad8d8a7cf7ab061aacd2071720bfc3f`. No historical checkpoint rewritten, no dataset experiment/training started.
+
+  Final checks: `git diff --check`; inspect `git diff --stat` and `git status --short`; verify plan text outside Phase 4 is byte-for-byte unchanged. Expected resulting status: modified `reid/models/build.py`, `reid/utils/checkpoint.py`, `scripts/evaluate.py`, `scripts/evaluate_cross_domain.py`, `tests/test_checkpoint.py`; untracked existing `plan.md` and new `tests/test_checkpoint_reconstruction.py`. No commit or push.
+- **Decisions/deviations:** No scope deviation. Test-only surrogate avoids the dependency on Phases 5–9; real PCB round trips remain deferred. The pre-existing broken filesystem sandbox required approved escalated execution. No training recipe, checkpoint-selection policy, losses, optimizer behavior, datasets, evaluator metrics, or runtime code changed. No `scripts/train.py` change was needed because its existing common save calls automatically persist builder-declared metadata.
+- **Review notes:** Awaiting human review; STOP. Limitations: actual PCB integration/round trip is not validated; CUDA coverage unavailable; source preprocessing/config-artifact reconciliation remains Phase 15, whose merge behavior was not changed here; existing historical-best resume and RNG/scaler persistence limitations remain. Global plan header/older records were left unchanged because this authorization requires updating Phase 4 only; this dated section is the current Phase 4 state.
+- **Next step:** Phase 5, separately authorized.
+
+### Phase 5 — PCB backbone
+
+- **Objective:** Add the reference-compatible ResNet50 feature backbone in a separate PCB module.
+- **Why this step exists:** Preserve baseline internals and historical weight provenance.
+- **Prerequisites:** Phase 4 reviewed; explicit authorization; initialization contract.
+- **Files to inspect:** Reference `bpm/model/resnet.py`; `reid/models/baseline.py`; `tests/test_model_forward.py`.
+- **Files expected to change:** Proposed `reid/models/pcb.py`, proposed `tests/test_pcb_model.py`, `plan.md`.
+- **Implementation tasks:** Implement backbone construction, stride/dilation and controlled historical initialization, with an explicit no-pretraining mode. Do not register an incomplete end-to-end model in the public builder.
+- **Validation/tests:** Stage topology/stride assertions; `[B,3,384,128]` → `[B,2048,24,8]`; gradient flow; mock weight mapping and separately controlled real historical-weight load with provenance recorded; no final ReID weights. No network dependency in ordinary unit tests.
+- **Exit criteria:** Backbone structure, shape, gradient path, and actual initialization compatibility verified; unavailable required weights must be reported, not replaced.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** No PCB conditionals inside `ReidBaseline`; do not overwrite pretrained weights with head initialization.
+- **Review notes:** STOP; this is a component, not yet a trainable framework plug-in.
+- **Next step:** Phase 6, separately authorized.
+
+### Phase 6 — Stripe partition and pooling
+
+- **Objective:** Implement exact six-stripe partition and full-stripe average pooling.
+- **Why this step exists:** Pooling order and boundaries define the architecture.
+- **Prerequisites:** Phase 5 reviewed and explicit authorization.
+- **Files to inspect:** Reference `PCBModel.forward`; current PCB backbone.
+- **Files expected to change:** `reid/models/pcb.py`, proposed `tests/test_pcb_model.py`, `plan.md`.
+- **Implementation tasks:** Slice equal-height stripes top-to-bottom; validate divisibility/positive sizes; preserve `[B,2048,1,1]` pooled tensors for reductions.
+- **Validation/tests:** Row-coded deterministic maps prove exact boundaries, ordering, complete coverage, no overlap, arithmetic means; non-divisible height fails clearly; gradient distribution reaches each stripe.
+- **Exit criteria:** Six correct pooled stripes with no adaptive fallback.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** Flattened `[B,2048]` is a conceptual representation; reduction input stays four-dimensional.
+- **Review notes:** STOP; no reduction/head implementation in this phase.
+- **Next step:** Phase 7, separately authorized.
+
+### Phase 7 — Independent reduction modules
+
+- **Objective:** Produce six independent post-BN/ReLU 256-D features.
+- **Why this step exists:** This independent reduction is the selected variant's defining choice.
+- **Prerequisites:** Phase 6 reviewed and explicit authorization.
+- **Files to inspect:** Reference `PCBModel.__init__/forward`, historical initializer sources, current PCB module.
+- **Files expected to change:** `reid/models/pcb.py`, proposed `tests/test_pcb_model.py`, `plan.md`.
+- **Implementation tasks:** Six Conv/BN/ReLU modules, explicit biases and historical initialization, correct flattening; no sharing/dropout/global branch.
+- **Validation/tests:** Six modules and distinct parameter/storage identities; bias and BN settings; deterministic initializer checks without flaky statistical thresholds; one module mutation cannot change another; train/eval shapes and BN running-stat behavior; gradients reach every reduction.
+- **Exit criteria:** All six independent reductions and historical initialization verified.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** Validation after “no parameter sharing” completes the truncated supplied phase using the frozen contract.
+- **Review notes:** STOP; no classifier/retrieval integration yet.
+- **Next step:** Phase 8, separately authorized; derived continuation begins.
+
+### Phase 8 — Identity classifiers
+
+- **Objective:** Add six source-identity classification heads.
+- **Why this step exists:** PCB supervises each local representation independently.
+- **Prerequisites:** Phase 7 reviewed and explicit authorization.
+- **Files to inspect:** Reference classifier creation and current PCB component tests.
+- **Files expected to change:** `reid/models/pcb.py`, proposed `tests/test_pcb_model.py`, `plan.md`.
+- **Implementation tasks:** Six biased `Linear(256,C)` heads, explicit Normal(0,0.001)/zero initialization, deterministic top-to-bottom order, source-class validation.
+- **Validation/tests:** Shapes for multiple class counts; independent storage; initialization invocation/settings; ordered head association; manual six-CE gradient check reaches all heads without implementing generic loss prematurely.
+- **Exit criteria:** Correct six-head classifier structure and gradient connectivity.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** No averaged-logit classifier or fixed dataset-specific class count.
+- **Review notes:** STOP.
+- **Next step:** Phase 9, separately authorized.
+
+### Phase 9 — Retrieval and public PCB outputs
+
+- **Objective:** Complete honest model outputs and retrieval metadata.
+- **Why this step exists:** Evaluation must receive the selected descriptor without fabricated BNNeck features.
+- **Prerequisites:** Phase 8 reviewed and explicit authorization.
+- **Files to inspect:** `reid/models/outputs.py`, `reid/engine/evaluator.py`, reference `ExtractFeature` and `TestSet`.
+- **Files expected to change:** `reid/models/pcb.py`, proposed `tests/test_pcb_model.py`, `plan.md`.
+- **Implementation tasks:** Concatenate post-ReLU local features top-to-bottom; expose `emb`, six-logit tuple, `feat_raw=None`, `feat_bn=None`, `embedding_dim=1536`, `feat_dim=None` consistently across modes.
+- **Validation/tests:** Sentinel local features prove concatenation order; descriptor equals local concat and is not forcibly unit-normalized; single-image eval; required dictionary keys; no dropout/global branch; finite output and gradients.
+- **Exit criteria:** Model output contract verified independently of framework registration.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** Evaluator owns normalization; no changes to metric implementations.
+- **Review notes:** STOP.
+- **Next step:** Phase 10, separately authorized.
+
+### Phase 10 — Generic model/output/dimension integration
+
+- **Objective:** Register PCB and reconcile generic contracts without changing baseline computations.
+- **Why this step exists:** Builder and orchestration currently assume baseline head fields and positive metric width.
+- **Prerequisites:** Phases 4–9 reviewed and explicit authorization.
+- **Files to inspect:** `reid/models/build.py`, `outputs.py`, `reid/utils/config.py`, `config_schema.py`, `scripts/train.py`, `scripts/smoke_reid_pipeline.py`, plug-in protocol/tests.
+- **Files expected to change:** Those generic contract files as needed; optional metadata-only addition to `reid/models/baseline.py`; `docs/model_plugin_protocol.md`; `tests/test_model_interface.py`, `test_model_plugin_contract.py`, `test_model_plugin_protocol_doc.py`, `test_config_schema.py`, `test_checkpoint.py`; `plan.md`.
+- **Implementation tasks:** Dispatch before baseline-specific parsing; validate fixed PCB variant; add reusable logits validation; make metric width optional except where required; expose retrieval metadata without baseline numerical change; reconcile old documentation and tests; connect real PCB metadata reconstruction.
+- **Validation/tests:** Build both models; malformed heads rejected generically; CE-only config admits None metric features/dimension; metric-enabled incompatible outputs fail clearly; actual PCB checkpoint round trip/no-download test from Phase 4; ResNet50 output regression. Full multi-head training awaits Phase 11.
+- **Exit criteria:** Real PCB builds/reconstructs and generic contract validation is coherent; no fake metric features.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** No future MGN feature abstraction beyond the needed generic contract.
+- **Review notes:** STOP; scope includes documentation reconciliation, not dataset/evaluator rewrites.
+- **Next step:** Phase 11, separately authorized.
+
+### Phase 11 — Generic multi-head identity loss
+
+- **Objective:** Support independent CE aggregation while retaining single-head behavior.
+- **Why this step exists:** Existing ID loss receives one tensor.
+- **Prerequisites:** Phase 10 reviewed and explicit authorization.
+- **Files to inspect:** `reid/losses/build.py`, `id.py`, `tests/test_loss_interface.py`, `test_reid_loss_modes.py`.
+- **Files expected to change:** Loss/config validation as needed; those loss tests; `plan.md`.
+- **Implementation tasks:** Tensor direct path unchanged; sequence per-head CE then configured sum/mean; default sum; PCB smoothing zero/weight one; no logits averaging or metric feature requirement for CE-only.
+- **Validation/tests:** Value AND gradient equality to explicit six-CE sum; generic two/three-head sum/mean; unchanged baseline smoothing/weights; malformed sequences and missing logits fail; disabled metric features accepted; enabled metric errors preserved.
+- **Exit criteria:** Objective and every head's gradients match the reference mathematical loss.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** Generic mean support is infrastructure coverage, not a PCB experiment.
+- **Review notes:** STOP.
+- **Next step:** Phase 12, separately authorized.
+
+### Phase 12 — Multi-head training diagnostics
+
+- **Objective:** Support useful diagnostics without affecting optimization.
+- **Why this step exists:** Tensor-only `argmax` fails on PCB outputs.
+- **Prerequisites:** Phase 11 reviewed and explicit authorization.
+- **Files to inspect:** `reid/engine/train_loop.py`, `tests/test_train_loop_optim.py`, `test_model_plugin_contract.py`.
+- **Files expected to change:** Training-loop diagnostic handling and those tests; `plan.md`.
+- **Implementation tasks:** Preserve single-head `acc/id`; multi-head `acc/id_mean_heads`; retain loss aggregates; no architecture-name checks/per-head logs.
+- **Validation/tests:** Hand-computed head accuracies including disagreeing heads; unchanged single-head values/tags; identical gradients/updates with diagnostics; synthetic generic multi-head loop.
+- **Exit criteria:** Logging is correct and optimization invariant.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** LR label change belongs to Phase 13 with prefix-group metadata.
+- **Review notes:** STOP.
+- **Next step:** Phase 13, separately authorized.
+
+### Phase 13 — Differential learning rates and group logging
+
+- **Objective:** Add reusable prefix multipliers and truthful group LR diagnostics.
+- **Why this step exists:** Reference backbone/new-layer rates differ by tenfold.
+- **Prerequisites:** Phase 12 reviewed and explicit authorization.
+- **Files to inspect:** `reid/optim/build.py`, `reid/engine/train_loop.py`, `tests/test_optim_build.py`, `test_train_loop_optim.py`.
+- **Files expected to change:** Those files, config validation if necessary, `plan.md`.
+- **Implementation tasks:** Implement frozen prefix schema, reject overlaps/unmatched rules, compose bias multipliers, preserve decay and no-rule behavior; add accurate group labels without falsely naming head LR as bias LR.
+- **Validation/tests:** Every trainable parameter covered once by identity; frozen parameters excluded; exact LR/decay for weights/biases/BN; ambiguous/unmatched rules fail; baseline no-rule optimizer state/group order unchanged; no PCB architecture check.
+- **Exit criteria:** PCB rates 0.01/0.1 with correct all-parameter weight decay; diagnostics truthful.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** Do not automatically exempt biases or BN from decay.
+- **Review notes:** STOP.
+- **Next step:** Phase 14, separately authorized.
+
+### Phase 14 — Verify exact 120-epoch LR trace
+
+- **Objective:** Prove the epoch-41 boundary under iteration stepping.
+- **Why this step exists:** Schedule names alone do not establish actual optimizer rates.
+- **Prerequisites:** Phase 13 reviewed and explicit authorization.
+- **Files to inspect:** `reid/optim/build.py`, `lr_scheduler.py`, train-loop step order, `tests/test_optim_build.py`.
+- **Files expected to change:** Scheduler tests and `plan.md`; scheduler production changes are not expected.
+- **Implementation tasks:** Test frozen no-warmup `[40]` recipe on fixed synthetic loader lengths, including resumed optimizer/scheduler state.
+- **Validation/tests:** Rates actually used at updates 1, `40S`, `40S+1`, `120S`; all groups scale once and retain ratio; no extra decay; constructor and restored-state boundary checks.
+- **Exit criteria:** Required trace established with exact commands/results; no full training needed.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** If behavior cannot express the frozen trace, mark BLOCKED and report; do not move/add milestones.
+- **Review notes:** STOP.
+- **Next step:** Phase 15, separately authorized.
+
+### Phase 15 — Source preprocessing in common evaluation
+
+- **Objective:** Make within/cross-domain reconstruction and preprocessing faithful to the source model.
+- **Why this step exists:** Current cross-domain merge can replace PCB resolution with target baseline resolution.
+- **Prerequisites:** Phases 10–14 reviewed and explicit authorization.
+- **Files to inspect:** `scripts/evaluate.py`, `scripts/evaluate_cross_domain.py`, `reid/utils/checkpoint.py`, `tests/test_evaluation_harness.py`, `test_experiment_matrix.py`.
+- **Files expected to change:** Common evaluation preparation/merge helpers and tests; proposed `tests/test_cross_domain_config.py`; `plan.md`. No evaluator or ranking implementation changes expected.
+- **Implementation tasks:** Preserve source model/descriptor/preprocessing; substitute target dataset protocol/root; handle execution overrides intentionally; share reconstruction; fail incompatible standalone config clearly rather than silently evaluating different settings.
+- **Validation/tests:** Source PCB plus target 256×128 baseline config still yields 384×128/source mean/std/source C; target parser/root/split retained; config copies unmutated; source/target labels cannot trigger adaptation; legacy baseline paths preserved.
+- **Exit criteria:** Source preprocessing ownership demonstrated through common entry points.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** Target runtime device/batch/workers may differ without changing learned-model preprocessing.
+- **Review notes:** STOP.
+- **Next step:** Phase 16, separately authorized.
+
+### Phase 16 — PCB presets and dataset preflight
+
+- **Objective:** Express the single project recipe for four authoritative benchmark loaders.
+- **Why this step exists:** Configuration must encode all deviations and use real, verified dataset membership.
+- **Prerequisites:** Phase 15 reviewed and explicit authorization; available dataset roots/partition evidence.
+- **Files to inspect:** Existing baseline YAMLs, `reid/data/build.py`, transforms, dataset protocol/tests, common config validation.
+- **Files expected to change:** Proposed four `configs/pcb/*.yaml`, preset/config tests, `plan.md`; no parser/sampler changes expected.
+- **Implementation tasks:** Full existing schema plus model-specific settings; random64, CE-only, explicit disabled Triplet section, reference mean/std, initialization identity, 120 epochs, eval_interval 10, save_best true/save_last true, selection metric mAP; unique output dirs. Verify actual roots/partitions/camera/label conventions and dataset counts; document CUHK03 and MSMT17 provenance.
+- **Validation/tests:** All four YAMLs load/validate; builder/loss/optimizer agree; read-only loader batches show shapes/dtypes/labels; random drop-last and fixed length; train/eval transforms correct; partition membership checks, not directory-name guesses; no full training.
+- **Exit criteria:** Four usable presets and dataset evidence. Missing data/partition provenance blocks the affected preflight and authoritative run; placeholders are not validated configurations.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** Same selected recipe on MSMT17 is a project extension. Do not reorganize baseline YAMLs.
+- **Review notes:** STOP; no new ablations or silent recipe changes.
+- **Next step:** Phase 17, separately authorized.
+
+### Phase 17 — ResNet50 and shared-framework regression gate
+
+- **Objective:** Establish that required generic extensions preserve baseline behavior.
+- **Why this step exists:** Shared infrastructure changes must not invalidate qualification comparisons.
+- **Prerequisites:** Phases 4–16 reviewed and explicit authorization.
+- **Files to inspect:** Full source/test index, actual diff against pre-PCB HEAD, legacy checkpoint and presets.
+- **Files expected to change:** `plan.md` and validation artifacts in approved output location; fixes require a clearly bounded recorded follow-up, not unrelated refactoring.
+- **Implementation tasks:** Run focused changed-component tests and then relevant full offline suite; inspect production diff for forbidden scope creep; reproduce historical checkpoint load/forward where available.
+- **Validation/tests:** Model interfaces, losses, optimizer/bias/schedule, train orchestration, checkpoint fallback, config, dataset/sampler/transforms, evaluator/ranking, artifact schema, plugin/documentation tests; fixed-state baseline output/loss/gradient comparisons. Record skips and reasons; no unplanned external downloads.
+- **Exit criteria:** Required offline tests pass, or concrete blockers recorded; no new baseline metric claims from synthetic checks.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** Documentation assertions may be updated for approved contract evolution; numerical regressions may not be dismissed as documentation changes.
+- **Review notes:** STOP.
+- **Next step:** Phase 18, separately authorized.
+
+### Phase 18 — Synthetic end-to-end integration validation
+
+- **Objective:** Verify the complete PCB path before consuming real training resources.
+- **Why this step exists:** Component tests do not prove builder→loss→optimizer→checkpoint→evaluation integration.
+- **Prerequisites:** Phase 17 passed/reviewed and explicit authorization.
+- **Files to inspect:** Common train/eval/smoke entry points, PCB presets/tests, checkpoint and artifact writers.
+- **Files expected to change:** Integration tests if needed; `plan.md`; isolated temporary validation artifacts, not authoritative experiment dirs.
+- **Implementation tasks:** Exercise actual PCB forward/backward/optimizer steps on synthetic inputs, save/reconstruct strictly, run evaluator on a valid synthetic query/gallery fixture, verify periodic strict-best mAP selection and separate latest/final checkpoint behavior through common orchestration.
+- **Validation/tests:** Finite loss/gradients across backbone and all six heads; correct shapes/dimensions; restored eval embeddings agree within stated tolerance; no pretrained download on reload; all five core metrics and expected artifact identity; source/target class isolation; normalization once; a controlled periodic score sequence with an early maximum, equal-score tie and later lower score proves best retention while last advances, and a later strict improvement proves replacement. Verify selected-best versus final-epoch artifact identity separately.
+- **Exit criteria:** Complete synthetic pipeline passes with transparent scope and tolerances.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** Synthetic optimizer steps are implementation diagnostics, not experiments or benchmark results.
+- **Review notes:** STOP.
+- **Next step:** Phase 19, separately authorized.
+
+### Phase 19 — Bounded real-data GPU smoke and feasibility
+
+- **Objective:** Verify real preprocessing, finite training, checkpoint reload, and batch-64 hardware feasibility.
+- **Why this step exists:** Current local CPU environment cannot establish GPU memory/performance or data-path viability.
+- **Prerequisites:** Phase 18 reviewed; explicit bounded-run authorization; identified GPU host/environment, verified data, fixed smoke batch/step limits and separate output dir.
+- **Files to inspect:** Presets, real dataset summaries, GPU/environment details, common training/smoke commands.
+- **Files expected to change:** `plan.md`; isolated diagnostic logs/checkpoints/config snapshots. Production source changes are not assumed.
+- **Implementation tasks:** Run a short predeclared real-data check; optional tiny-subset overfit diagnostic only if needed/authorized; collect memory, batch/step time, finite losses, branch gradients and reload evidence.
+- **Validation/tests:** Batch64 FP32 feasibility, all-head gradients, no NaNs, source labels contiguous, complete runtime/preprocessing provenance, checkpoint evaluation works. Extrapolate resource needs with uncertainty; do not demand reference accuracy from a smoke.
+- **Exit criteria:** Feasibility documented or blocked with concrete hardware/data issue; no automatic full run.
+- **Status:** `[ ] NOT STARTED`; authorization absent; GPU resource not yet established.
+- **Implementation record:** None.
+- **Decisions/deviations:** Training-batch reduction, AMP, gradient accumulation, LR changes require explicit project decision; stop on OOM rather than silently changing recipe.
+- **Review notes:** STOP.
+- **Next step:** Phase 20, separately authorized.
+
+### Phase 20 — Authoritative-run readiness and experiment freeze
+
+- **Objective:** Prepare a concrete reviewable four-source run manifest before long training.
+- **Why this step exists:** Dataset, config, hardware, checkpoint policy, and artifact identity must be fixed before results exist.
+- **Prerequisites:** Phase 19 passed/reviewed; all preceding gates complete; explicit authorization to prepare manifest only.
+- **Files to inspect:** Four presets, dataset evidence, repository diff/status, environment, artifact helpers, `scripts/train.py` final/resume paths.
+- **Files expected to change:** `plan.md`; proposed `docs/pcb_experiment_protocol.md` and manifest/artifacts in a user-reviewed location.
+- **Implementation tasks:** Freeze per-source resolved config/hash, code commit plus dirty-state evidence, reference weight identity/hash, partition identities/counts/hashes where available, hardware/software versions, seed, fresh output dir, command, 120-epoch schedule, common 10-epoch mAP selection policy, selected-best/latest-state provenance fields and resources. Present exact run command and destination for each source. Resolve missing paths before claiming readiness.
+- **Validation/tests:** No stale outputs; source preprocessing and loader length verified; LR trace for actual S; periodic strict-improvement selection, tie retention, best/last epoch and hash recording, and distinct selected-best/final-state artifact naming verified; training root/test root correct; source/target identities never mixed. Review resume limitations and verify historical best-score/checkpoint preservation before relying on resumed authoritative training.
+- **Exit criteria:** Concrete manifest ready for approval; no unresolved methodological/hardware/data issue. Preparing a manifest does not authorize any long run.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** Record reference60/project120 and all adaptations. If interrupted later, preserve evidence and obtain a bounded resume decision; do not claim bitwise continuous equivalence.
+- **Review notes:** STOP; request source-specific run authorization only after manifest exists.
+- **Next step:** Phase 21, first explicitly authorized source run.
+
+### Phase 21 — Train four source models, one reviewed run at a time
+
+- **Objective:** Train our selected PCB model on Market1501, Duke, CUHK03, and MSMT17.
+- **Why this step exists:** Architecture comparison requires our own source-trained models under the frozen project recipe.
+- **Prerequisites:** Phase 20 reviewed; explicit authorization identifying one source, exact command/host/output/resources.
+- **Files to inspect:** That source's frozen manifest/preset and latest Git/environment/data state.
+- **Files expected to change:** That source's approved experiment artifacts and `plan.md`; no source-code/config edits during a run.
+- **Implementation tasks:** Treat 21A Market1501, 21B Duke, 21C CUHK03, 21D MSMT17 as separate authorization/review units. Execute only the authorized unit for 120 epochs through common train.py; monitor failures; preserve logs/checkpoints; record epoch-120 ckpt_last hash and selected ckpt_best epoch/hash/mAP, together with all periodic evaluation records. Do not automatically start the next source.
+- **Validation/tests:** Correct source C, batch64/FP32, exact LR boundary, 120 completed epochs, no nonfinite failures; ckpt_last.pth exists at epoch 120 with final metadata/config/optimizer/scheduler and recorded SHA256; all 12 periodic evaluations occurred at epochs 10,20,…,120; ckpt_best.pth exists and matches the highest recorded mAP under strict-improvement/tie-retention semantics; record best epoch, best selection mAP and best SHA256. Do not assume best epoch is 120. Verify separately labeled final-epoch and selected-best metrics. The training entry point's automatic selected-best evaluation is later independently checked in Phase 22.
+- **Exit criteria:** Each source unit has validated epoch-120 last state, a periodic-mAP-selected best checkpoint, complete selection provenance and a reviewed record; parent phase completes only when all four units pass.
+- **Status:** `[ ] NOT STARTED`; 21A `[ ]`, 21B `[ ]`, 21C `[ ]`, 21D `[ ]`; no run authorized.
+- **Implementation record:** None. Maintain separate command/date/host/duration/artifacts/hash/result/error records per source unit.
+- **Decisions/deviations:** No automatic retries that change recipe; interruptions/OOM/nonfinite loss trigger explicit recorded diagnosis. Never substitute smoke or external pretrained checkpoints.
+- **Review notes:** STOP after each source unit; all four are not bundled by this roadmap.
+- **Next step:** Next specifically authorized source unit, or Phase 22 after all four are reviewed.
+
+### Phase 22 — Within-domain selected-best checkpoint evaluation
+
+- **Objective:** Independently verify four authoritative diagonal results from each source's selected ckpt_best.pth.
+- **Why this step exists:** The reported metrics must correspond exactly to the authoritative weights and common protocol.
+- **Prerequisites:** Four Phase 21 source units validated/reviewed; explicit evaluation authorization.
+- **Files to inspect:** Selected-best checkpoint hashes/epochs/configs, last-state provenance and common `scripts/evaluate.py`/artifact behavior.
+- **Files expected to change:** Separate evaluation result directories and `plan.md`; do not overwrite training provenance/config snapshots.
+- **Implementation tasks:** Evaluate each source ckpt_best.pth on its own frozen query/gallery partition; no rerank/flip; record source dataset, best epoch, best checkpoint SHA256, mAP, mINP, Rank-1, Rank-5 and Rank-10; compare with the training entry point's selected-best evaluation using justified tolerances. Retain epoch-120 ckpt_last.pth for training-state/provenance analysis; it is not automatically the selected model.
+- **Validation/tests:** Exactly four diagonal records; Rank1/5/10, mAP, mINP finite and valid; source normalization/resolution; same-camera/junk policy common; no stale historical mINP or checkpoint from another run; selected best hash/epoch match Phase 21 provenance and highest periodic mAP. Preserve disagreements for diagnosis.
+- **Exit criteria:** Four traceable diagonal results agree with the intended selected-best source models/protocol.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None; record one row/path/hash per source.
+- **Decisions/deviations:** Reference README scores are context, not required pass thresholds.
+- **Review notes:** STOP.
+- **Next step:** Phase 23, separately authorized.
+
+### Phase 23 — Cross-domain evaluation matrix
+
+- **Objective:** Evaluate all 12 ordered off-diagonal source→target pairs without adaptation.
+- **Why this step exists:** Cross-domain generalization is central to the project objective.
+- **Prerequisites:** Phase 22 reviewed; four fixed source ckpt_best.pth hashes matching Phase 22 diagonals, all target partitions validated; explicit evaluation scope authorization.
+- **Files to inspect:** `scripts/evaluate_cross_domain.py`, frozen source manifests, target dataset presets, existing matrix record builder.
+- **Files expected to change:** Unique source→target result dirs/JSON and `plan.md`; no model training or checkpoint modification.
+- **Implementation tasks:** Market→Duke/CUHK03/MSMT17; Duke→Market/CUHK03/MSMT17; CUHK03→Market/Duke/MSMT17; MSMT17→Market/Duke/CUHK03. Use the SAME source ckpt_best.pth selected by that source's within-domain periodic mAP procedure for every target, including the Phase 22 diagonal. Preserve each source's architecture/preprocessing/C and identical selected-best SHA256 across the entire row; use target query/gallery protocol only. For example, the Market selected-best hash is identical in Market→Market, Market→Duke, Market→CUHK03 and Market→MSMT17.
+- **Validation/tests:** Exactly 12 distinct pairs; no missing/duplicate cell; correct source/target names and selected-best hashes/epochs; row hashes equal the Phase 22 diagonal hash and Phase 21 selected-best provenance; no target-label adaptation; 384×128 maintained; all core metrics; matrix records retain descriptor/variant/config provenance; reranking disabled.
+- **Exit criteria:** Twelve traceable off-diagonal results; combine with four diagonal results to obtain all 16 cells.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None; maintain per-pair status/command/output/checkpoint hash and errors.
+- **Decisions/deviations:** Do not select a different source epoch for a favorable target result.
+- **Review notes:** STOP after the explicitly authorized evaluation scope; do not proceed to selection automatically.
+- **Next step:** Phase 24, separately authorized.
+
+### Phase 24 — Matrix audit and architecture comparison
+
+- **Objective:** Produce an evidence-backed PCB matrix and a valid comparison with available baseline results.
+- **Why this step exists:** Completed files alone do not establish comparable experimental provenance.
+- **Prerequisites:** Phase 23 reviewed and all 16 PCB cells available; explicit analysis authorization.
+- **Files to inspect:** `reid/utils/experiment_matrix.py`, `scripts/aggregate_results.py`, `scripts/report_model_selection.py`, `tests/test_experiment_matrix.py`, baseline registry/artifacts.
+- **Files expected to change:** Proposed PCB results documentation/machine-readable summaries, `plan.md`; generic aggregation changes only if a verified incompatibility is separately scoped.
+- **Implementation tasks:** Audit cell uniqueness, selected-best checkpoint consistency across every complete row, Phase 21/22 best epoch/mAP/hash provenance, separately retained epoch-120 last-state hashes, metric units/protocol, row mapping, missing evidence and summary arithmetic; report within-domain and off-diagonal summaries separately; disclose project/reference differences and common test-split checkpoint-selection limitation affecting ResNet50, PCB and future architectures.
+- **Validation/tests:** All16 coverage and 12 cross-domain count; independent recomputation of summary arithmetic; no duplicate overwrite ambiguity; no fabricated missing ResNet50 cells. Existing matrix ranking compares architectures and must not be mistaken for ranking source-trained models within PCB.
+- **Exit criteria:** Reproducible PCB matrix/report, with baseline comparison limited to verified comparable evidence; remaining evidence gaps explicit.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** Missing baseline artifacts block claims requiring them, not preservation of complete PCB results. No automatic MGN/TransReID integration.
+- **Review notes:** STOP.
+- **Next step:** Phase 25, separately authorized.
+
+### Phase 25 — Model-selection review and offline handoff
+
+- **Objective:** Deliver validated PCB evidence for later model-selection/deployment decisions.
+- **Why this step exists:** Periodic checkpoint selection within each source run, later comparison/selection among source-trained models, and runtime qualification are distinct decisions.
+- **Prerequisites:** Phase 24 reviewed; explicit analysis/handoff authorization; selection rule approved before applying it.
+- **Files to inspect:** Completed matrix/report, source checkpoint manifest, existing model-selection methodology and artifact gaps.
+- **Files expected to change:** Handoff/selection documentation and `plan.md`; no runtime adapters, export code, or deployment configuration.
+- **Implementation tasks:** Present four selected ckpt_best.pth identities and their within/cross-domain evidence, with dataset, training epochs=120, evaluation interval=10, metric=mAP, best epoch, best selection mAP, best SHA256, last epoch=120 and last SHA256; apply only the reviewed selection unit/rule; record result/ties/limitations. If current tooling ranks the wrong unit, document and obtain a bounded generic reporting task rather than silently changing methodology.
+- **Validation/tests:** Every claimed score links to a recorded matrix cell; selected-best weights hash/epoch verified against each source row; epoch-120 last state is retained separately; no descriptor-size-to-speed extrapolation; methodological changes documented; unresolved evidence gaps carried forward.
+- **Exit criteria:** Offline PCB implementation/validation/training/evaluation deliverables reviewed, selection recorded or explicitly deferred with reason; later runtime work remains separately authorized.
+- **Status:** `[ ] NOT STARTED`; authorization absent.
+- **Implementation record:** None.
+- **Decisions/deviations:** No deployment, ONNX export, robotic runtime integration, MGN, or TransReID work under this roadmap's execution authorization.
+- **Review notes:** STOP and hand off to the user.
+- **Next step:** None automatically; future work requires a new explicit scope.
+
+## Record template and document validation
+
+For each future implemented unit, replace “None” with: authorization and date; starting branch/HEAD/status; changed files; implementation rationale; exact test commands/interpreter/environment; pass/fail/skip counts; relevant assertions/numerical tolerances; artifact paths and hashes; failures and resolution; deviations from contract and approving decision; remaining limits; completion/review status; proposed next step (not authorized by implication).
+
+Document-creation validation scope: only `plan.md` added; verify required phase fields, phases 0–25, protected 120-epoch/epoch-41 policies and common 10-epoch mAP checkpoint selection, existing-path references (distinguish proposed files), status/authorization consistency, and `git diff --check`/whitespace. No implementation tests or phases 4+ are executed merely to validate this Markdown roadmap.
+
+Creation record: 2026-10-02 — read both supplied attachments, inspected Git/environment/reference state and relevant source/test inventory, consolidated Phase 3 with the superseding project-duration decision, and created only this root roadmap. Completion of document validation is reported in the creation-session response; future sessions must inspect repository state rather than assume it remains unchanged.
+
+Validation record (2026-10-02): The in-memory structural check passed for phases 0–25, all 13 required fields per phase, unstarted/unauthorized phases 4+, balanced fences, policy anchors, whitespace, and 35 source/test/document references (explicitly proposed files excluded from existence checks). `git diff --check` passed. Git status and untracked-file inventory showed only `plan.md`; its untracked content was separately checked for whitespace. No implementation tests or training ran. Roadmap completion: [x]; human review: [?].
+
+Checkpoint-policy correction record (2026-10-02): Documentation only. The user superseded final-epoch-only selection with the established common-framework periodic mAP protocol. Updated session authorization wording, methodology/classification/limitation, recipe/configuration, common checkpoint protocol and provenance, compatibility map, Phase 3, Phases 16, 18, 20–25, and document-validation requirements. PCB optimization and LR policy remain unchanged; Phase 4 and all later phases remain unstarted and unauthorized. Validation: obsolete-policy scan, phase-field/status consistency, protected optimization/initialization contract comparison, whitespace checks and Git change-scope checks; no implementation tests or training.

@@ -78,13 +78,9 @@ def save_resolved_config(exp_dir, cfg, save_yaml):
 
 
 def infer_num_classes_from_checkpoint(checkpoint):
-    model_state = checkpoint.get("model", {})
-    classifier_weight = model_state.get("classifier.weight")
-    if classifier_weight is None:
-        return None
-    if classifier_weight.ndim != 2:
-        return None
-    return int(classifier_weight.shape[0])
+    from reid.utils.checkpoint import infer_num_classes_from_checkpoint as infer_source_classes
+
+    return infer_source_classes(checkpoint)
 
 
 def build_eval_payload(cfg, scores, epoch=None, checkpoint_name=""):
@@ -105,8 +101,7 @@ def main():
 
     from reid.data.build import build_test_loader
     from reid.engine.evaluator import evaluate_reid
-    from reid.models.build import build_model
-    from reid.utils.checkpoint import load_checkpoint
+    from reid.utils.checkpoint import reconstruct_model
     from reid.utils.config import load_config, save_yaml, validate_reid_config
     from reid.utils.config_schema import validate_config
     from reid.utils.device import device_summary, select_device
@@ -151,10 +146,7 @@ def main():
         logger.info("Evaluation checkpoint: %s", weight_path)
 
         checkpoint = torch.load(weight_path, map_location=device)
-        num_classes = infer_num_classes_from_checkpoint(checkpoint)
-
-        model = build_model(cfg, num_classes=num_classes).to(device)
-        load_checkpoint(weight_path, model=model, map_location=device)
+        model = reconstruct_model(checkpoint, cfg=cfg).to(device)
 
         test_loader = build_test_loader(cfg)
         logger.info("Test dataset: %s", cfg["data"]["test"]["dataset"]["name"])

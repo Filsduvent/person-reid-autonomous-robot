@@ -94,6 +94,7 @@ def test_save_checkpoint_writes_complete_training_state(tmp_path):
         "center_optimizer",
         "scores",
         "cfg",
+        "reconstruction",
     }
     assert payload["epoch"] == 7
     assert payload["model"].keys() == model.state_dict().keys()

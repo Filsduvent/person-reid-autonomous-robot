@@ -16,8 +16,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from reid.data.build import build_test_loader
 from reid.engine.evaluator import evaluate_reid
-from reid.models.build import build_model
-from reid.utils.checkpoint import load_checkpoint
+from reid.utils.checkpoint import infer_num_classes_from_checkpoint, reconstruct_model
 from reid.utils.config import load_config, save_yaml, validate_reid_config
 from reid.utils.config_schema import validate_config
 from reid.utils.device import select_device
@@ -36,8 +35,7 @@ def parse_args():
 
 
 def infer_num_classes(checkpoint):
-    weight = checkpoint.get("model", {}).get("classifier.weight")
-    return int(weight.shape[0]) if weight is not None and weight.ndim == 2 else None
+    return infer_num_classes_from_checkpoint(checkpoint)
 
 
 def build_cross_domain_config(source_cfg, target_cfg, target_dataset, output_dir):
@@ -75,8 +73,7 @@ def main():
     save_yaml(cfg, output_dir / "config.resolved.yaml")
 
     device, _ = select_device(cfg["system"]["device"], cfg["system"].get("gpu_id", 0), cfg)
-    model = build_model(cfg, num_classes=infer_num_classes(checkpoint)).to(device)
-    load_checkpoint(str(checkpoint_path), model=model, map_location=device)
+    model = reconstruct_model(checkpoint).to(device)
     scores = evaluate_reid(cfg, model, build_test_loader(cfg), device)
     architecture = str(cfg["model"]["name"])
     record = build_cross_dataset_record(

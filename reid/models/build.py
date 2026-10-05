@@ -1,7 +1,7 @@
 from reid.models.baseline import ReidBaseline
 
 
-def build_model(cfg, num_classes: int | None = None):
+def build_model(cfg, num_classes: int | None = None, *, initialize_pretrained: bool = True):
     mcfg = cfg["model"]
     bcfg = mcfg["backbone"]
     hcfg = mcfg["head"]
@@ -22,7 +22,7 @@ def build_model(cfg, num_classes: int | None = None):
     print(f"[Model] backbone=resnet50 last_conv_stride={last_conv_stride}")
 
     model = ReidBaseline(
-        pretrained=bool(bcfg["pretrained"]),
+        pretrained=initialize_pretrained and bool(bcfg["pretrained"]),
         last_conv_stride=last_conv_stride,
         embedding_dim=int(hcfg["embedding_dim"]),
         bnneck=bnneck,
@@ -31,5 +31,10 @@ def build_model(cfg, num_classes: int | None = None):
         eval_feat=eval_feat,
         classifier_enabled=classifier,
         num_classes=num_classes,
+    )
+    from reid.utils.checkpoint import make_reconstruction_metadata
+
+    model.checkpoint_metadata = make_reconstruction_metadata(
+        cfg, model.classifier.out_features if model.classifier is not None else None, model.feat_dim
     )
     return model
