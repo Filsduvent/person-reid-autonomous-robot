@@ -377,16 +377,105 @@ All phases must update their implementation record, decisions/deviations, review
 
 - **Objective:** Add the reference-compatible ResNet50 feature backbone in a separate PCB module.
 - **Why this step exists:** Preserve baseline internals and historical weight provenance.
-- **Prerequisites:** Phase 4 reviewed; explicit authorization; initialization contract.
+- **Prerequisites:** Satisfied. The user explicitly reviewed and accepted Phase 4 and authorized ONLY Phase 5 in attachment `d306c23f-bb70-43a1-8cd5-3e5ef7c10908/Pasted text.txt` on 2026-10-05. Phase 4 is committed/pushed as `26508529016387db699182acee7b467288581820`. Its earlier awaiting-review wording elsewhere is historical; acceptance is recorded here because this task permits updating Phase 5 only. The frozen initialization contract remains in force.
 - **Files to inspect:** Reference `bpm/model/resnet.py`; `reid/models/baseline.py`; `tests/test_model_forward.py`.
 - **Files expected to change:** Proposed `reid/models/pcb.py`, proposed `tests/test_pcb_model.py`, `plan.md`.
 - **Implementation tasks:** Implement backbone construction, stride/dilation and controlled historical initialization, with an explicit no-pretraining mode. Do not register an incomplete end-to-end model in the public builder.
 - **Validation/tests:** Stage topology/stride assertions; `[B,3,384,128]` → `[B,2048,24,8]`; gradient flow; mock weight mapping and separately controlled real historical-weight load with provenance recorded; no final ReID weights. No network dependency in ordinary unit tests.
 - **Exit criteria:** Backbone structure, shape, gradient path, and actual initialization compatibility verified; unavailable required weights must be reported, not replaced.
-- **Status:** `[ ] NOT STARTED`; authorization absent.
-- **Implementation record:** None.
-- **Decisions/deviations:** No PCB conditionals inside `ReidBaseline`; do not overwrite pretrained weights with head initialization.
-- **Review notes:** STOP; this is a component, not yet a trainable framework plug-in.
+- **Status:** Completion `[x] IMPLEMENTED + VALIDATED` on 2026-10-05; review `[x] REVIEWED AND ACCEPTED` by the user on 2026-10-05. Only Phase 5 authorized; Phase 6 remains unstarted and unauthorized.
+- **Implementation record:** Starting branch `main`, tracking `origin/main`; HEAD `26508529016387db699182acee7b467288581820`; working tree clean. Read the complete current plan, confirmed Phase 4 completion/user acceptance and the unchanged common checkpoint-selection policy, inspected the clean pinned reference checkout at `1686e889eb01c28a54b633051418012e15d9c9f3`, checked ancestor/repository guidance (no applicable AGENTS.md found), and inspected the installed torchvision bottleneck/initialization code before implementation.
+
+  Exact files changed:
+  - New `reid/models/pcb.py`: internal `PCBBackbone` feature component and historical ImageNet loading; no public builder registration.
+  - New `tests/test_pcb_model.py`: 20 network-independent Phase 5 topology/forward/backward/loading tests.
+  - `plan.md`: this Phase 5 section only. All text outside it is preserved byte-for-byte.
+
+  Architecture: reuse torchvision's uninitialized ResNet50 components, retaining named `conv1`, `bn1`, `relu`, `maxpool`, `layer1`–`layer4` only. Stage lengths `[3,4,6,3]`, bottleneck expansion 4, stride located on `conv2` (3×3). Set `layer4[0].conv2.stride=(1,1)`, `layer4[0].downsample[0].stride=(1,1)`, and the block's descriptive `stride=1`. Dilation remains `(1,1)`; no stride-to-dilation substitution. No global pooling/FC modules are registered or executed. Input `[1,3,384,128]` produces `[1,2048,24,8]` in train and eval modes. A scalar output backward check reaches input/stem/all stages/projection and yields finite gradients; no optimizer or training run was used for this check.
+
+  Reference trace: `bpm/model/resnet.py:56–92` defines bottleneck/main/projection behavior; lines 95–147 define stem/stages, normal fan-out convolution initialization, unit/zero backbone BN, and feature-map forward; lines 182–190 specify `[3,4,6,3]` and ImageNet loading. `bpm/model/PCBModel.py:10–23` selects last stride 1/dilation 1. The installed torchvision implementation matches these selected backbone operations and initialization distributions; controlled loaded-weight parity below establishes actual output agreement. Same-seed historical random-initialization draw order is not claimed.
+
+  Construction and initialization:
+  ```python
+  from reid.models.pcb import PCBBackbone
+  backbone = PCBBackbone(pretrained=False)  # no weight read/download; future checkpoint construction
+  # Explicit initialization from the pinned file:
+  backbone = PCBBackbone(pretrained=True, weights_path="/tmp/resnet50-19c8e357.pth")
+  # Alternatively pretrained=True alone uses the exact URL and verified torch-hub cache.
+  ```
+  The default is explicitly non-pretrained; eventual new PCB training must opt into historical initialization in its later builder. Passing weights_path while pretrained=False fails rather than silently loading. `ReidBaseline`, its V2 initialization, the common model builder, and Phase 4 helpers are unchanged. This component returns a feature tensor, not the full ReID output dictionary, and does not claim complete PCB metadata/reconstruction support yet.
+
+  Historical weight provenance:
+  - Exact URL read from reference `bpm/model/resnet.py:11`: `https://download.pytorch.org/models/resnet50-19c8e357.pth`.
+  - Controlled artifact location: `/tmp/resnet50-19c8e357.pth` (temporary, outside repository); 102502400 bytes.
+  - Verified SHA256: `19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097`, matching the historical filename prefix. Full hash is pinned in the module and recorded here. No ImageNet V2 or final ReID weights substituted.
+  - Raw file contains 267 float32 tensors: 265 backbone entries plus `fc.weight[1000,2048]` and `fc.bias[1000]`. It has no BN batch counters.
+  - Loading validates keys, shapes, and dtypes before copying; excludes precisely the two validated ImageNet FC entries; explicitly supplies 53 zero-valued modern BN `num_batches_tracked` buffers, then uses strict loading. Missing/unexpected/shape/dtype mismatches beyond this documented legacy compatibility fail clearly; source mappings are not mutated.
+  - Every cached/local file is checked against the full pinned SHA256 before deserialization. Downloads use the same full hash, exact URL, and no alternate-source fallback.
+
+  Encountered failure and resolution: initial inspection using `torch.load(..., weights_only=True)` failed because this official file uses the legacy tar serialization format unsupported by that mode in torch 2.7.1. After full checksum verification, the controlled load succeeded with `weights_only=False`. Production code permits that legacy mode only after checking the exact pinned full checksum, hashes and deserializes the same open file, and rejects a wrong cached/local file before reaching torch.load. Ordinary tests mock this boundary and never deserialize an arbitrary legacy artifact. This is serialization compatibility, not a different weight initialization. No unit-test failures occurred.
+
+  Exact commands from repository root:
+  ```bash
+  curl --fail --location --retry 2 --connect-timeout 15 --output /tmp/resnet50-19c8e357.pth https://download.pytorch.org/models/resnet50-19c8e357.pth
+  sha256sum /tmp/resnet50-19c8e357.pth
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -p no:cacheprovider tests/test_pcb_model.py > /tmp/phase5-focused.log 2>&1
+  PYTHONPATH=. OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B /tmp/phase5_reference_check.py > /tmp/phase5-reference.log 2>&1
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -rs -p no:cacheprovider tests/test_model_forward.py tests/test_model_interface.py tests/test_resnet50_strong_baseline.py tests/test_checkpoint_reconstruction.py > /tmp/phase5-regression.log 2>&1
+  git diff --check
+  git status --short
+  ```
+  Environment: existing Reid Python 3.12.3 / torch 2.7.1+cpu / torchvision 0.22.1+cpu; no dependency changes. Focused result: **20 passed in 11.43 s**. Affected baseline/reconstruction result: **51 passed, 1 skipped in 26.85 s**; skipped `tests/test_model_forward.py:192` is CUDA-only, CUDA unavailable. Combined **71 passed, 1 skipped**. No ordinary test requires network, a cached historical file, or the external reference checkout. Tests verify topology, both stride paths, unchanged dilation, train/eval shape, all-parameter finite gradients, absence of pooling/classifier heads, pretrained-disabled behavior, mocked historical mapping, explicit BN-counter reset, malformed state rejection before mutation, exact URL/hash constants, cache/download checksum enforcement, and refusal of missing/wrong files without substitution.
+
+  Separate controlled reference parity script `/tmp/phase5_reference_check.py` (temporary; reproduce from the exact source below):
+  ```python
+  from pathlib import Path
+  import hashlib
+  import importlib.util
+  import subprocess
+  import torch
+  from reid.models.pcb import PCBBackbone, HISTORICAL_IMAGENET_SHA256
+
+  root=Path('/home/filsduvent/UFPR/beyond-part-models')
+  assert subprocess.check_output(['git','-C',str(root),'rev-parse','HEAD'],text=True).strip()=='1686e889eb01c28a54b633051418012e15d9c9f3'
+  path=Path('/tmp/resnet50-19c8e357.pth')
+  def digest():
+      with path.open('rb') as stream:
+          return hashlib.file_digest(stream,'sha256').hexdigest()
+  assert digest()==HISTORICAL_IMAGENET_SHA256
+  model=PCBBackbone(pretrained=True,weights_path=path).eval()
+  spec=importlib.util.spec_from_file_location('pinned_reference_resnet',root/'bpm/model/resnet.py')
+  reference=importlib.util.module_from_spec(spec)
+  spec.loader.exec_module(reference)
+  ref=reference.resnet50(pretrained=False,last_conv_stride=1,last_conv_dilation=1).eval()
+  # This exact file was verified above; historical tar requires legacy loading.
+  state=torch.load(path,map_location='cpu',weights_only=False)
+  feature_state={k:v for k,v in state.items() if not k.startswith('fc.')}
+  ref.load_state_dict(feature_state,strict=True)
+  assert list(model.state_dict())==list(ref.state_dict())
+  for key,value in model.state_dict().items():
+      assert torch.equal(value,ref.state_dict()[key]),key
+  for name,module in ref.named_modules():
+      if isinstance(module,torch.nn.Conv2d):
+          actual=model.get_submodule(name)
+          assert (actual.stride,actual.dilation,actual.padding,actual.kernel_size)==(module.stride,module.dilation,module.padding,module.kernel_size),name
+  torch.manual_seed(42)
+  x=torch.randn(1,3,384,128)
+  with torch.no_grad():
+      actual=model(x)
+      expected=ref(x)
+  assert actual.shape==(1,2048,24,8)
+  torch.testing.assert_close(actual,expected,rtol=0,atol=0)
+  assert digest()==HISTORICAL_IMAGENET_SHA256
+  print('PASS: exact historical weights; all backbone tensors and convolution topology match pinned reference; output [1,2048,24,8] matches at rtol=0, atol=0.')
+  print('Weight bytes:',path.stat().st_size,'SHA256:',digest())
+  print('Source keys:',len(state),'loaded backbone keys:',len(feature_state),'explicit new BN counters:',sum(k.endswith('num_batches_tracked') for k in model.state_dict()))
+  ```
+  Result: PASS. All backbone state tensors and convolution strides/dilations/padding/kernel sizes matched the pinned reference. Loaded-weight forward output matched exactly at `rtol=0, atol=0` for the recorded CPU input. The weight-file checksum remained unchanged. This is a backbone compatibility check, not a dataset experiment or a claim of historical training reproducibility.
+
+  Pre-commit validation Git status: modified `plan.md`; untracked `reid/models/pcb.py` and `tests/test_pcb_model.py`; all other tracked files unchanged. Reference checkout remains clean. No commit/push had been performed at implementation handoff. The user subsequently accepted Phase 5 and authorized its commit/push on 2026-10-05. Files in /tmp are validation artifacts only; no weights added to the repository.
+- **Decisions/deviations:** No architectural/recipe deviation. Reuse matching torchvision backbone components rather than copying the legacy repository. Explicit zero BN counters and checksum-gated legacy deserialization are the required modern-runtime compatibility measures. No changes to `ReidBaseline`, public builder, losses, optimizer, datasets, metrics, checkpoint-selection policy, or runtime. No stripes, stripe pooling, part reductions, PCB heads/classifiers, retrieval concatenation, configuration presets, or training implemented.
+- **Review notes:** Phase 5 reviewed and accepted by the user on 2026-10-05; commit/push authorized. STOP after publishing this step; Phase 6 requires separate authorization. No unresolved historical-weight blocker. Limitations: CPU validation only; temporary downloaded file may need re-fetching; same-seed historical random draw order is not reproduced; this feature component is not yet a complete/registered PCB ReID model, and full PCB checkpoint reconstruction remains for later integration. Phase 6 is not started.
 - **Next step:** Phase 6, separately authorized.
 
 ### Phase 6 — Stripe partition and pooling
