@@ -13,6 +13,7 @@ from reid.losses.build import build_criterion
 from reid.models.build import build_model
 from reid.models.outputs import ensure_output_dict
 from reid.utils.artifacts import save_run_artifacts
+from reid.utils.config import validate_model_loss_requirements
 from reid.utils.config import load_config, validate_reid_config
 from reid.utils.config_schema import validate_config
 from reid.utils.device import select_device
@@ -42,7 +43,7 @@ def parse_args():
     parser.add_argument(
         "--use-config-pretrained",
         action="store_true",
-        help="Honor model.backbone.pretrained from the config. Default disables it to avoid downloads.",
+        help="Honor the selected model's pretrained configuration. Default disables initialization to avoid downloads.",
     )
     parser.add_argument(
         "--opts",
@@ -55,8 +56,6 @@ def parse_args():
 
 def _base_overrides(args):
     overrides = ["data.num_workers=0", f"system.device={args.device}"]
-    if not args.use_config_pretrained:
-        overrides.append("model.backbone.pretrained=false")
     if args.root:
         overrides.append(f"data.root={args.root}")
     overrides.extend(args.opts)
@@ -142,8 +141,12 @@ def run_smoke(args):
 
     validate_reid_config(cfg, num_classes=num_classes)
     device, _ = select_device(cfg["system"]["device"], cfg["system"].get("gpu_id", 0), cfg)
-    model = build_model(cfg, num_classes=num_classes).to(device)
-    criterion = build_criterion(cfg, num_classes=num_classes, feat_dim=model.feat_dim).to(device)
+    model = build_model(
+        cfg, num_classes=num_classes,
+        initialize_pretrained=args.use_config_pretrained,
+    ).to(device)
+    feat_dim = validate_model_loss_requirements(cfg, model)
+    criterion = build_criterion(cfg, num_classes=num_classes, feat_dim=feat_dim).to(device)
 
     model.train()
     train_imgs, train_labels = train_batch

@@ -1,203 +1,145 @@
 # Model Plug-In Protocol
 
-This document defines how future ReID models plug into the frozen offline
-framework. It extends `docs/baseline_protocol_v1.md`.
+This document defines the shared contract for ReID models such as PCB, MGN,
+TransReID and custom architectures. Preserve the established baseline protocol
+in `docs/baseline_protocol_v1.md`; architecture-specific recipes may differ.
 
-Target future models:
+## Integration boundaries
 
-- PCB
-- MGN
-- TransReID
-- other custom ReID models that satisfy the locked output contract
+Implement architecture behavior in `reid/models/<model_name>.py` and dispatch
+in `reid/models/build.py`. Experiment configurations may use paths such as
+`configs/<model>_<dataset>.yaml` or model subdirectories; paths are not a contract.
 
-## Allowed Files
+Necessary shared capability extensions belong in their generic owners, with
+explicit scope and regression tests: model outputs, configuration validation,
+checkpoint reconstruction, `scripts/train.py`, and smoke orchestration. Future
+loss extensions belong in `reid/losses/`; diagnostic extensions belong in
+`reid/engine/train_loop.py`. Do not add architecture-name branches to consumers
+or create architecture-specific training/evaluation entry points.
 
-Adding a future model may modify only:
+Preserve `reid/data/`, `reid/engine/evaluator.py`, `reid/metrics/`, dataset
+membership, ranking policy and artifact formats. Model integration does not
+itself authorize changes to these protocols. `scripts/evaluate.py` and common
+cross-domain evaluation use source-model reconstruction; target identities must
+not determine source classifier dimensions. Any separately authorized generic
+extension must be documented and validated; models must not invent fake features
+to satisfy an outdated restriction.
 
-- `reid/models/<model_name>.py`
-- `reid/models/build.py`
-- `configs/<model>_<dataset>.yaml`
-- an optional loss file under `reid/losses/` if the model requires a loss that is not covered by the baseline loss bundle
+## Required model output
 
-Examples:
-
-- `reid/models/pcb.py`
-- `reid/models/mgn.py`
-- `reid/models/transreid.py`
-- `configs/pcb_market1501.yaml`
-- `configs/mgn_duke.yaml`
-- `configs/transreid_msmt17.yaml`
-
-## Forbidden Files
-
-Future model integration must not modify:
-
-- `reid/data/`
-- `reid/engine/evaluator.py`
-- `reid/engine/train_loop.py`
-- `reid/metrics/`
-- `scripts/train.py`
-- `scripts/evaluate.py`
-
-These modules are frozen framework infrastructure. If a model appears to need
-changes in these files, the model implementation or config is violating the
-plug-in contract and should be adapted instead.
-
-## Required Model Output
-
-Every model must return:
+Models expose the same dictionary structure in train and eval mode:
 
 ```python
 {
-    "feat_raw": Tensor,
-    "feat_bn": Tensor,
-    "emb": Tensor,
-    "logits": Tensor | None,
+    "emb": Tensor[B, D],
+    "feat_raw": Tensor[B, F] | None,
+    "feat_bn": Tensor[B, F] | None,
+    "logits": Tensor[B, C] | tuple[Tensor[B, C], ...] | list[Tensor[B, C]] | None,
 }
 ```
 
-Field usage:
+- `emb` is the required retrieval tensor. It stays connected to autograd during
+  training. Evaluation performs no-grad collection externally.
+- `feat_raw` and `feat_bn` are optional model-provided metric features. Preserve
+  the baseline's pre/post-BNNeck meanings; do not alias `emb` into these fields
+  solely to satisfy a consumer. Unsupported metric losses must fail clearly.
+- `logits` can be one tensor, a nonempty ordered flat tensor sequence, or None.
+  All heads must be floating 2-D tensors with positive, equal batch and class
+  dimensions and the same dtype/device. Head count is generic, not fixed at six.
+  Empty/nested/mixed sequences, mismatched dimensions, integer tensors and
+  incompatible dtype/device are rejected by `validate_logits` in
+  `reid/models/outputs.py`. Callers can provide the expected label batch size.
 
-- `emb`: used by the evaluator and retrieval metrics
-- `logits`: used by ID loss
-- `feat_raw`: available for Triplet and Center losses
-- `feat_bn`: available for Triplet and Center losses
+`ensure_output_dict` preserves dictionary identity and tensor/sequence order,
+validates logits against the embedding batch when available, and retains legacy
+single-tensor and `(embedding, logits)` transport. It never averages logits or
+normalizes embeddings. The evaluator consumes only `outputs["emb"]`.
 
-The evaluator depends only on `outputs["emb"]`. Losses depend only on the
-locked output keys and `model.head.metric_feat`.
+## Dimension and loss capabilities
 
-## Required Model Attributes
+- `embedding_dim`: positive retrieval width D.
+- `feat_dim`: optional metric-feature width F, distinct from retrieval width.
+  It may be None for an ID-only model without metric features.
+- Standard `named_parameters()`, `state_dict()` and strict `load_state_dict()`
+  behavior inherited from `nn.Module` remain mandatory.
 
-Every trainable model must expose:
+`validate_model_loss_requirements` resolves optional metric width in train/smoke
+orchestration. Center loss requires a positive integer `feat_dim` at construction.
+Triplet consumes a runtime metric tensor rather than a declared width. Enabled
+Triplet/Center consumers reject missing selected `feat_raw`/`feat_bn`; they never
+silently disable themselves or fall back to `emb`. Configuration validation
+rejects known architecture/loss capability conflicts before execution.
 
-- `feat_dim`: positive integer feature dimension for metric and center losses
-- standard `named_parameters()` behavior inherited from `nn.Module`
-- standard `state_dict()` and `load_state_dict()` behavior inherited from `nn.Module`
+ID classification does not require metric features or `feat_dim`. A config can
+omit a baseline-specific `model.head` when its architecture does not use one.
+The baseline keeps its single tensor logits, metric dimensions, feature choices,
+normalization and numerical behavior.
 
-The optimizer builder uses `named_parameters()` and does not need model-specific
-branches.
+**Current implementation boundary:** multi-head logits can be represented and
+validated, but `LossBundle` still computes ID loss for a single tensor. Multi-head
+CE aggregation and multi-head training statistics require subsequent, separately
+validated extensions. A full multi-head training/smoke step is not yet supported.
+Do not confuse successful construction/evaluation/reconstruction with training
+integration. The generic training call remains `loss, logs = criterion(outputs, labels)`.
 
-## Builder Integration
+## Builder and configuration
 
-`reid/models/build.py` is the only core framework file that should be updated
-for a new model. The builder entry should:
+The common `build_model` dispatches on `cfg["model"]["name"]` before reading any
+architecture-specific fields. Each branch validates its own config, receives
+source `num_classes` explicitly where needed, and returns the public model.
+Fixed variants must reject unsupported architectural overrides, rather than
+silently creating hybrids. If an omitted variant has one supported default,
+validation/builder canonicalize it into `cfg.model.variant` before saving cfg and
+metadata. The resolved configuration remains the single source of provenance.
 
-1. Read only `cfg["model"]`
-2. Validate model-specific config values early
-3. Instantiate the model
-4. Pass `num_classes` only when the model needs a classifier head
-5. Return an `nn.Module` satisfying the locked output contract
+The common experiment sections remain `experiment`, `system`, `repro`, `logging`,
+`data`, `model`, `loss`, `optim`, `sched`, `train`, and `eval`. Model-specific fields
+need not resemble baseline heads. Architectural recipes must not change dataset
+membership, evaluation metrics or checkpoint-selection policy without explicit
+project authorization.
 
-The builder must not add dataset-specific, evaluator-specific, checkpoint-
-specific, or training-loop-specific behavior.
+New training may opt into the architecture's required pretrained initialization.
+`build_model(..., initialize_pretrained=False)` must suppress all such reads and
+downloads, including configured local weight paths, for trained-state loading.
 
-## Config Requirements
+## Checkpoint reconstruction
 
-Each model config must inherit the baseline protocol sections:
+Builders declare the existing versioned `checkpoint_metadata`: `schema_version`,
+`output_contract_version`, `model_name`, `variant`, source `num_classes` and
+`embedding_dim`. `save_checkpoint(..., cfg=cfg)` persists this as `reconstruction`
+with the canonical cfg; no architecture-specific duplicate format.
 
-- `experiment`
-- `system`
-- `repro`
-- `logging`
-- `data`
-- `model`
-- `loss`
-- `optim`
-- `sched`
-- `train`
-- `eval`
+`reconstruct_model` validates metadata/config consistency, dispatches through the
+common builder with initialization disabled, validates the constructed declaration
+and strictly loads state. Source class count comes from checkpoint metadata, never
+from a target evaluation dataset. Historical baseline checkpoints retain the
+bounded `classifier.weight` fallback. New multi-head models must use metadata.
 
-Model configs may change:
+## Evaluation and artifacts
 
-- `model.name`
-- model-specific fields under `model`
-- loss enables/weights if the model requires them
-- optimizer/scheduler values when justified
-- dataset name/split/format for the target experiment
+Feature extraction collects `emb`. The common evaluator applies configured global
+normalization using `norm + 1e-12`, then the configured distance. Model-side
+normalization policy must be documented per architecture; baseline behavior is
+preserved. Neither output transport nor checkpoint reconstruction changes it.
 
-Model configs must not require changes to dataset loaders, samplers, transforms,
-training, evaluation, metrics, checkpoint, or artifact code.
+Core metrics remain `mAP`, `mINP`, `Rank1`, `Rank5`, `Rank10`. Optional
+`rerank_mAP`, `rerank_mINP`, `rerank_Rank1`, `rerank_Rank5`, `rerank_Rank10` remain
+separate. Preserve common artifacts:
 
-## Loss Integration
+- `config.resolved.yaml`, `train.log`
+- `checkpoints/ckpt_last.pth`, `checkpoints/ckpt_best.pth`
+- `metrics/latest_test.json`, `metrics/test_epoch_XXX.json`, `metrics/final_test.json`
+- `artifacts/command.txt`, `artifacts/environment.txt`
 
-Default losses are model-agnostic:
+## Verification checklist
 
-- Triplet uses `feat_raw` or `feat_bn`
-- Center uses the same metric feature as Triplet
-- ID uses `logits`
-
-If a future model needs an additional loss, add it as an optional loss module and
-wire it through the loss builder without teaching the training loop about that
-specific model.
-
-The training loop must continue to call:
-
-```python
-loss, logs = criterion(outputs, labels)
-```
-
-## Evaluation Integration
-
-No evaluation integration should be needed beyond returning `emb`.
-
-Evaluation must continue to report:
-
-- `mAP`
-- `mINP`
-- `Rank1`
-- `Rank5`
-- `Rank10`
-
-Optional reranking metrics remain separate:
-
-- `rerank_mAP`
-- `rerank_mINP`
-- `rerank_Rank1`
-- `rerank_Rank5`
-- `rerank_Rank10`
-
-## Artifact Compatibility
-
-New models must write the same artifacts:
-
-- `config.resolved.yaml`
-- `train.log`
-- `checkpoints/ckpt_last.pth`
-- `checkpoints/ckpt_best.pth`
-- `metrics/latest_test.json`
-- `metrics/test_epoch_XXX.json`
-- `metrics/final_test.json`
-- `artifacts/command.txt`
-- `artifacts/environment.txt`
-
-Metric JSON must keep the baseline schema and set `model` to a stable model
-label derived from config.
-
-## Verification Checklist
-
-Before a new model is considered integrated:
-
-- Model-specific unit test verifies output keys and tensor shapes
-- `tests/test_model_plugin_contract.py` still passes
-- Loss interface tests still pass
-- Evaluation harness tests still pass
-- Smoke matrix or one-dataset smoke run succeeds with the new config
-- No forbidden files were modified
-
-## PCB Notes
-
-PCB may produce part features internally, but its public output must still expose
-the locked keys. It may concatenate or pool part descriptors into `emb`.
-
-## MGN Notes
-
-MGN may have multiple branches internally, but the public output must still expose
-the locked keys. Branch-specific losses should be optional loss modules, not
-training-loop changes.
-
-## TransReID Notes
-
-TransReID may use transformer-specific inputs and heads internally, but the
-dataset, transform, evaluator, metric, checkpoint, and artifact protocols remain
-unchanged. Its public output must still expose `emb` for evaluation and `logits`
-for ID loss when classifier training is enabled.
+- Builder/model tests prove dimensions, output structure, initialization and
+  architecture-specific behavior; malformed generic outputs fail clearly.
+- `tests/test_model_plugin_contract.py`, loss interface tests, configuration,
+  evaluator and baseline regressions pass.
+- Real-model checkpoint save/reconstruction passes strictly, without pretrained
+  initialization, preserving source heads and evaluation outputs.
+- Metric-capability tests cover ID-only optional features and rejection of
+  unsupported enabled metric losses.
+- A full training smoke is a later gate once the required objective, diagnostics
+  and optimizer capabilities are implemented; component checks do not replace it.

@@ -127,13 +127,66 @@ def load_config(path: str, overrides: List[str] | None = None) -> Dict[str, Any]
     return cfg
 
 
+PCB_VARIANT = "independent_part_reduction"
+
+
+def validate_pcb_model_config(model_cfg: dict) -> None:
+    """Validate the single PCB recipe and persist its default variant in cfg.
+
+    This canonicalization keeps the saved cfg and reconstruction metadata in
+    agreement, including when the user selects PCB with model.name alone.
+    Architecture internals are fixed in PCB, not a configurable ablation surface.
+    """
+    allowed = {"name", "variant", "pretrained", "weights_path"}
+    unknown = set(model_cfg) - allowed
+    if unknown:
+        raise ValueError(f"Unsupported PCB model fields: {sorted(unknown)}; "
+                         "PCB uses fixed ResNet50/stride1/dilation1/six independent 256-D parts.")
+    if model_cfg.get("variant", PCB_VARIANT) != PCB_VARIANT:
+        raise ValueError(f"PCB model.variant must be '{PCB_VARIANT}'.")
+    if type(model_cfg.get("pretrained", True)) is not bool:
+        raise ValueError("PCB model.pretrained must be a boolean.")
+    path = model_cfg.get("weights_path")
+    if path is not None and (not isinstance(path, str) or not path.strip()):
+        raise ValueError("PCB model.weights_path must be a nonempty path string or None.")
+    if path is not None and not model_cfg.get("pretrained", True):
+        raise ValueError("PCB model.weights_path requires model.pretrained=true.")
+    model_cfg.setdefault("variant", PCB_VARIANT)
+
+
+def model_requires_num_classes(cfg: dict) -> bool:
+    """Architecture construction capability, independent of dataset identity."""
+    model_cfg = cfg.get("model", {})
+    return (model_cfg.get("name") == "pcb"
+            or bool(model_cfg.get("head", {}).get("classifier", False)))
+
+
+def validate_model_loss_requirements(cfg: dict, model):
+    """Resolve optional metric width; Center alone needs it at construction.
+
+    Triplet consumes a runtime metric tensor, whose presence is checked by
+    LossBundle. Never substitute embedding_dim or silently disable a loss.
+    """
+    feat_dim = getattr(model, "feat_dim", None)
+    if cfg.get("loss", {}).get("center", {}).get("enabled", False):
+        if type(feat_dim) is not int or feat_dim <= 0:
+            raise ValueError("Center loss requires a positive model.feat_dim metric-feature width.")
+    return feat_dim
+
+
 def validate_reid_config(cfg: Dict[str, Any], num_classes: int | None = None) -> None:
     model_cfg = cfg.get("model", {})
     head_cfg = model_cfg.get("head", {})
     loss_cfg = cfg.get("loss", {})
 
-    classifier_enabled = bool(head_cfg.get("classifier", False))
-    metric_feat = _expect_choice("model.head.metric_feat", head_cfg.get("metric_feat", "bn"), {"raw", "bn"})
+    classifier_enabled = model_requires_num_classes(cfg)
+    if model_cfg.get("name") == "pcb":
+        validate_pcb_model_config(model_cfg)
+        if any(loss_cfg.get(name, {}).get("enabled", False) for name in ("triplet", "center")):
+            raise ValueError("PCB provides no feat_raw/feat_bn metric features; disable Triplet and Center losses.")
+        metric_feat = None
+    else:
+        metric_feat = _expect_choice("model.head.metric_feat", head_cfg.get("metric_feat", "bn"), {"raw", "bn"})
 
     id_cfg = loss_cfg.get("id", {})
     id_enabled = bool(id_cfg.get("enabled", False))

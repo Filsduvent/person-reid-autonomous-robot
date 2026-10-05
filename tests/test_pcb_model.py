@@ -860,3 +860,52 @@ def test_pcb_evaluator_owns_one_global_normalization(normalize_feat, monkeypatch
     scores = evaluator.evaluate_reid(cfg, model, loader, torch.device("cpu"))
     assert calls == (["normalize", "distance"] if normalize_feat else ["distance"])
     assert all(np.isfinite(scores[key]) for key in ("mAP", "mINP", "Rank1", "Rank5", "Rank10"))
+
+
+def test_generic_builder_pcb_output_and_evaluator_without_baseline_fields(monkeypatch):
+    from reid.models.build import build_model
+    from reid.models.outputs import ensure_output_dict
+    from reid.engine.evaluator import extract_features
+    from reid.losses.build import build_criterion
+    from reid.utils.config import validate_model_loss_requirements, validate_reid_config
+    from torch.utils.data import DataLoader
+    monkeypatch.setattr(pcb, "_read_historical_weights", lambda *a: pytest.fail("pretraining"))
+    cfg = {"model": {"name": "pcb", "pretrained": False},
+           "loss": {"id": {"enabled": True, "weight": 1., "label_smoothing": 0.},
+                    "triplet": {"enabled": False}, "center": {"enabled": False}}}
+    validate_reid_config(cfg, num_classes=7)
+    model = build_model(cfg, num_classes=7).eval()
+    assert type(model) is pcb.PCB and model.num_classes == 7
+    assert model.embedding_dim == 1536 and model.feat_dim is None
+    assert all(head.out_features == 7 for head in model.classifiers.fc_list)
+    assert model.checkpoint_metadata == {"schema_version": 1, "output_contract_version": 1,
+        "model_name": "pcb", "variant": "independent_part_reduction", "num_classes": 7, "embedding_dim": 1536}
+    assert validate_model_loss_requirements(cfg, model) is None
+    criterion = build_criterion(cfg, num_classes=7, feat_dim=None)
+    assert criterion.id_loss is not None and criterion.triplet is criterion.center_loss is None
+    image = torch.randn(3, 384, 128)
+    with torch.no_grad():
+        output = model(image[None])
+    assert ensure_output_dict(output) is output
+    assert output["emb"].shape == (1, 1536) and output["feat_raw"] is output["feat_bn"] is None
+    assert isinstance(output["logits"], tuple) and len(output["logits"]) == 6
+    loader = DataLoader([(image, 1, 2, "fixture", 0)], batch_size=1)
+    extracted = extract_features(model, loader, torch.device("cpu"))[0]
+    torch.testing.assert_close(torch.from_numpy(extracted), output["emb"], rtol=0, atol=0)
+
+
+def test_generic_pcb_builder_pretraining_and_override(monkeypatch):
+    from reid.models.build import build_model
+    source = historical_fixture(pcb.PCBBackbone(pretrained=False))
+    calls = []
+    def read(path):
+        calls.append(path)
+        return source
+    monkeypatch.setattr(pcb, "_read_historical_weights", read)
+    cfg = {"model": {"name": "pcb", "weights_path": "historical.pth"}}
+    initialized = build_model(cfg, num_classes=3)
+    assert calls == ["historical.pth"]  # default new-model initialization is historical
+    torch.testing.assert_close(initialized.backbone.conv1.weight, source["conv1.weight"], rtol=0, atol=0)
+    monkeypatch.setattr(pcb, "_read_historical_weights", lambda *a: pytest.fail("reconstruction pretraining"))
+    restored_shell = build_model(cfg, num_classes=5, initialize_pretrained=False)
+    assert restored_shell.classifiers.fc_list[0].out_features == 5

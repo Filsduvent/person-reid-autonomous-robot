@@ -88,7 +88,7 @@ class LossBundle(nn.Module):
 
 def build_criterion(cfg, num_classes: int | None, feat_dim: int | None):
     lcfg = cfg["loss"]
-    hcfg = cfg["model"]["head"]
+    hcfg = cfg["model"].get("head", {})
     metric_feat = str(hcfg.get("metric_feat", "raw")).lower()
     if metric_feat not in {"raw", "bn"}:
         raise ValueError(f"Unsupported metric feature '{metric_feat}'. Use 'raw' or 'bn'.")

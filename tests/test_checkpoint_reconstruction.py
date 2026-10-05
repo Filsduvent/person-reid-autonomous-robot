@@ -1,4 +1,4 @@
-"""Reconstruction contracts; multi-head fixtures here are not production PCB."""
+"""Generic reconstruction contracts, including surrogate and real PCB round trips."""
 import copy
 
 import pytest
@@ -279,3 +279,72 @@ def test_cross_domain_entry_point_reconstructs_source_model(tmp_path, surrogate_
     monkeypatch.setattr(cross, "build_cross_dataset_record", lambda **kw: kw["scores"])
     cross.main()
     assert surrogate_builder[-1][1] == 3
+
+
+@pytest.fixture
+def real_pcb_checkpoint(tmp_path, monkeypatch):
+    import reid.models.pcb as pcb
+    def forbidden(*args, **kwargs):
+        pytest.fail("Real PCB reconstruction must never initialize/read/download pretrained weights")
+    monkeypatch.setattr(pcb, "_read_historical_weights", forbidden)
+    monkeypatch.setattr(torch.hub, "download_url_to_file", forbidden)
+    monkeypatch.setattr(torch.hub, "load_state_dict_from_url", forbidden)
+    cfg = {"model": {"name": "pcb", "pretrained": False},
+           "data": {"train": {"dataset": {"num_classes": 3}}}}
+    torch.manual_seed(42)
+    model = builders.build_model(cfg, num_classes=3).eval()
+    cfg["model"]["pretrained"] = True
+    cfg["model"]["weights_path"] = "must-not-be-opened.pth"
+    path = tmp_path / "real-pcb.pth"
+    save_checkpoint(path, model, cfg=cfg)
+    return model, torch.load(path, map_location="cpu", weights_only=True)
+
+
+def test_real_pcb_checkpoint_roundtrip_source_classes_state_and_outputs(real_pcb_checkpoint):
+    from reid.models.pcb import PCB
+    model, checkpoint = real_pcb_checkpoint
+    assert "classifier.weight" not in checkpoint["model"]
+    assert checkpoint["reconstruction"] == {
+        "schema_version": 1, "output_contract_version": 1, "model_name": "pcb",
+        "variant": "independent_part_reduction", "num_classes": 3, "embedding_dim": 1536}
+    target = {"model": {"name": "pcb", "num_classes": 999},
+              "data": {"test": {"dataset": {"num_classes": 999}}}}
+    source_cfg_before = copy.deepcopy(checkpoint["cfg"])
+    restored = reconstruct_model(checkpoint, cfg=target).eval()
+    assert type(restored) is PCB and restored.num_classes == 3
+    assert restored.embedding_dim == 1536 and restored.feat_dim is None
+    assert all(head.out_features == 3 for head in restored.classifiers.fc_list)
+    assert restored.checkpoint_metadata == checkpoint["reconstruction"]
+    assert checkpoint["cfg"] == source_cfg_before
+    assert list(restored.state_dict()) == list(model.state_dict())
+    for key, value in model.state_dict().items():
+        torch.testing.assert_close(restored.state_dict()[key], value, rtol=0, atol=0)
+    with torch.no_grad():
+        images = torch.randn(1, 3, 384, 128)
+        expected, actual = model(images), restored(images)
+    assert set(actual) == set(expected)
+    assert actual["feat_raw"] is actual["feat_bn"] is None
+    torch.testing.assert_close(actual["emb"], expected["emb"], rtol=0, atol=0)
+    for value, original in zip(actual["logits"], expected["logits"]):
+        torch.testing.assert_close(value, original, rtol=0, atol=0)
+    for infer in (infer_num_classes_from_checkpoint, standalone_classes, cross_classes):
+        assert infer(checkpoint) == 3
+
+
+@pytest.mark.parametrize("mutation", ["missing", "unexpected", "shape", "dimension", "variant"])
+def test_real_pcb_checkpoint_rejects_incompatible_state_or_metadata(real_pcb_checkpoint, mutation):
+    _, checkpoint = real_pcb_checkpoint
+    key = "classifiers.fc_list.0.weight"
+    if mutation == "missing":
+        del checkpoint["model"][key]
+    elif mutation == "unexpected":
+        checkpoint["model"]["unexpected.weight"] = torch.zeros(1)
+    elif mutation == "shape":
+        checkpoint["model"][key] = torch.zeros(99, 256)
+    elif mutation == "dimension":
+        checkpoint["reconstruction"]["embedding_dim"] = 8
+    else:
+        checkpoint["reconstruction"]["variant"] = "shared"
+    expected = ValueError if mutation in {"dimension", "variant"} else RuntimeError
+    with pytest.raises(expected):
+        reconstruct_model(checkpoint)

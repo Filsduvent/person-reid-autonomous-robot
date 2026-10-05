@@ -170,3 +170,35 @@ eval:
     cfg = load_config(str(cfg_path), overrides=["system.device=cpu"])
 
     validate_config(cfg)
+
+
+def test_pcb_config_id_only_without_baseline_sections():
+    from reid.utils.config import validate_reid_config, PCB_VARIANT
+    cfg = _cfg()
+    cfg["model"] = {"name": "pcb", "pretrained": False}
+    cfg["loss"] = {"id": {"enabled": True}, "triplet": {"enabled": False}, "center": {"enabled": False}}
+    validate_config(cfg)
+    validate_reid_config(cfg, num_classes=3)
+    assert cfg["model"]["variant"] == PCB_VARIANT
+    assert "head" not in cfg["model"] and "backbone" not in cfg["model"]
+
+
+@pytest.mark.parametrize("field,value", [("variant", "shared"), ("num_stripes", 3),
+    ("local_conv_out_channels", 128), ("embedding_dim", 12288), ("head", {}),
+    ("backbone", {"last_conv_stride": 2}), ("pretrained", "false"), ("weights_path", "")])
+def test_pcb_rejects_unsupported_architecture_settings(field, value):
+    from reid.utils.config import validate_reid_config
+    from reid.models.build import build_model
+    cfg = {"model": {"name": "pcb", "pretrained": False, field: value}, "loss": {}}
+    with pytest.raises(ValueError, match="PCB"):
+        validate_reid_config(cfg)
+    with pytest.raises(ValueError, match="PCB"):
+        build_model(cfg, num_classes=3)
+
+
+@pytest.mark.parametrize("loss", ["triplet", "center"])
+def test_pcb_config_rejects_unavailable_metric_features(loss):
+    from reid.utils.config import validate_reid_config
+    cfg = {"model": {"name": "pcb"}, "loss": {loss: {"enabled": True}}}
+    with pytest.raises(ValueError, match="no feat_raw/feat_bn.*disable Triplet and Center"):
+        validate_reid_config(cfg, num_classes=3)

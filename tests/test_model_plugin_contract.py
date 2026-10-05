@@ -139,3 +139,31 @@ def test_dummy_plugin_model_works_with_criterion_train_loop_and_evaluator():
 
     assert set(scores) >= {"mAP", "mINP", "Rank1", "Rank5", "Rank10"}
     assert scores["Rank1"] is not None
+
+
+def test_id_only_plugin_can_omit_metric_width_and_features():
+    from reid.utils.config import validate_model_loss_requirements
+    model = nn.Linear(4, 3)  # generic plugin with no feat_dim declaration
+    cfg = {"model": {}, "loss": {"id": {"enabled": True, "weight": 1., "label_smoothing": 0.}}}
+    feat_dim = validate_model_loss_requirements(cfg, model)
+    assert feat_dim is None
+    criterion = build_criterion(cfg, num_classes=3, feat_dim=feat_dim)
+    scores = model(torch.ones(2, 4))
+    labels = torch.tensor([0, 1])
+    loss, _ = criterion({"feat_raw": None, "feat_bn": None, "logits": scores}, labels)
+    torch.testing.assert_close(loss, F.cross_entropy(scores, labels), rtol=0, atol=0)
+
+
+def test_metric_consumers_still_reject_missing_dimensions_or_features():
+    import pytest
+    from reid.utils.config import validate_model_loss_requirements
+    model = nn.Linear(4, 3)
+    cfg = {"model": {}, "loss": {"center": {"enabled": True, "weight": 1.}}}
+    with pytest.raises(ValueError, match="Center loss requires a positive model.feat_dim"):
+        validate_model_loss_requirements(cfg, model)
+    with pytest.raises(ValueError, match="feat_dim"):
+        build_criterion(cfg, num_classes=3, feat_dim=None)
+    cfg["loss"] = {"triplet": {"enabled": True, "margin": 0.3, "weight": 1.}}
+    criterion = build_criterion(cfg, num_classes=3, feat_dim=None)
+    with pytest.raises(ValueError, match="Metric loss enabled.*feat_raw.*missing"):
+        criterion({"feat_raw": None, "feat_bn": None, "logits": None}, torch.tensor([0, 1]))

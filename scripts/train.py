@@ -19,6 +19,7 @@ from reid.models.build import build_model
 from reid.optim.build import build_center_optimizer, build_optimizer, build_scheduler
 from reid.utils.artifacts import save_run_artifacts
 from reid.utils.checkpoint import load_checkpoint, save_checkpoint
+from reid.utils.config import model_requires_num_classes, validate_model_loss_requirements
 from reid.utils.config import load_config, save_yaml, validate_reid_config
 from reid.utils.config_schema import validate_config
 from reid.utils.device import device_summary, select_device
@@ -353,7 +354,7 @@ def main():
         batch_size = getattr(train_loader, "effective_batch_size", None)
         train_dataset = train_loader.dataset
 
-        classifier_enabled = bool(cfg["model"]["head"].get("classifier", False))
+        classifier_enabled = model_requires_num_classes(cfg)
         center_enabled = bool(cfg["loss"].get("center", {}).get("enabled"))
         num_classes = None
         if classifier_enabled or bool(cfg["loss"].get("id", {}).get("enabled")) or center_enabled:
@@ -368,9 +369,7 @@ def main():
         test_loader = build_test_loader(cfg)
 
         model = build_model(cfg, num_classes=num_classes).to(device)
-        feat_dim = getattr(model, "feat_dim", None)
-        if feat_dim is None or int(feat_dim) <= 0:
-            raise ValueError("Model must expose a positive 'feat_dim' attribute for loss construction.")
+        feat_dim = validate_model_loss_requirements(cfg, model)
 
         criterion = build_criterion(cfg, num_classes=num_classes, feat_dim=feat_dim).to(device)
         optimizer = build_optimizer(cfg, model)
