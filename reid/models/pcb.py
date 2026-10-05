@@ -1,4 +1,4 @@
-"""Backbone and stripe pooling for Huang's PCB; no reduction or identity heads.
+"""Backbone, stripe pooling and independent PCB reductions; no identity heads.
 
 Reference: huanghoujing/beyond-part-models @
 1686e889eb01c28a54b633051418012e15d9c9f3, bpm/model/resnet.py
@@ -7,6 +7,7 @@ bpm/model/PCBModel.py:20–23. Only stride=1, dilation=1 is implemented.
 """
 
 import hashlib
+import math
 from collections.abc import Mapping
 from pathlib import Path
 
@@ -134,3 +135,46 @@ class PCBStripePool(nn.Module):
     def forward(self, feature_map):
         return tuple(F.avg_pool2d(stripe, kernel_size=stripe.shape[-2:])
                      for stripe in self.partition(feature_map))
+
+
+class PCBPartReductions(nn.Module):
+    """Six independent Conv/BN/ReLU reductions, returning ordered [B,256] parts.
+
+    Matches pinned PCBModel.py:26–32,60–63. Initialization explicitly follows
+    PyTorch v0.3.0 modules/conv.py:_ConvNd.reset_parameters and
+    modules/batchnorm.py:_BatchNorm.reset_parameters, not modern BN defaults.
+    This component owns only reductions; it never initializes a backbone.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.local_conv_list = nn.ModuleList()
+        for _ in range(6):
+            conv = nn.Conv2d(2048, 256, kernel_size=1, bias=True)
+            bn = nn.BatchNorm2d(256, eps=1e-5, momentum=0.1,
+                                affine=True, track_running_stats=True)
+            # Override constructor defaults only on these newly created layers.
+            bound = 1 / math.sqrt(2048)
+            nn.init.uniform_(conv.weight, -bound, bound)
+            nn.init.uniform_(conv.bias, -bound, bound)
+            nn.init.uniform_(bn.weight, 0, 1)
+            nn.init.zeros_(bn.bias)
+            nn.init.zeros_(bn.running_mean)
+            nn.init.ones_(bn.running_var)
+            nn.init.zeros_(bn.num_batches_tracked)
+            self.local_conv_list.append(nn.Sequential(conv, bn, nn.ReLU(inplace=True)))
+
+    def forward(self, pooled_parts):
+        if not isinstance(pooled_parts, (tuple, list)) or len(pooled_parts) != 6:
+            raise ValueError("PCB reductions require exactly six pooled stripe tensors")
+        # Validate the complete input before any training-mode BN state changes.
+        batch_size = None
+        for part in pooled_parts:
+            if (not torch.is_tensor(part) or part.ndim != 4
+                    or tuple(part.shape[1:]) != (2048, 1, 1) or part.shape[0] <= 0):
+                raise ValueError("Each PCB pooled stripe must have shape [B,2048,1,1] with B > 0")
+            if batch_size is not None and part.shape[0] != batch_size:
+                raise ValueError("PCB pooled stripes must have equal batch sizes")
+            batch_size = part.shape[0]
+        return tuple(reduction(part).flatten(1)
+                     for reduction, part in zip(self.local_conv_list, pooled_parts))

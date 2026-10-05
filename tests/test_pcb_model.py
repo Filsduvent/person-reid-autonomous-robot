@@ -1,6 +1,7 @@
-"""PCB backbone and stripe pooling tests, independent of network/cache."""
+"""PCB backbone, stripe pooling and reduction tests, independent of network/cache."""
 
 import hashlib
+import math
 
 import pytest
 import torch
@@ -298,3 +299,226 @@ def test_backbone_to_six_pooled_stripes_without_adaptive_pooling(monkeypatch):
         expected = feature_map[:, :, index * 4:(index + 1) * 4, :].mean((2, 3), keepdim=True)
         torch.testing.assert_close(actual, expected)
         assert torch.isfinite(actual).all()
+
+
+def test_reduction_structure_and_all_parameter_buffer_storage_independent():
+    reductions = pcb.PCBPartReductions()
+    assert len(reductions.local_conv_list) == 6
+    tensors = []
+    module_ids = []
+    for reduction in reductions.local_conv_list:
+        assert isinstance(reduction, nn.Sequential)
+        assert [type(module) for module in reduction] == [nn.Conv2d, nn.BatchNorm2d, nn.ReLU]
+        conv, bn, relu = reduction
+        assert (conv.in_channels, conv.out_channels, conv.kernel_size) == (2048, 256, (1, 1))
+        assert conv.stride == conv.dilation == (1, 1) and conv.padding == (0, 0)
+        assert conv.groups == 1 and conv.bias is not None
+        assert bn.num_features == 256 and bn.affine and bn.track_running_stats
+        assert bn.eps == 1e-5 and bn.momentum == 0.1 and relu.inplace
+        assert all(parameter.requires_grad for parameter in reduction.parameters())
+        tensors.extend(reduction.parameters())
+        tensors.extend(reduction.buffers())
+        module_ids.extend(id(module) for module in reduction.modules())
+    assert len(module_ids) == len(set(module_ids))
+    assert len(tensors) == 6 * 7  # Conv weight/bias, BN weight/bias and three buffers.
+    assert len({id(tensor) for tensor in tensors}) == len(tensors)
+    assert len({tensor.untyped_storage().data_ptr() for tensor in tensors}) == len(tensors)
+    assert not any(isinstance(module, (nn.Linear, nn.Dropout, nn.AvgPool2d,
+                                      nn.AdaptiveAvgPool2d)) for module in reductions.modules())
+
+
+def test_reduction_initializers_override_constructor_defaults(monkeypatch):
+    # Poison modern defaults: final values must come from explicit initialization.
+    def poison_conv(module):
+        with torch.no_grad():
+            module.weight.fill_(17)
+            module.bias.fill_(17)
+    def poison_bn(module):
+        with torch.no_grad():
+            for value in (module.weight, module.bias, module.running_mean,
+                          module.running_var, module.num_batches_tracked):
+                value.fill_(17)
+    monkeypatch.setattr(nn.Conv2d, "reset_parameters", poison_conv)
+    monkeypatch.setattr(nn.BatchNorm2d, "reset_parameters", poison_bn)
+    calls = []
+    uniform = nn.init.uniform_
+    def record_uniform(tensor, a=0., b=1., **kwargs):
+        calls.append((id(tensor), a, b))
+        return uniform(tensor, a, b, **kwargs)
+    monkeypatch.setattr(nn.init, "uniform_", record_uniform)
+    torch.manual_seed(42)
+    reductions = pcb.PCBPartReductions()
+    expected_calls = []
+    bound = 1 / math.sqrt(2048)
+    # Reproduce only the specified historical draws, with no modern default draws.
+    generator = torch.Generator().manual_seed(42)
+    for conv, bn, _ in reductions.local_conv_list:
+        expected_calls.extend([(id(conv.weight), -bound, bound),
+                               (id(conv.bias), -bound, bound), (id(bn.weight), 0, 1)])
+        for value, low, high in ((conv.weight, -bound, bound), (conv.bias, -bound, bound),
+                                 (bn.weight, 0, 1)):
+            expected = torch.empty_like(value).uniform_(low, high, generator=generator)
+            torch.testing.assert_close(value, expected, rtol=0, atol=0)
+        assert torch.equal(bn.bias, torch.zeros_like(bn.bias))
+        assert torch.equal(bn.running_mean, torch.zeros_like(bn.running_mean))
+        assert torch.equal(bn.running_var, torch.ones_like(bn.running_var))
+        assert bn.num_batches_tracked.item() == 0
+    assert calls == expected_calls
+
+
+def test_reduction_initialization_does_not_touch_loaded_backbone(monkeypatch):
+    source = historical_fixture(pcb.PCBBackbone(pretrained=False))
+    monkeypatch.setattr(pcb, "_read_historical_weights", lambda path: source)
+    backbone = pcb.PCBBackbone(pretrained=True, weights_path="mock-historical.pth")
+    before = {key: value.clone() for key, value in backbone.state_dict().items()}
+    reductions = pcb.PCBPartReductions()
+    for key, value in backbone.state_dict().items():
+        torch.testing.assert_close(value, before[key], rtol=0, atol=0)
+    backbone_storage = {value.untyped_storage().data_ptr() for value in backbone.state_dict().values()}
+    assert backbone_storage.isdisjoint(value.untyped_storage().data_ptr()
+                                       for value in reductions.state_dict().values())
+
+
+def test_reduction_mutation_isolated_in_state_and_outputs():
+    reductions = pcb.PCBPartReductions().eval()
+    parts = tuple(torch.ones(2, 2048, 1, 1) for _ in range(6))
+    before = [{key: value.clone() for key, value in module.state_dict().items()}
+              for module in reductions.local_conv_list]
+    with torch.no_grad():
+        outputs_before = reductions(parts)
+        for parameter in reductions.local_conv_list[2].parameters():
+            parameter.fill_(2)
+        for buffer in reductions.local_conv_list[2].buffers():
+            buffer.fill_(3)
+        outputs_after = reductions(parts)
+    for index, module in enumerate(reductions.local_conv_list):
+        if index == 2:
+            assert not torch.equal(outputs_before[index], outputs_after[index])
+            continue
+        for key, value in module.state_dict().items():
+            torch.testing.assert_close(value, before[index][key], rtol=0, atol=0)
+        torch.testing.assert_close(outputs_before[index], outputs_after[index], rtol=0, atol=0)
+
+
+def test_reduction_part_and_channel_order_with_flatten_only_after_relu():
+    reductions = pcb.PCBPartReductions().double().eval()
+    parts = []
+    with torch.no_grad():
+        for index, (conv, bn, _) in enumerate(reductions.local_conv_list):
+            conv.weight.zero_()
+            channels = torch.arange(256)
+            conv.weight[channels, channels, 0, 0] = index + 1
+            conv.bias.zero_()
+            bn.weight.fill_(1)
+            bn.bias.zero_()
+            part = torch.zeros(2, 2048, 1, 1, dtype=torch.float64)
+            part[:, :256, 0, 0] = torch.arange(-128, 128) + index * 10
+            parts.append(part)
+        outputs = reductions(parts)
+    assert isinstance(outputs, tuple) and len(outputs) == 6
+    for index, output in enumerate(outputs):
+        expected = ((torch.arange(-128, 128, dtype=torch.float64) + index * 10)
+                    * (index + 1) / (1 + 1e-5) ** 0.5).clamp_min(0)
+        assert output.shape == (2, 256)
+        torch.testing.assert_close(output, expected.expand(2, 256))
+
+
+def test_reduction_bn_batch_statistics_running_updates_and_single_item_eval():
+    reductions = pcb.PCBPartReductions().double().train()
+    parts = []
+    with torch.no_grad():
+        for index, (conv, bn, _) in enumerate(reductions.local_conv_list):
+            conv.weight.zero_()
+            conv.weight[:, 0, 0, 0] = index + 1
+            conv.bias.fill_(index)
+            bn.weight.fill_(0.5)
+            bn.bias.fill_(0.25)
+            part = torch.zeros(4, 2048, 1, 1, dtype=torch.float64)
+            part[:, 0, 0, 0] = torch.tensor([-3., -1., 1., 3.]) + index
+            parts.append(part)
+        outputs = reductions(parts)
+        for index, (conv, bn, _) in enumerate(reductions.local_conv_list):
+            values = parts[index][:, 0, 0, 0] * (index + 1) + index
+            mean, variance = values.mean(), values.var(unbiased=False)
+            expected = ((values - mean) / (variance + bn.eps).sqrt() * 0.5 + 0.25).clamp_min(0)
+            assert outputs[index].shape == (4, 256)
+            torch.testing.assert_close(outputs[index], expected[:, None].expand(4, 256))
+            torch.testing.assert_close(bn.running_mean, (0.1 * mean).expand(256))
+            torch.testing.assert_close(bn.running_var, (0.9 + 0.1 * values.var(unbiased=True)).expand(256))
+            assert bn.num_batches_tracked.item() == 1
+        state = {key: value.clone() for key, value in reductions.state_dict().items()}
+        reductions.eval()
+        full_eval = reductions(parts)
+        single_eval = reductions(tuple(part[:1] for part in parts))
+        for index, (_, bn, _) in enumerate(reductions.local_conv_list):
+            values = parts[index][:, 0, 0, 0] * (index + 1) + index
+            expected = ((values[:, None] - bn.running_mean) /
+                        (bn.running_var + bn.eps).sqrt() * bn.weight + bn.bias).clamp_min(0)
+            assert full_eval[index].shape == outputs[index].shape
+            assert single_eval[index].shape == (1, 256)
+            torch.testing.assert_close(full_eval[index], expected)
+            torch.testing.assert_close(single_eval[index], expected[:1])
+        for key, value in reductions.state_dict().items():
+            torch.testing.assert_close(value, state[key], rtol=0, atol=0)
+
+
+def test_reduction_single_item_training_keeps_standard_bn_error():
+    reductions = pcb.PCBPartReductions().train()
+    with pytest.raises(ValueError, match="Expected more than 1 value per channel"):
+        reductions(tuple(torch.ones(1, 2048, 1, 1) for _ in range(6)))
+
+
+@pytest.mark.parametrize("training", [False, True])
+def test_gradients_reach_every_reduction_parameter_and_pooled_input(training):
+    torch.manual_seed(7)
+    reductions = pcb.PCBPartReductions().train(training)
+    parts = tuple(torch.randn(4, 2048, 1, 1, requires_grad=True) for _ in range(6))
+    outputs = reductions(parts)
+    assert all(output.shape == (4, 256) for output in outputs)
+    sum((index + 1) * output.square().mean() for index, output in enumerate(outputs)).backward()
+    for name, parameter in reductions.named_parameters():
+        assert parameter.grad is not None and torch.isfinite(parameter.grad).all(), name
+    for part in parts:
+        assert part.grad is not None and torch.isfinite(part.grad).all()
+        assert torch.count_nonzero(part.grad) > 0
+
+
+def test_single_image_backbone_pool_reduction_forward_and_backward():
+    torch.manual_seed(7)
+    backbone = pcb.PCBBackbone(pretrained=False).eval()
+    reductions = pcb.PCBPartReductions().eval()
+    image = torch.randn(1, 3, 384, 128, requires_grad=True)
+    feature_map = backbone(image)
+    assert feature_map.shape == (1, 2048, 24, 8)
+    pooled = pcb.PCBStripePool()(feature_map)
+    assert all(part.shape == (1, 2048, 1, 1) for part in pooled)
+    outputs = reductions(pooled)
+    assert len(outputs) == 6 and all(output.shape == (1, 256) for output in outputs)
+    assert all(torch.isfinite(output).all() for output in outputs)
+    sum(output.square().mean() for output in outputs).backward()
+    for model in (backbone, reductions):
+        for name, parameter in model.named_parameters():
+            assert parameter.grad is not None and torch.isfinite(parameter.grad).all(), name
+    for gradient in (image.grad, backbone.conv1.weight.grad, backbone.layer4[0].conv2.weight.grad):
+        assert torch.isfinite(gradient).all() and torch.count_nonzero(gradient) > 0
+
+
+@pytest.mark.parametrize("malformation", ["count", "tensor", "rank", "channels", "spatial", "batch"])
+def test_reduction_rejects_malformed_parts_before_bn_updates(malformation):
+    reductions = pcb.PCBPartReductions().train()
+    parts = [torch.zeros(2, 2048, 1, 1) for _ in range(6)]
+    if malformation == "count":
+        parts.pop()
+    elif malformation == "tensor":
+        parts = torch.zeros(6, 2, 2048, 1, 1)
+    elif malformation == "rank":
+        parts[-1] = torch.zeros(2, 2048)
+    elif malformation == "channels":
+        parts[-1] = torch.zeros(2, 256, 1, 1)
+    elif malformation == "spatial":
+        parts[-1] = torch.zeros(2, 2048, 2, 1)
+    else:
+        parts[-1] = torch.zeros(3, 2048, 1, 1)
+    with pytest.raises(ValueError, match="PCB"):
+        reductions(parts)
+    assert all(module[1].num_batches_tracked.item() == 0 for module in reductions.local_conv_list)

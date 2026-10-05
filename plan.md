@@ -529,19 +529,64 @@ All phases must update their implementation record, decisions/deviations, review
 
 ### Phase 7 — Independent reduction modules
 
-- **Objective:** Produce six independent post-BN/ReLU 256-D features.
-- **Why this step exists:** This independent reduction is the selected variant's defining choice.
-- **Prerequisites:** Phase 6 reviewed and explicit authorization.
-- **Files to inspect:** Reference `PCBModel.__init__/forward`, historical initializer sources, current PCB module.
-- **Files expected to change:** `reid/models/pcb.py`, proposed `tests/test_pcb_model.py`, `plan.md`.
-- **Implementation tasks:** Six Conv/BN/ReLU modules, explicit biases and historical initialization, correct flattening; no sharing/dropout/global branch.
-- **Validation/tests:** Six modules and distinct parameter/storage identities; bias and BN settings; deterministic initializer checks without flaky statistical thresholds; one module mutation cannot change another; train/eval shapes and BN running-stat behavior; gradients reach every reduction.
-- **Exit criteria:** All six independent reductions and historical initialization verified.
-- **Status:** `[ ] NOT STARTED`; authorization absent.
-- **Implementation record:** None.
-- **Decisions/deviations:** Validation after “no parameter sharing” completes the truncated supplied phase using the frozen contract.
-- **Review notes:** STOP; no classifier/retrieval integration yet.
-- **Next step:** Phase 8, separately authorized; derived continuation begins.
+- **Objective:** Produce six independent post-Conv/BN/ReLU 256-D local features.
+- **Why this step exists:** Independent reduction is the selected Huang variant's defining choice.
+- **Prerequisites:** Satisfied. The user reviewed and accepted Phase 6 and explicitly authorized ONLY Phase 7 in attachment `a238967c-953f-47f6-a7b4-ca0358496648/Pasted text.txt` on 2026-10-05. Phase 6 is recorded as implemented/validated and reviewed/accepted and is committed/pushed as `4f1bbe9ebcce5f072b44dfd61dba2df1963feb7a`. Earlier authorization wording is historical; this dated record supersedes it for Phase 7 only.
+- **Files to inspect:** Complete current roadmap; `reid/models/pcb.py` and PCB tests; pinned `bpm/model/PCBModel.py`; PyTorch v0.3.0 Conv and BatchNorm initialization sources; relevant baseline/interface/checkpoint tests.
+- **Files expected to change:** `reid/models/pcb.py`, `tests/test_pcb_model.py`, `plan.md` only.
+- **Implementation tasks:** Six independent Conv/BN/ReLU modules, explicit historical initialization, ordered local outputs flattened only after reduction; preserve backbone and stripe components.
+- **Validation/tests:** Exact structure; distinct parameter and buffer identities/storage; mutation isolation; deterministic initializer invocation/bounds and values; loaded-backbone protection; ordered outputs; train/eval BN arithmetic and running statistics; single-image evaluation; all-reduction and integrated-backbone gradients; prior PCB and baseline/checkpoint regressions.
+- **Exit criteria:** Satisfied: six independent reductions and historical initialization verified, producing six ordered `[B,256]` features without classifiers or descriptor concatenation.
+- **Status:** Completion `[x] IMPLEMENTED + VALIDATED` on 2026-10-05; review `[x] REVIEWED AND ACCEPTED` by the user on 2026-10-05. Phase 8 remains unstarted and unauthorized.
+- **Implementation record:** Starting branch `main`, tracking `origin/main`, HEAD `4f1bbe9ebcce5f072b44dfd61dba2df1963feb7a`; working tree clean. Read the complete roadmap and authorization, verified Phase 6 acceptance, inspected the current PCB components/tests and the clean pinned Huang checkout at `1686e889eb01c28a54b633051418012e15d9c9f3`. No applicable AGENTS.md found in the repository or checked ancestors.
+
+  Reference sources rechecked:
+  - Huang `bpm/model/PCBModel.py:26–32` constructs a fresh Conv2d/BatchNorm2d/in-place ReLU sequence for each part; lines 60–63 apply the corresponding reduction before flattening.
+  - [PyTorch v0.3.0 convolution source](https://raw.githubusercontent.com/pytorch/pytorch/v0.3.0/torch/nn/modules/conv.py), `_ConvNd.reset_parameters`: fan-in is input channels times kernel area; weight and bias are uniform within `±1/sqrt(fan_in)`. For this 1x1 reduction, fan-in is 2048.
+  - [PyTorch v0.3.0 BatchNorm source](https://raw.githubusercontent.com/pytorch/pytorch/v0.3.0/torch/nn/modules/batchnorm.py), `_BatchNorm.__init__/reset_parameters`: eps 1e-5, momentum 0.1, affine enabled, running mean zero/variance one, scale Uniform[0,1], bias zero. No contradiction with the frozen contract.
+
+  Exact files changed:
+  - `reid/models/pcb.py`: added internal `PCBPartReductions` and math import; updated module description. Historical loading, `PCBBackbone`, and `PCBStripePool` implementations are byte-for-byte unchanged.
+  - `tests/test_pcb_model.py`: retained all 36 prior PCB cases and added 16 Phase 7 cases; all ordinary tests remain independent of network/cache/reference checkout.
+  - `plan.md`: this Phase 7 section only; text before Phase 7 and from Phase 8 onward remains byte-for-byte unchanged.
+
+  Design and shape contract: `PCBPartReductions.local_conv_list` owns six separately constructed `nn.Sequential` modules. Each is `Conv2d(2048,256,1,bias=True)` -> `BatchNorm2d(256,eps=1e-5,momentum=0.1,affine=True,track_running_stats=True)` -> `ReLU(inplace=True)`. Each module receives its corresponding `[B,2048,1,1]` pooled stripe, retains four dimensions through the reduction, then flattens to `[B,256]`. Forward returns a tuple of six tensors in input/top-to-bottom order. The narrow interface accepts a tuple/list of exactly six positive-batch `[B,2048,1,1]` tensors with equal batch sizes; structural input validation precedes all reductions to avoid partial BN updates for malformed shapes/counts. Standard PyTorch device/dtype requirements and BN errors remain in force.
+
+  Initialization is applied directly to each newly created Conv and BN, with no model-wide initializer and no backbone reference. Conv weights and biases explicitly use `nn.init.uniform_` with `±1/math.sqrt(2048)`; BN scales explicitly use Uniform[0,1], biases/running means zero, running variances one, and modern `num_batches_tracked` buffers zero. Modern constructor defaults are overwritten for these tensors only. This preserves historical distributions; exact whole-model random-number draw order relative to PyTorch 0.3 is not claimed.
+
+  Standard internal usage:
+  ```python
+  backbone = PCBBackbone(pretrained=False)
+  pool = PCBStripePool()
+  reductions = PCBPartReductions()
+  # In evaluation, call eval() on backbone and reductions, including for B=1.
+  local_features = reductions(pool(backbone(images)))
+  # [B,3,384,128] -> [B,2048,24,8] -> six [B,2048,1,1] -> six [B,256]
+  ```
+  This remains separate internal components, with no complete PCB public output or builder registration.
+
+  Validation evidence:
+  - Structure checks establish six Conv/BN/ReLU sequences with the exact dimensions/settings and no Linear/dropout/pooling modules. All 42 parameter/buffer tensors (seven per part) have distinct object and storage identities; all module objects are distinct. A controlled mutation of all parameters/buffers of part 3 changes its output while the other five parts' complete state and outputs remain exactly unchanged.
+  - Deterministic initialization test poisons modern constructor defaults with 17, records every explicit uniform call and its exact bounds/target, and compares all resulting uniform tensors to independent generator draws with seed 42 at rtol=0/atol=0. BN bias/mean/variance/counter values are checked exactly. This tests explicit overrides rather than approximate sample statistics. A mocked historical backbone load followed by reduction construction preserves every backbone tensor exactly and shares no storage with reductions; actual historical-file compatibility remains covered by Phase 5's recorded controlled check.
+  - Controlled part/channel routing verifies ordered outputs and ReLU before flattening, including negative input values. Train-mode BN results match manually computed batch means and biased variances; running means/variances match momentum-0.1 updates using unbiased variance. Distinct input distributions establish independent statistics for all six parts. Eval outputs match stored-statistic arithmetic, leave state unchanged, and single-item outputs agree with the corresponding row of larger-batch evaluation. Training B=1 retains PyTorch's expected pooled-BN error; no special fallback was added. The planned authoritative batch64/drop_last recipe remains unchanged.
+  - Seed-7 train/eval synthetic backward tests verify non-None, finite gradients for all 24 reduction parameters, including every Conv bias and BN scale/bias, and finite nonzero gradients at every pooled input. Conv-bias gradients need not be nonzero in training because BN removes a channelwise shift. Single-image eval through actual uninitialized backbone -> pool -> reductions verifies six `[1,256]` outputs, all-parameter finite gradients in both components, and nonzero input/stem/layer4 gradients. No optimizer step, training run, or evaluation experiment occurred.
+
+  Exact test commands from repository root:
+  ```bash
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -rs -p no:cacheprovider tests/test_pcb_model.py > /tmp/phase7-focused.log 2>&1
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -rs -p no:cacheprovider tests/test_pcb_model.py tests/test_model_forward.py tests/test_model_interface.py tests/test_resnet50_strong_baseline.py tests/test_checkpoint_reconstruction.py tests/test_checkpoint.py > /tmp/phase7-validation.log 2>&1
+  git diff --check
+  git diff --stat
+  git status --short --branch
+  ```
+  Initial focused result: **51 passed, 1 failed in 15.32 s**. The initialization test used `2048 ** -0.5` for its expected bounds, whose last float64 digit differs from the historical `1/math.sqrt(2048)` expression; exact initializer-call comparison caught that difference. Corrected the test to use the recorded historical formula; production initialization was already correct. Final combined result: **109 passed, 1 skipped in 43.77 s; zero failures**: 52 PCB cases (36 retained + 16 new) and 57 passing baseline/interface/checkpoint regressions. One skip at `tests/test_model_forward.py:192` because CUDA is unavailable. Regression files cover ResNet50/BoT forward behavior, existing interface, strong baseline, generic reconstruction and checkpoint persistence. Environment rechecked: Python 3.12.3, torch 2.7.1+cpu, torchvision 0.22.1+cpu, CUDA false; no dependency changes. No full-repository/GPU-suite claim.
+
+  Source retrieval issue: browser fetch of historical BatchNorm returned a cache miss; the same pinned raw URL was successfully retrieved/read with `curl --fail --location --connect-timeout 15 --max-time 45 https://raw.githubusercontent.com/pytorch/pytorch/v0.3.0/torch/nn/modules/batchnorm.py -o /tmp/phase7-historical-batchnorm.py`. Convolution source was successfully read through the browser. Temporary source/log files stay in `/tmp`, outside the repository. The existing broken filesystem sandbox required approved escalated commands; no code workaround introduced.
+
+  Final scope checks: `git diff --check` passed; prior PCB implementations and roadmap text outside Phase 7 matched HEAD exactly. Pre-commit validation Git status on `main`: modified `plan.md`, `reid/models/pcb.py`, `tests/test_pcb_model.py` only; no untracked files. No commit or push had been performed at implementation handoff. The user subsequently reviewed and accepted Phase 7 and authorized its commit/push on 2026-10-05. Reference checkout remains clean.
+- **Decisions/deviations:** No architecture/recipe deviation and no changes to generic infrastructure. Separate reduction ownership protects the accepted backbone and stripe interfaces. Explicit modern BN counters are compatibility state, not another normalization policy. Earlier plan records remain historical because only Phase 7 is updated.
+- **Review notes:** Phase 7 reviewed and accepted by the user on 2026-10-05; commit/push authorized. STOP after publishing this step; Phase 8 requires separate authorization. No unresolved implementation blocker. Limitations: CPU-only validation, no whole-model historical RNG parity claim, and incomplete/unregistered PCB component. Classifiers, final descriptor/public output, loss integration, statistics, optimizer/configuration changes, training/evaluation experiments and Phase 8 are not implemented.
+- **Next step:** Phase 8 — identity classifiers, only after Phase 7 review and separate explicit authorization.
 
 ### Phase 8 — Identity classifiers
 
