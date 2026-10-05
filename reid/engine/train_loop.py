@@ -1,6 +1,25 @@
 import time
 import torch
-from reid.models.outputs import ensure_output_dict
+from reid.models.outputs import ensure_output_dict, validate_logits
+
+
+@torch.no_grad()
+def classification_accuracy(logits, labels):
+    """Return detached classification diagnostics; missing logits emit no metric.
+
+    LossBundle owns the error when ID loss requires absent logits. A sequence
+    reports the mean of independent head accuracies, never an ensemble prediction.
+    """
+    if logits is None:
+        return {}
+    if labels.ndim != 1:
+        raise ValueError(f"Expected labels with shape [B], got {tuple(labels.shape)}")
+    validate_logits(logits, batch_size=labels.shape[0])
+    if torch.is_tensor(logits):
+        pred = logits.argmax(dim=1)
+        return {"acc/id": float((pred == labels).float().mean().detach().cpu())}
+    accuracies = [(head.argmax(dim=1) == labels).float().mean() for head in logits]
+    return {"acc/id_mean_heads": float(torch.stack(accuracies).mean().cpu())}
 
 
 def train_one_epoch(
@@ -26,8 +45,8 @@ def train_one_epoch(
     last_log_time = t0
     running_total = 0.0
     running_logs = {}
-    running_acc_id = 0.0
-    acc_steps = 0
+    running_accuracy = {}
+    accuracy_steps = {}
 
     for step, (imgs, labels) in enumerate(loader, start=1):
         imgs = imgs.to(device, non_blocking=True)
@@ -60,13 +79,9 @@ def train_one_epoch(
             if key == "loss/total":
                 continue
             running_logs[key] = running_logs.get(key, 0.0) + float(value)
-        logits = outputs.get("logits")
-        batch_acc = None
-        if logits is not None:
-            pred = logits.argmax(dim=1)
-            batch_acc = float((pred == labels).float().mean().detach().cpu())
-            running_acc_id += batch_acc
-            acc_steps += 1
+        for key, value in classification_accuracy(outputs.get("logits"), labels).items():
+            running_accuracy[key] = running_accuracy.get(key, 0.0) + value
+            accuracy_steps[key] = accuracy_steps.get(key, 0) + 1
 
         if (step % log_interval) == 0:
             dt = time.time() - t0
@@ -86,7 +101,8 @@ def train_one_epoch(
                 ),
                 None,
             )
-            avg_acc = (running_acc_id / acc_steps) if acc_steps > 0 else None
+            avg_accuracy = {key: value / accuracy_steps[key]
+                            for key, value in running_accuracy.items()}
 
             msg = (
                 f"Epoch [{epoch}] Iter [{step}/{num_steps}] "
@@ -94,8 +110,8 @@ def train_one_epoch(
             )
             if bias_lr is not None:
                 msg += f" lr/bias={bias_lr:.6g}"
-            if avg_acc is not None:
-                msg += f" acc_id={avg_acc:.4f}"
+            for key, value in avg_accuracy.items():
+                msg += f" {key.replace('/', '_')}={value:.4f}"
             for key in sorted(running_logs):
                 avg_value = running_logs[key] / step
                 if avg_value > 0.0:
@@ -116,8 +132,8 @@ def train_one_epoch(
                 tb_writer.add_scalar("lr/base", current_lr, global_step=global_step)
                 tb_writer.add_scalar("time/batch", time_per_batch, global_step=global_step)
                 tb_writer.add_scalar("speed/img_per_sec", speed, global_step=global_step)
-                if avg_acc is not None:
-                    tb_writer.add_scalar("acc/id", avg_acc, global_step=global_step)
+                for key, value in avg_accuracy.items():
+                    tb_writer.add_scalar(key, value, global_step=global_step)
                 if bias_lr is not None:
                     tb_writer.add_scalar("lr/bias", bias_lr, global_step=global_step)
 
