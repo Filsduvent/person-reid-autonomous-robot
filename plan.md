@@ -590,19 +590,56 @@ All phases must update their implementation record, decisions/deviations, review
 
 ### Phase 8 — Identity classifiers
 
-- **Objective:** Add six source-identity classification heads.
-- **Why this step exists:** PCB supervises each local representation independently.
-- **Prerequisites:** Phase 7 reviewed and explicit authorization.
-- **Files to inspect:** Reference classifier creation and current PCB component tests.
-- **Files expected to change:** `reid/models/pcb.py`, proposed `tests/test_pcb_model.py`, `plan.md`.
-- **Implementation tasks:** Six biased `Linear(256,C)` heads, explicit Normal(0,0.001)/zero initialization, deterministic top-to-bottom order, source-class validation.
-- **Validation/tests:** Shapes for multiple class counts; independent storage; initialization invocation/settings; ordered head association; manual six-CE gradient check reaches all heads without implementing generic loss prematurely.
-- **Exit criteria:** Correct six-head classifier structure and gradient connectivity.
-- **Status:** `[ ] NOT STARTED`; authorization absent.
-- **Implementation record:** None.
-- **Decisions/deviations:** No averaged-logit classifier or fixed dataset-specific class count.
-- **Review notes:** STOP.
-- **Next step:** Phase 9, separately authorized.
+- **Objective:** Add six independent source-identity classification heads.
+- **Why this step exists:** PCB supervises each ordered local representation independently in a common source label space.
+- **Prerequisites:** Satisfied. The user reviewed and accepted Phase 7 and explicitly authorized ONLY Phase 8 in attachment `7e74c2aa-9600-4769-9808-034d8394a38e/Pasted text.txt` on 2026-10-05. Phase 7 is recorded as implemented/validated and reviewed/accepted and is committed/pushed as `1f812654ff420601d923fa04e3ec2b67d0724e10`. Earlier authorization wording is historical; this dated record supersedes it for Phase 8 only.
+- **Files to inspect:** Complete roadmap; current `reid/models/pcb.py` and component tests; pinned Huang `bpm/model/PCBModel.py`; source-class validation in common model/checkpoint construction; relevant regression tests.
+- **Files expected to change:** `reid/models/pcb.py`, `tests/test_pcb_model.py`, `plan.md` only.
+- **Implementation tasks:** Six biased `Linear(256,C)` heads, explicit Normal(0,0.001)/zero initialization, deterministic part association, positive source-class validation; preserve all earlier component behavior.
+- **Validation/tests:** Multiple class counts; distinct modules/parameter identities/storage; mutation isolation; deterministic initializer checks; backbone/reduction state preservation; ordered association; manual six-CE backward through every head/reduction/backbone; valid train mode and single-image evaluation; prior PCB and baseline/checkpoint regressions.
+- **Exit criteria:** Satisfied: six correctly initialized independent heads produce ordered `[B,C]` logits with verified gradient connectivity, while six `[B,256]` local features remain available separately.
+- **Status:** Completion `[x] IMPLEMENTED + VALIDATED` on 2026-10-05; review `[x] REVIEWED AND ACCEPTED` by the user on 2026-10-05. Phase 9 remains unstarted and unauthorized.
+- **Implementation record:** Starting branch `main`, tracking `origin/main`; HEAD `1f812654ff420601d923fa04e3ec2b67d0724e10`; working tree clean. Read the complete current roadmap and authorization, confirmed Phase 7 review acceptance, inspected current PCB components/tests and the clean Huang reference checkout at `1686e889eb01c28a54b633051418012e15d9c9f3`. No applicable AGENTS.md found in the repository or checked ancestors.
+
+  Reference trace: pinned `bpm/model/PCBModel.py:34–40` creates one biased Linear per stripe, explicitly initializes its weight with Normal(std=0.001, default mean=0) and bias with zero, and stores the heads in `fc_list`. Lines 64–65 apply classifier i directly to local feature i. No shared/averaged/global classifier is used.
+
+  Exact files changed:
+  - `reid/models/pcb.py`: added internal `PCBIdentityClassifiers(num_classes)` and updated module description. Historical loading, backbone, stripes/pooling and reductions remain byte-for-byte unchanged.
+  - `tests/test_pcb_model.py`: retained all 52 previous cases and added 23 Phase 8 cases; updated test-module description. Ordinary tests have no network/cache/reference-checkout dependency.
+  - `plan.md`: this Phase 8 section only; text outside it remains byte-for-byte unchanged.
+
+  Design: six separately constructed `nn.Linear(256,num_classes,bias=True)` modules in `fc_list`. A required positive Python integer supplies C once, so all six heads have identical source label dimensions but independent weights/biases. Invalid values `0,-1,None,True,False,3.0,2.5,"3"` fail with descriptive ValueError; this follows the strict positive-integer convention in Phase 4's metadata validation without importing or changing checkpoint code. No dataset count or target dataset is looked up or hardcoded. When builder integration is authorized in Phase 10, new training must supply source training identities through the common constructor flow, and reconstruction must use the persisted source C established by Phase 4. That wiring and an actual full PCB checkpoint round trip are not implemented/claimed here.
+
+  Initialization is narrowly scoped to each new classifier: `nn.init.normal_(weight,mean=0,std=0.001)` and `nn.init.zeros_(bias)`. No initializer traverses or owns backbone/reduction modules. Forward accepts a tuple/list of exactly six `[B,256]` local tensors with positive equal batch sizes and returns a tuple of six `[B,C]` logits in the same order. Invalid count/rank/width/batch/empty/non-tensor inputs fail clearly. Standard PyTorch device/dtype requirements remain. No feature or logit averaging, normalization, concatenation, or public output dictionary is introduced.
+
+  The existing reduction interface provides local features and the new consumer provides logits; both ordered collections remain available without a premature full-model wrapper:
+  ```python
+  # Given backbone, pool and reductions from Phases 5–7, in the desired mode:
+  classifiers = PCBIdentityClassifiers(num_classes=source_num_classes)
+  local_features = reductions(pool(backbone(images)))  # tuple: six [B,256]
+  logits = classifiers(local_features)                # tuple: six [B,source_num_classes]
+  ```
+  Use train/eval on each component (or their containing module). The tests compose them in a test-only ModuleDict and exercise train with B=2 and eval with B=1. This is not builder registration or production training integration.
+
+  Validation evidence:
+  - Synthetic source counts C=1,3,17 verify all six exact weight/bias dimensions and logits shapes. Six module identities and all 12 trainable parameter identities/storage pointers are distinct; classifiers have no buffers. Classifier-only train/eval results match exactly for identical inputs, and input local features remain unchanged.
+  - A controlled test assigns distinct per-head weights/biases and per-part features, then checks hand-computed logits exactly. Changing both weight and bias of head 3 changes only its output/state; the other five heads' state and logits remain bitwise equal. This proves ordered feature_i -> classifier_i association and behavioral isolation.
+  - Deterministic initializer test poisons Linear constructor defaults with 17, spies on each explicit normal initializer's parameter/mean/std, and compares resulting weights against independent generator draws with seed 42 at rtol=0/atol=0; every bias is exactly zero. This does not rely on noisy empirical mean/std thresholds. Mocked historical backbone loading followed by reduction construction and then classifier construction preserves every earlier parameter/buffer exactly and establishes no shared storage with classifiers. No new historical-weight download was needed.
+  - Seed-8 integrated tests use actual `PCBBackbone(pretrained=False)` -> stripe pool -> reductions -> classifiers on `[B,3,384,128]`; verify `[B,2048,24,8]`, six pooled `[B,2048,1,1]`, six local `[B,256]` and six logit `[B,5]` tensors. A test-only sum of six ordinary cross-entropies, with the same labels for all heads, produces non-None finite gradients for every classifier, reduction and backbone parameter. Every classifier weight/bias, reduction Conv weight and local feature has nonzero gradients; input/stem/layer4 gradients are finite and nonzero. Train-mode reduction BN counters advance once; eval counters remain unchanged, including valid single-image evaluation. Conv-bias gradients in train-mode reductions need not be nonzero because BN removes channelwise shifts. No optimizer steps or real training/evaluation experiments.
+
+  Exact command from repository root:
+  ```bash
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -rs -p no:cacheprovider tests/test_pcb_model.py tests/test_model_forward.py tests/test_model_interface.py tests/test_resnet50_strong_baseline.py tests/test_checkpoint_reconstruction.py tests/test_checkpoint.py > /tmp/phase8-validation.log 2>&1
+  git diff --check
+  git diff --stat
+  git status --short --branch
+  ```
+  Result: **132 passed, 1 skipped in 47.08 s; zero failures**. This comprises 75 PCB cases (52 retained + 23 new) and 57 passing baseline/interface/checkpoint regressions. One skip at `tests/test_model_forward.py:192`: CUDA unavailable. Coverage includes ResNet50/BoT forward behavior, existing interface, strong baseline, generic checkpoint reconstruction and checkpoint persistence. Environment rechecked: Python 3.12.3, torch 2.7.1+cpu, torchvision 0.22.1+cpu; CUDA false. No dependency changes; targeted CPU validation, not a full-repository/GPU-suite claim.
+
+  Final checks: `git diff --check` passed; all prior PCB component implementations and roadmap text outside Phase 8 matched HEAD exactly. Pre-commit validation Git status on `main`: modified `plan.md`, `reid/models/pcb.py`, `tests/test_pcb_model.py` only; no untracked files. No commit or push had been performed at implementation handoff. The user subsequently reviewed and accepted Phase 8 and authorized its commit/push on 2026-10-05. Reference checkout remains clean. Temporary validation log stays at `/tmp/phase8-validation.log`.
+- **Decisions/deviations:** No architecture/recipe or scope deviation. A narrow classifier consumer preserves existing local-feature ownership and avoids introducing a final model/output API early. No test failures or unresolved implementation blocker. Approved escalated execution was used for the existing filesystem sandbox issue; no repository workaround introduced.
+- **Review notes:** Phase 8 reviewed and accepted by the user on 2026-10-05; commit/push authorized. STOP after publishing this step; Phase 9 requires separate authorization. CPU-only validation; full PCB remains unregistered, source-class builder/metadata wiring and full PCB reconstruction remain later gates. No 1536-D descriptor, public output dictionary, production multi-head CE/LossBundle changes, training-loop statistics, optimizer groups, configs, training/evaluation experiments or Phase 9 work implemented. ResNet50 and generic infrastructure are unchanged.
+- **Next step:** Phase 9 — retrieval and public PCB outputs, only after Phase 8 review and separate explicit authorization.
 
 ### Phase 9 — Retrieval and public PCB outputs
 

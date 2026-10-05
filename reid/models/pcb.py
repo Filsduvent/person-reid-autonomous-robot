@@ -1,4 +1,4 @@
-"""Backbone, stripe pooling and independent PCB reductions; no identity heads.
+"""Internal PCB backbone, stripes, reductions and identity classifiers.
 
 Reference: huanghoujing/beyond-part-models @
 1686e889eb01c28a54b633051418012e15d9c9f3, bpm/model/resnet.py
@@ -178,3 +178,40 @@ class PCBPartReductions(nn.Module):
             batch_size = part.shape[0]
         return tuple(reduction(part).flatten(1)
                      for reduction, part in zip(self.local_conv_list, pooled_parts))
+
+
+class PCBIdentityClassifiers(nn.Module):
+    """Six independent Linear(256,C) heads in top-to-bottom part order.
+
+    The caller supplies the source training identity count; this component has
+    no dataset lookup or target-class inference. Matches pinned PCBModel.py:
+    34–40,64–65. Local features remain available from PCBPartReductions;
+    this consumer returns only their corresponding logits, not a ReID dict.
+    """
+
+    def __init__(self, num_classes):
+        super().__init__()
+        if type(num_classes) is not int or num_classes <= 0:
+            raise ValueError("PCB num_classes must be a positive integer from the source dataset")
+        self.num_classes = num_classes
+        self.fc_list = nn.ModuleList()
+        for _ in range(6):
+            classifier = nn.Linear(256, num_classes, bias=True)
+            # Scope initialization to the new classifier, never earlier layers.
+            nn.init.normal_(classifier.weight, mean=0, std=0.001)
+            nn.init.zeros_(classifier.bias)
+            self.fc_list.append(classifier)
+
+    def forward(self, local_features):
+        if not isinstance(local_features, (tuple, list)) or len(local_features) != 6:
+            raise ValueError("PCB classifiers require exactly six local feature tensors")
+        batch_size = None
+        for feature in local_features:
+            if (not torch.is_tensor(feature) or feature.ndim != 2
+                    or feature.shape[1] != 256 or feature.shape[0] <= 0):
+                raise ValueError("Each PCB local feature must have shape [B,256] with B > 0")
+            if batch_size is not None and feature.shape[0] != batch_size:
+                raise ValueError("PCB local features must have equal batch sizes")
+            batch_size = feature.shape[0]
+        return tuple(classifier(feature)
+                     for classifier, feature in zip(self.fc_list, local_features))

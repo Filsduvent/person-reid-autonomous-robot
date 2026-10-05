@@ -1,4 +1,4 @@
-"""PCB backbone, stripe pooling and reduction tests, independent of network/cache."""
+"""PCB component tests through identity classifiers, independent of network/cache."""
 
 import hashlib
 import math
@@ -522,3 +522,164 @@ def test_reduction_rejects_malformed_parts_before_bn_updates(malformation):
     with pytest.raises(ValueError, match="PCB"):
         reductions(parts)
     assert all(module[1].num_batches_tracked.item() == 0 for module in reductions.local_conv_list)
+
+
+@pytest.mark.parametrize("num_classes", [1, 3, 17])
+def test_identity_classifiers_dynamic_source_classes_and_independence(num_classes):
+    heads = pcb.PCBIdentityClassifiers(num_classes)
+    assert heads.num_classes == num_classes and len(heads.fc_list) == 6
+    assert len({id(head) for head in heads.fc_list}) == 6
+    parameters = list(heads.parameters())
+    assert len(parameters) == 12 and all(p.requires_grad for p in parameters)
+    assert len({id(p) for p in parameters}) == 12
+    assert len({p.untyped_storage().data_ptr() for p in parameters}) == 12
+    assert not list(heads.buffers())
+    for head in heads.fc_list:
+        assert type(head) is nn.Linear
+        assert head.in_features == 256 and head.out_features == num_classes
+        assert head.weight.shape == (num_classes, 256) and head.bias.shape == (num_classes,)
+    features = tuple(torch.randn(2, 256) for _ in range(6))
+    before = tuple(feature.clone() for feature in features)
+    train_logits = heads.train()(features)
+    eval_logits = heads.eval()(features)
+    assert isinstance(train_logits, tuple) and len(train_logits) == 6
+    for feature, saved, train, evaluation in zip(features, before, train_logits, eval_logits):
+        assert train.shape == evaluation.shape == (2, num_classes)
+        torch.testing.assert_close(train, evaluation, rtol=0, atol=0)
+        torch.testing.assert_close(feature, saved, rtol=0, atol=0)
+
+
+@pytest.mark.parametrize("num_classes", [0, -1, None, True, False, 3.0, 2.5, "3"])
+def test_identity_classifiers_reject_invalid_class_count(num_classes):
+    with pytest.raises(ValueError, match="num_classes must be a positive integer"):
+        pcb.PCBIdentityClassifiers(num_classes)
+
+
+def test_identity_classifier_initialization_is_explicit_and_deterministic(monkeypatch):
+    def poison_defaults(module):
+        with torch.no_grad():
+            module.weight.fill_(17)
+            module.bias.fill_(17)
+    monkeypatch.setattr(nn.Linear, "reset_parameters", poison_defaults)
+    calls = []
+    normal = nn.init.normal_
+    def record_normal(tensor, mean=0., std=1., **kwargs):
+        calls.append((id(tensor), mean, std))
+        return normal(tensor, mean, std, **kwargs)
+    monkeypatch.setattr(nn.init, "normal_", record_normal)
+    torch.manual_seed(42)
+    heads = pcb.PCBIdentityClassifiers(7)
+    generator = torch.Generator().manual_seed(42)
+    for head in heads.fc_list:
+        expected = torch.empty_like(head.weight).normal_(0, 0.001, generator=generator)
+        torch.testing.assert_close(head.weight, expected, rtol=0, atol=0)
+        assert torch.equal(head.bias, torch.zeros_like(head.bias))
+    assert calls == [(id(head.weight), 0, 0.001) for head in heads.fc_list]
+
+
+def test_identity_classifier_initialization_preserves_backbone_and_reductions(monkeypatch):
+    source = historical_fixture(pcb.PCBBackbone(pretrained=False))
+    monkeypatch.setattr(pcb, "_read_historical_weights", lambda path: source)
+    backbone = pcb.PCBBackbone(pretrained=True, weights_path="mock-historical.pth")
+    reductions = pcb.PCBPartReductions()
+    snapshots = [{key: value.clone() for key, value in model.state_dict().items()}
+                 for model in (backbone, reductions)]
+    heads = pcb.PCBIdentityClassifiers(3)
+    head_storage = {p.untyped_storage().data_ptr() for p in heads.parameters()}
+    for model, snapshot in zip((backbone, reductions), snapshots):
+        for key, value in model.state_dict().items():
+            torch.testing.assert_close(value, snapshot[key], rtol=0, atol=0)
+            assert value.untyped_storage().data_ptr() not in head_storage
+
+
+def test_identity_classifier_mutation_isolation_and_ordered_association():
+    heads = pcb.PCBIdentityClassifiers(3).double()
+    features = []
+    with torch.no_grad():
+        for index, head in enumerate(heads.fc_list):
+            head.weight.zero_()
+            head.weight[:, 0] = torch.tensor([1., 2., 3.]) * (index + 1)
+            head.bias.copy_(torch.tensor([10., 20., 30.]) + index)
+            feature = torch.zeros(2, 256, dtype=torch.float64)
+            feature[:, 0] = torch.tensor([index + 2., index + 12.])
+            features.append(feature)
+        logits = heads(features)
+        for index, actual in enumerate(logits):
+            expected = (features[index][:, :1] * (index + 1) * torch.tensor([1., 2., 3.])
+                        + torch.tensor([10., 20., 30.]) + index)
+            torch.testing.assert_close(actual, expected, rtol=0, atol=0)
+        before = {key: value.clone() for key, value in heads.state_dict().items()}
+        heads.fc_list[2].weight.add_(5)
+        heads.fc_list[2].bias.add_(7)
+        changed_logits = heads(features)
+        for index, (original, changed) in enumerate(zip(logits, changed_logits)):
+            if index == 2:
+                assert not torch.equal(original, changed)
+            else:
+                torch.testing.assert_close(original, changed, rtol=0, atol=0)
+                for name, value in heads.fc_list[index].state_dict().items():
+                    torch.testing.assert_close(value, before[f"fc_list.{index}.{name}"], rtol=0, atol=0)
+
+
+@pytest.mark.parametrize("training,batch_size", [(True, 2), (False, 1)])
+def test_manual_six_head_ce_through_actual_backbone_reductions_and_classifiers(training, batch_size):
+    torch.manual_seed(8)
+    # Test-only composition; no public model registration or production CE added.
+    components = nn.ModuleDict({
+        "backbone": pcb.PCBBackbone(pretrained=False),
+        "pool": pcb.PCBStripePool(),
+        "reductions": pcb.PCBPartReductions(),
+        "classifiers": pcb.PCBIdentityClassifiers(5),
+    }).train(training)
+    images = torch.randn(batch_size, 3, 384, 128, requires_grad=True)
+    feature_map = components["backbone"](images)
+    assert feature_map.shape == (batch_size, 2048, 24, 8)
+    pooled = components["pool"](feature_map)
+    assert all(part.shape == (batch_size, 2048, 1, 1) for part in pooled)
+    local_features = components["reductions"](pooled)
+    logits = components["classifiers"](local_features)
+    assert isinstance(local_features, tuple) and len(local_features) == 6
+    assert isinstance(logits, tuple) and len(logits) == 6
+    for feature, scores in zip(local_features, logits):
+        assert feature.shape == (batch_size, 256) and scores.shape == (batch_size, 5)
+        assert torch.isfinite(feature).all() and torch.isfinite(scores).all()
+        feature.retain_grad()
+    labels = torch.arange(batch_size) % 5
+    loss = sum(torch.nn.functional.cross_entropy(scores, labels) for scores in logits)
+    assert torch.isfinite(loss)
+    loss.backward()
+    for name, parameter in components.named_parameters():
+        assert parameter.grad is not None and torch.isfinite(parameter.grad).all(), name
+    for head in components["classifiers"].fc_list:
+        assert torch.count_nonzero(head.weight.grad) > 0
+        assert torch.count_nonzero(head.bias.grad) > 0
+    for reduction, feature in zip(components["reductions"].local_conv_list, local_features):
+        assert torch.count_nonzero(reduction[0].weight.grad) > 0
+        assert feature.grad is not None and torch.isfinite(feature.grad).all()
+        assert torch.count_nonzero(feature.grad) > 0
+        assert reduction[1].num_batches_tracked.item() == int(training)
+    for gradient in (images.grad, components["backbone"].conv1.weight.grad,
+                     components["backbone"].layer4[0].conv2.weight.grad):
+        assert torch.isfinite(gradient).all() and torch.count_nonzero(gradient) > 0
+
+
+@pytest.mark.parametrize("malformation", ["count", "tensor", "rank", "width", "batch", "empty", "none"])
+def test_identity_classifiers_reject_malformed_features(malformation):
+    heads = pcb.PCBIdentityClassifiers(3)
+    features = [torch.zeros(2, 256) for _ in range(6)]
+    if malformation == "count":
+        features.pop()
+    elif malformation == "tensor":
+        features = torch.zeros(6, 2, 256)
+    elif malformation == "rank":
+        features[-1] = torch.zeros(2, 256, 1, 1)
+    elif malformation == "width":
+        features[-1] = torch.zeros(2, 128)
+    elif malformation == "batch":
+        features[-1] = torch.zeros(3, 256)
+    elif malformation == "empty":
+        features[-1] = torch.zeros(0, 256)
+    else:
+        features[-1] = None
+    with pytest.raises(ValueError, match="PCB"):
+        heads(features)
