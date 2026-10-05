@@ -482,17 +482,50 @@ All phases must update their implementation record, decisions/deviations, review
 
 - **Objective:** Implement exact six-stripe partition and full-stripe average pooling.
 - **Why this step exists:** Pooling order and boundaries define the architecture.
-- **Prerequisites:** Phase 5 reviewed and explicit authorization.
-- **Files to inspect:** Reference `PCBModel.forward`; current PCB backbone.
-- **Files expected to change:** `reid/models/pcb.py`, proposed `tests/test_pcb_model.py`, `plan.md`.
-- **Implementation tasks:** Slice equal-height stripes top-to-bottom; validate divisibility/positive sizes; preserve `[B,2048,1,1]` pooled tensors for reductions.
-- **Validation/tests:** Row-coded deterministic maps prove exact boundaries, ordering, complete coverage, no overlap, arithmetic means; non-divisible height fails clearly; gradient distribution reaches each stripe.
-- **Exit criteria:** Six correct pooled stripes with no adaptive fallback.
-- **Status:** `[ ] NOT STARTED`; authorization absent.
-- **Implementation record:** None.
-- **Decisions/deviations:** Flattened `[B,2048]` is a conceptual representation; reduction input stays four-dimensional.
-- **Review notes:** STOP; no reduction/head implementation in this phase.
-- **Next step:** Phase 7, separately authorized.
+- **Prerequisites:** Satisfied. The user reviewed and accepted Phase 5 and explicitly authorized ONLY Phase 6 in attachment `87361208-6c83-4b3c-a594-83ab2aba150a/Pasted text.txt` on 2026-10-05. Phase 5 is recorded as implemented/validated and reviewed/accepted and is committed/pushed as `837112115fba818bb72fe3bddc2cd65ab7f8bd75`. Earlier authorization statements are historical; this record supersedes them for Phase 6 only.
+- **Files to inspect:** Pinned reference `bpm/model/PCBModel.py:42–58`; current PCB backbone and its tests; complete roadmap and relevant baseline/checkpoint tests.
+- **Files expected to change:** `reid/models/pcb.py`, `tests/test_pcb_model.py`, `plan.md` only.
+- **Implementation tasks:** Slice equal-height stripes top-to-bottom; validate divisibility/positive sizes; preserve `[B,2048,1,1]` pooled tensors for later reductions.
+- **Validation/tests:** Row-coded deterministic maps prove exact boundaries, ordering, complete coverage, no overlap, full-width arithmetic means; invalid heights fail before pooling; gradients match average-pooling semantics; actual backbone integration and baseline/checkpoint regressions.
+- **Exit criteria:** Satisfied: six correctly ordered pooled stripes with no adaptive fallback; backbone contract preserved.
+- **Status:** Completion `[x] IMPLEMENTED + VALIDATED` on 2026-10-05; review `[x] REVIEWED AND ACCEPTED` by the user on 2026-10-05. Phase 7 remains unstarted and unauthorized.
+- **Implementation record:** Starting branch `main`, tracking `origin/main`; HEAD `837112115fba818bb72fe3bddc2cd65ab7f8bd75`; clean working tree. Read the complete current roadmap and authorization, confirmed the Phase 5 review prerequisite, inspected the existing backbone/tests and the clean Huang reference checkout at `1686e889eb01c28a54b633051418012e15d9c9f3`. No applicable AGENTS.md was found in the repository or checked ancestors.
+
+  Exact files changed:
+  - `reid/models/pcb.py`: added parameter-free `PCBStripePool`, with a `partition` helper returning six full-width tensor views and `forward` returning six pooled tensors; updated module description/import. `PCBBackbone` implementation and initialization are unchanged.
+  - `tests/test_pcb_model.py`: retained all 20 Phase 5 cases and added 16 Phase 6 cases, independent of network, cached weights, or reference-checkout availability.
+  - `plan.md`: this Phase 6 section only; all text outside it remains byte-for-byte unchanged.
+
+  Reference and implementation: pinned `PCBModel.py:50–58` checks height divisibility, computes stripe height, slices top-to-bottom, and calls `F.avg_pool2d` with `(stripe_height, full_width)`. `PCBStripePool` follows these exact spatial operations. Six is architecture-owned, with no configurable stripe-count variant. Input must be a four-dimensional tensor, with positive height divisible by six and positive width; invalid input raises a descriptive `ValueError` before slicing/pooling. No adaptive or uneven partition fallback. Channels and batch items remain separate; output stays four-dimensional, with no normalization, channel reduction, or flattening.
+
+  Standard flow:
+  ```text
+  [B,3,384,128] -> PCBBackbone -> [B,2048,24,8]
+  -> six [B,2048,4,8] views, rows [0:4], [4:8], [8:12], [12:16], [16:20], [20:24]
+  -> full 4x8 average per batch/channel -> tuple of six [B,2048,1,1] tensors
+  ```
+  Usage is `pooled = PCBStripePool()(backbone(images))`; the backbone still independently returns its feature map. The helper also accepts smaller channel counts for exact isolated tests; this does not create another PCB variant.
+
+  Validation evidence:
+  - Rows coded 0 through 23 establish exact ordered boundaries and means `1.5, 5.5, 9.5, 13.5, 17.5, 21.5`. Per-row coverage counts equal one and concatenated slices recover the entire map, proving complete coverage without overlap or reordering.
+  - Distinct batch/channel/row/column values verify full-width averaging without mixing channels or examples. Valid `(H,W)` cases `(6,1)`, `(12,3)`, `(24,8)`, `(30,5)` exercise equal integer partitioning. Train/eval results agree, inputs remain unchanged, and the pooling module has no parameters or buffers.
+  - Heights `0,1,5,7,16,25`, zero width, incorrect rank, and non-tensor input fail clearly. Invalid-height tests forbid any pooling call; actual-backbone integration forbids adaptive pooling.
+  - For each individual pooled stripe, autograd gives exactly `1/32` at its source positions and zero everywhere else. A combined scalar with distinct stripe/channel weights calls backward and verifies every source gradient equals its coefficient divided by 32. No optimizer step or training performed.
+  - Actual `PCBBackbone(pretrained=False)` on `[1,3,384,128]` verifies feature, unpooled, and pooled shapes, finite values, and agreement with a separate spatial mean. All prior Phase 5 topology, forward, gradient, and historical-loading tests remain passing.
+
+  Exact command from repository root:
+  ```bash
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -rs -p no:cacheprovider tests/test_pcb_model.py tests/test_model_forward.py tests/test_model_interface.py tests/test_resnet50_strong_baseline.py tests/test_checkpoint_reconstruction.py tests/test_checkpoint.py > /tmp/phase6-tests.log 2>&1
+  git diff --check
+  git diff --stat
+  git status --short --branch
+  ```
+  Result: **93 passed, 1 skipped in 41.06 s; zero failures**. This comprises 36 PCB tests (20 retained backbone + 16 new stripe cases) and 57 passing baseline/interface/checkpoint regressions. The single skip is `tests/test_model_forward.py:192`, CUDA unavailable. Regression coverage includes ResNet50/BoT forward behavior, model interface, strong-baseline behavior, generic reconstruction, and checkpoint save/load. Environment remains Reid Python 3.12.3 / torch 2.7.1+cpu / torchvision 0.22.1+cpu; no dependency changes. This is a targeted CPU suite, not a full repository or GPU validation claim.
+
+  Final scope checks: `git diff --check` passed; text outside Phase 6 matched HEAD exactly; the complete `PCBBackbone` class matched HEAD exactly. Pre-commit validation Git status: modified `plan.md`, `reid/models/pcb.py`, `tests/test_pcb_model.py` only, on `main`; no untracked files. No commit or push had been performed at implementation handoff. The user subsequently reviewed and accepted Phase 6 and authorized its commit/push on 2026-10-05. The reference checkout remains clean. Test log is temporary in `/tmp`, not a repository artifact.
+- **Decisions/deviations:** No architectural or scope deviations. A separate parameter-free consumer preserves the validated backbone API. Explicit `ValueError` checks strengthen the reference assertion with positive-size/rank validation while retaining exact valid-input behavior. No test failures or unresolved implementation blockers. The environment's broken filesystem sandbox required approved escalated command execution; no repository workaround was introduced.
+- **Review notes:** Phase 6 reviewed and accepted by the user on 2026-10-05; commit/push authorized. STOP after publishing this step; Phase 7 requires separate authorization. CPU-only validation; full PCB is still an incomplete, unregistered component. No reductions, reduction BN/ReLU, classifiers, retrieval descriptor, loss/optimizer/configuration integration, training, or Phase 7 work implemented. No baseline, checkpoint-selection, dataset, evaluator, or generic infrastructure changes.
+- **Next step:** Phase 7 — independent reduction modules, only after Phase 6 review and separate explicit authorization.
 
 ### Phase 7 — Independent reduction modules
 

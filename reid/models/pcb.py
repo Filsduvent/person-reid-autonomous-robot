@@ -1,4 +1,4 @@
-"""Feature backbone for Huang's independent-part PCB; no PCB heads yet.
+"""Backbone and stripe pooling for Huang's PCB; no reduction or identity heads.
 
 Reference: huanghoujing/beyond-part-models @
 1686e889eb01c28a54b633051418012e15d9c9f3, bpm/model/resnet.py
@@ -12,6 +12,7 @@ from pathlib import Path
 
 import torch
 from torch import nn
+from torch.nn import functional as F
 from torchvision.models import resnet50
 
 
@@ -105,3 +106,31 @@ class PCBBackbone(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         return self.layer4(x)
+
+
+class PCBStripePool(nn.Module):
+    """Six equal horizontal stripes, pooled top-to-bottom without flattening.
+
+    Consumes [B,C,H,W] with positive H divisible by six and positive W.
+    The standard backbone map [B,2048,24,8] yields six [B,2048,1,1]
+    tensors. Matches pinned PCBModel.py:50–58; the stripe count is fixed
+    by the selected architecture, not exposed as an experiment setting.
+    """
+
+    @staticmethod
+    def partition(feature_map):
+        """Return six full-width views in spatial order, before pooling."""
+        if not torch.is_tensor(feature_map) or feature_map.ndim != 4:
+            raise ValueError("PCB stripe pooling requires a 4D [B,C,H,W] tensor")
+        height, width = feature_map.shape[-2:]
+        if height <= 0 or height % 6 != 0:
+            raise ValueError("PCB feature-map height must be positive and divisible by 6")
+        if width <= 0:
+            raise ValueError("PCB feature-map width must be positive")
+        stripe_height = height // 6
+        return tuple(feature_map[:, :, i * stripe_height:(i + 1) * stripe_height, :]
+                     for i in range(6))
+
+    def forward(self, feature_map):
+        return tuple(F.avg_pool2d(stripe, kernel_size=stripe.shape[-2:])
+                     for stripe in self.partition(feature_map))

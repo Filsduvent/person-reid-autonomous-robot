@@ -1,4 +1,4 @@
-"""Phase 5 only: PCB feature-backbone tests, all independent of network/cache."""
+"""PCB backbone and stripe pooling tests, independent of network/cache."""
 
 import hashlib
 
@@ -196,3 +196,105 @@ def test_wrong_checksum_never_reaches_legacy_deserializer(tmp_path, monkeypatch,
 def test_missing_local_weights_do_not_substitute():
     with pytest.raises(FileNotFoundError):
         pcb._read_historical_weights("/does-not-exist/reference-weights.pth")
+
+
+def test_stripe_boundaries_order_full_width_and_exact_coverage():
+    rows = torch.arange(24, dtype=torch.float64).view(1, 1, 24, 1)
+    feature_map = rows.expand(2, 3, 24, 8).clone()
+    stripes = pcb.PCBStripePool.partition(feature_map)
+    assert isinstance(stripes, tuple) and len(stripes) == 6
+    coverage = torch.zeros(24, dtype=torch.int64)
+    for index, stripe in enumerate(stripes):
+        assert stripe.shape == (2, 3, 4, 8)
+        expected_rows = torch.arange(index * 4, index * 4 + 4, dtype=torch.float64)
+        torch.testing.assert_close(stripe, expected_rows.view(1, 1, 4, 1).expand_as(stripe),
+                                   rtol=0, atol=0)
+        coverage[stripe[0, 0, :, 0].long()] += 1
+    assert torch.equal(coverage, torch.ones_like(coverage))
+    torch.testing.assert_close(torch.cat(stripes, dim=2), feature_map, rtol=0, atol=0)
+    pooled = pcb.PCBStripePool()(feature_map)
+    for actual, expected_mean in zip(pooled, (1.5, 5.5, 9.5, 13.5, 17.5, 21.5)):
+        torch.testing.assert_close(actual, torch.full((2, 3, 1, 1), expected_mean,
+                                                    dtype=torch.float64), rtol=0, atol=0)
+
+
+@pytest.mark.parametrize("height,width", [(6, 1), (12, 3), (24, 8), (30, 5)])
+def test_stripe_means_preserve_batches_channels_and_average_complete_width(height, width):
+    batch = torch.arange(2, dtype=torch.float64).view(2, 1, 1, 1) * 10000
+    channel = torch.arange(3, dtype=torch.float64).view(1, 3, 1, 1) * 1000
+    row = torch.arange(height, dtype=torch.float64).view(1, 1, height, 1) * 10
+    column = torch.arange(width, dtype=torch.float64).view(1, 1, 1, width)
+    feature_map = batch + channel + row + column
+    before = feature_map.clone()
+    pool = pcb.PCBStripePool()
+    assert not list(pool.parameters()) and not list(pool.buffers())
+    pooled = pool(feature_map)
+    stripe_height = height // 6
+    for index, actual in enumerate(pooled):
+        expected_row_mean = (index * stripe_height + (stripe_height - 1) / 2) * 10
+        expected = batch + channel + expected_row_mean + (width - 1) / 2
+        assert actual.shape == (2, 3, 1, 1)
+        torch.testing.assert_close(actual, expected, rtol=0, atol=0)
+    for actual, expected in zip(pool.eval()(feature_map), pooled):
+        torch.testing.assert_close(actual, expected, rtol=0, atol=0)
+    torch.testing.assert_close(feature_map, before, rtol=0, atol=0)
+
+
+@pytest.mark.parametrize("height", [0, 1, 5, 7, 16, 25])
+def test_stripe_pool_rejects_invalid_height_before_pooling(height, monkeypatch):
+    def forbidden(*args, **kwargs):
+        pytest.fail("Invalid heights must fail before any pooling")
+    monkeypatch.setattr(pcb.F, "avg_pool2d", forbidden)
+    monkeypatch.setattr(pcb.F, "adaptive_avg_pool2d", forbidden)
+    with pytest.raises(ValueError, match="height must be positive and divisible by 6"):
+        pcb.PCBStripePool()(torch.empty(1, 2, height, 8))
+
+
+@pytest.mark.parametrize("feature_map,message", [
+    (torch.empty(1, 2, 24, 0), "width must be positive"),
+    (torch.empty(2, 24, 8), "4D"),
+    (None, "4D"),
+])
+def test_stripe_pool_rejects_invalid_input(feature_map, message):
+    with pytest.raises(ValueError, match=message):
+        pcb.PCBStripePool()(feature_map)
+
+
+def test_each_stripe_gradient_is_uniform_inside_and_zero_outside():
+    feature_map = torch.randn(2, 3, 24, 8, dtype=torch.float64, requires_grad=True)
+    pooled = pcb.PCBStripePool()(feature_map)
+    for index, output in enumerate(pooled):
+        gradient, = torch.autograd.grad(output.sum(), feature_map, retain_graph=True)
+        expected = torch.zeros_like(feature_map)
+        expected[:, :, index * 4:(index + 1) * 4, :] = 1 / 32
+        torch.testing.assert_close(gradient, expected, rtol=0, atol=0)
+    # A distinct coefficient for each part and channel catches mixing/order errors.
+    channel_weights = torch.tensor([1., 2., 4.], dtype=torch.float64).view(1, 3, 1, 1)
+    loss = sum((index + 1) * (output * channel_weights).sum()
+               for index, output in enumerate(pooled))
+    loss.backward()
+    expected = torch.empty_like(feature_map)
+    for index in range(6):
+        expected[:, :, index * 4:(index + 1) * 4, :] = (index + 1) * channel_weights / 32
+    assert torch.isfinite(feature_map.grad).all()
+    torch.testing.assert_close(feature_map.grad, expected, rtol=0, atol=0)
+
+
+def test_backbone_to_six_pooled_stripes_without_adaptive_pooling(monkeypatch):
+    def forbidden(*args, **kwargs):
+        pytest.fail("PCB stripes must use full-stripe pooling, not adaptive pooling")
+    monkeypatch.setattr(pcb.F, "adaptive_avg_pool2d", forbidden)
+    backbone = pcb.PCBBackbone(pretrained=False).eval()
+    pool = pcb.PCBStripePool()
+    with torch.no_grad():
+        feature_map = backbone(torch.randn(1, 3, 384, 128))
+        assert feature_map.shape == (1, 2048, 24, 8)
+        stripes = pool.partition(feature_map)
+        assert all(stripe.shape == (1, 2048, 4, 8) for stripe in stripes)
+        pooled = pool(feature_map)
+    assert isinstance(pooled, tuple) and len(pooled) == 6
+    for index, actual in enumerate(pooled):
+        assert actual.shape == (1, 2048, 1, 1)
+        expected = feature_map[:, :, index * 4:(index + 1) * 4, :].mean((2, 3), keepdim=True)
+        torch.testing.assert_close(actual, expected)
+        assert torch.isfinite(actual).all()
