@@ -4,6 +4,7 @@ import torch.nn as nn
 from reid.losses.center import CenterLoss
 from reid.losses.id import build_id_loss
 from reid.losses.triplet import BatchHardTripletLoss
+from reid.models.outputs import validate_logits
 
 
 class LossBundle(nn.Module):
@@ -16,6 +17,7 @@ class LossBundle(nn.Module):
         center_loss: nn.Module | None = None,
         w_center: float = 1.0,
         metric_feat_key: str = "feat_raw",
+        head_aggregation: str = "sum",
     ):
         super().__init__()
         self.triplet = triplet
@@ -26,6 +28,9 @@ class LossBundle(nn.Module):
         self.center = center_loss
         self.w_center = float(w_center)
         self.metric_feat_key = metric_feat_key
+        if head_aggregation not in ("sum", "mean"):
+            raise ValueError("loss.id.head_aggregation must be 'sum' or 'mean'.")
+        self.head_aggregation = head_aggregation
 
     def forward(self, outputs, labels: torch.Tensor):
         if not isinstance(outputs, dict):
@@ -56,7 +61,18 @@ class LossBundle(nn.Module):
             logits = outputs.get("logits")
             if logits is None:
                 raise ValueError("ID loss enabled but model output 'logits' is missing.")
-            li = self.id_loss(logits, labels)
+            if torch.is_tensor(logits):
+                # Preserve the existing single-head criterion and arithmetic.
+                li = self.id_loss(logits, labels)
+            else:
+                if labels.ndim != 1:
+                    raise ValueError(f"Expected targets with shape [B], got {tuple(labels.shape)}")
+                validate_logits(logits, batch_size=labels.shape[0])
+                # Each criterion returns a batch mean. PCB sums these scalars;
+                # dividing by the head count would change its reference objective.
+                li = sum(self.id_loss(head, labels) for head in logits)
+                if self.head_aggregation == "mean":
+                    li = li / len(logits)
             if torch.isnan(li):
                 raise RuntimeError("NaN detected in ID loss")
             total = total + self.w_id * li
@@ -127,4 +143,5 @@ def build_criterion(cfg, num_classes: int | None, feat_dim: int | None):
         center_loss=center_loss,
         w_center=w_center,
         metric_feat_key=metric_feat_key,
+        head_aggregation=lcfg.get("id", {}).get("head_aggregation", "sum"),
     )

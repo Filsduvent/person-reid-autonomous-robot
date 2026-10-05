@@ -189,6 +189,9 @@ def validate_reid_config(cfg: Dict[str, Any], num_classes: int | None = None) ->
         metric_feat = _expect_choice("model.head.metric_feat", head_cfg.get("metric_feat", "bn"), {"raw", "bn"})
 
     id_cfg = loss_cfg.get("id", {})
+    aggregation = id_cfg.get("head_aggregation", "sum")
+    if aggregation not in ("sum", "mean"):
+        raise ValueError("loss.id.head_aggregation must be 'sum' or 'mean'.")
     id_enabled = bool(id_cfg.get("enabled", False))
     center_cfg = loss_cfg.get("center", {})
     center_enabled = bool(center_cfg.get("enabled", False))

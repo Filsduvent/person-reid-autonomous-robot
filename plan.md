@@ -753,11 +753,47 @@ All phases must update their implementation record, decisions/deviations, review
 - **Implementation tasks:** Tensor direct path unchanged; sequence per-head CE then configured sum/mean; default sum; PCB smoothing zero/weight one; no logits averaging or metric feature requirement for CE-only.
 - **Validation/tests:** Value AND gradient equality to explicit six-CE sum; generic two/three-head sum/mean; unchanged baseline smoothing/weights; malformed sequences and missing logits fail; disabled metric features accepted; enabled metric errors preserved.
 - **Exit criteria:** Objective and every head's gradients match the reference mathematical loss.
-- **Status:** `[ ] NOT STARTED`; authorization absent.
-- **Implementation record:** None.
-- **Decisions/deviations:** Generic mean support is infrastructure coverage, not a PCB experiment.
-- **Review notes:** STOP.
-- **Next step:** Phase 12, separately authorized.
+- **Status:** Completion `[x] IMPLEMENTED + VALIDATED` on 2026-10-05; review `[x] REVIEWED AND ACCEPTED` by the user on 2026-10-05. Phase 12 remains unstarted and unauthorized.
+- **Implementation record:**
+
+  Authorization: user attachment `/home/filsduvent/.codex/attachments/261aea3c-a21c-4f53-ad34-61feef387a0e/Pasted text.txt`, explicitly accepting Phase 10 and authorizing only Phase 11. Starting branch `main`, HEAD `d9557a89bf552135256dc7692fbcebe23b692de6` (`Integrate PCB with generic model and checkpoint infrastructure`), clean working tree. Phase 10 is recorded implemented/validated and reviewed/accepted. Read the current roadmap and inspected loss/config/output contracts and relevant tests. No applicable AGENTS.md found in the repository or checked ancestors.
+
+  Reference rechecked: clean `/home/filsduvent/UFPR/beyond-part-models`, HEAD `1686e889eb01c28a54b633051418012e15d9c9f3`; `script/experiment/train_pcb.py:340` constructs ordinary `torch.nn.CrossEntropyLoss()`, and lines 437–439 forward the model, independently apply that criterion to every logits tensor, then sum the resulting scalars. Each CE is batch-mean; summing heads preserves the selected objective. Modern scalar tensors do not require the historical scalar concatenation idiom. No reference source modified and no reference training executed.
+
+  Exact files changed:
+  - `reid/losses/build.py`: `LossBundle.head_aggregation`, default sum, validated sum/mean; direct single-tensor criterion path preserved; shared logits validation for sequences using label batch size; independent per-head criterion calls, scalar sum or sum divided by head count; common builder passes the optional ID configuration field.
+  - `reid/utils/config.py`: semantic validation for `loss.id.head_aggregation`, allowing only sum/mean and defaulting to sum when absent. Invalid explicit values fail both config validation and loss construction.
+  - New `tests/test_multi_head_id_loss.py`: focused arithmetic/error tests and a real PCB/common-loss backward test, separate from earlier component tests.
+  - `plan.md`: this Phase 11 section only.
+
+  Design: no architecture-name branches in generic loss code. A single logits tensor calls the existing criterion directly without sequence conversion or altered loss arithmetic. Non-tensor inputs reuse Phase 10 `validate_logits`, after checking 1-D labels, to reject empty/nested/mixed/non-floating/rank/shape/dtype/device-incompatible sequences and mismatched label batch size before any head criterion runs. Valid tuple/list heads use the same configured ID criterion independently; `sum` adds the batch-mean CE scalars, while generic `mean` divides that sum by N. No logits averaging/concatenation or detached aggregation. The existing outer ID weight is applied exactly once after aggregation; `loss/id` reports the unweighted aggregate and `loss/total` reports the weighted total. Existing four loss log keys are unchanged; no per-head logs.
+
+  Selected PCB synthetic config: ID enabled, smoothing 0, weight 1, aggregation sum (also the omitted-field default), Triplet/Center disabled. The common infrastructure supports mean and nonzero smoothing for generic callers; neither is a selected PCB experiment. Identical zero logits in six heads explicitly produce six times ordinary CE, preventing accidental division by six. Loss scale is intentionally not normalized to single-head magnitude. ID-only operation accepts `feat_raw=None`, `feat_bn=None`, `feat_dim=None`; enabled metric consumers still reject absent selected features, Center still rejects missing width, and disabled ID permits absent logits when other enabled losses have their required features.
+
+  Numerical evidence: controlled seeded float32 logits with 1/2/3/6 heads, tuple/list containers, sum/mean policies, smoothing 0/0.1 and weights 1/2.3 are compared with independent manual ordinary CE or the historical smoothing formula. Scalar values and every head's logits gradient agree at rtol=1e-6, atol=1e-7. Six-head sum is the explicit sum of six batch-mean CE terms; tolerances allow float32 reduction rounding. Single-tensor values AND gradients match the pre-existing CE/smoothing/outer-weight formulas exactly (rtol=0, atol=0), including either aggregation setting. No changes to `reid/losses/id.py` or ResNet50 model code were necessary.
+
+  Real PCB integration: seed 42, source C=3, train mode, synthetic `[2,3,384,128]` CPU input, initialization disabled and historical weight reader forbidden. Common `build_model` -> real six-head PCB -> production `build_criterion`/LossBundle -> backward succeeds with finite loss. All parameters in the backbone, all six reductions and all six classifiers have non-None finite gradients; each of these 13 groups has a nonzero gradient. Reduction Conv biases are not required to have nonzero gradients because train-mode BN removes channelwise shifts. `loss/id == loss/total` under weight 1; metric fields/width remain None. No optimizer was constructed or stepped by this new integration test.
+
+  Environment: `/home/filsduvent/environments/Reid/bin/python`, Python 3.12.3, torch 2.7.1+cpu, torchvision 0.22.1+cpu; CUDA unavailable. Exact commands from repository root:
+  ```bash
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -rs -p no:cacheprovider tests/test_multi_head_id_loss.py -k 'value or gradient or scale'
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -rs -p no:cacheprovider tests/test_multi_head_id_loss.py -k 'invalid or malformed or missing or compatible'
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -rs -p no:cacheprovider tests/test_multi_head_id_loss.py -k real_pcb
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -rs -p no:cacheprovider tests/test_multi_head_id_loss.py tests/test_loss_interface.py tests/test_reid_loss_modes.py tests/test_model_plugin_contract.py tests/test_model_interface.py tests/test_model_forward.py tests/test_resnet50_strong_baseline.py tests/test_config_schema.py tests/test_pcb_model.py > /tmp/phase11-regression.log 2>&1
+  git diff --check
+  git status --short
+  ```
+  Results, in order:
+  1. **41 passed, 0 failed, 0 skipped, 22 deselected**, 4.12 s — arithmetic and scalar/gradient compatibility.
+  2. **21 passed, 0 failed, 0 skipped, 42 deselected**, 3.92 s — contracts/errors, missing logits/features and aggregation validation.
+  3. **1 passed, 0 failed, 0 skipped, 62 deselected**, 5.27 s — real PCB backward.
+  4. **249 passed, 0 failed, 1 skipped**, 53.51 s — affected regressions including all 63 new cases, existing ResNet50 CE/smoothing/ID+Triplet/Center feature-selection modes, model/plugin/config and prior PCB coverage. Skip: `tests/test_model_forward.py:192`, CUDA unavailable. Repeated focused cases are not added to the regression total. This is not the Phase 17 full regression gate.
+
+  Failures/resolutions: no test failures. Before running the real integration case, inspection corrected the test's mocked historical-reader name to the actual `_read_historical_weights`. The existing broken filesystem sandbox required approved escalated execution; no repository workaround introduced. Final whitespace check passes, and plan content outside Phase 11 is byte-for-byte unchanged from HEAD. Resulting Git state: modified `reid/losses/build.py`, `reid/utils/config.py`, `plan.md`; untracked new `tests/test_multi_head_id_loss.py`. No commit or push was performed at implementation handoff. The user subsequently reviewed and accepted Phase 11 and explicitly authorized its commit/push on 2026-10-05.
+
+- **Decisions/deviations:** No scientific/scope deviation. A focused new test file keeps arithmetic/contract/real-backward validation together. Generic mean support is infrastructure coverage, not a PCB experiment. Existing structural schema requires no change; semantic validation remains in its established owner. Earlier phase records are historical and remain unchanged as requested.
+- **Review notes:** Phase 11 reviewed and accepted by the user on 2026-10-05; commit/push authorized. STOP after publishing this step. CPU synthetic forward/loss/backward only; no authoritative training or GPU smoke. Full common training-loop support still awaits Phase 12's multi-head diagnostics. No statistics, LR logging, differential optimizer groups, scheduler changes, presets, data/evaluator/cross-domain changes or training experiments implemented. Phase 12 is not started and requires separate explicit authorization.
+- **Next step:** Phase 12 — Multi-head training diagnostics, only after Phase 11 review and separate explicit authorization.
 
 ### Phase 12 — Multi-head training diagnostics
 
