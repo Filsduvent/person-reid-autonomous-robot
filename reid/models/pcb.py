@@ -1,4 +1,4 @@
-"""Internal PCB backbone, stripes, reductions and identity classifiers.
+"""Independent-part PCB and its components, with raw retrieval embeddings.
 
 Reference: huanghoujing/beyond-part-models @
 1686e889eb01c28a54b633051418012e15d9c9f3, bpm/model/resnet.py
@@ -215,3 +215,37 @@ class PCBIdentityClassifiers(nn.Module):
             batch_size = feature.shape[0]
         return tuple(classifier(feature)
                      for classifier, feature in zip(self.fc_list, local_features))
+
+
+class PCB(nn.Module):
+    """Independent-part PCB with raw retrieval embeddings and six ID logits.
+
+    Direct construction is supported; common builder registration is separate.
+    The evaluator owns global normalization. feat_dim is intentionally None:
+    PCB has no global pre/post-BNNeck feature for the legacy metric-loss fields.
+    """
+
+    embedding_dim = 1536
+    feat_dim = None
+
+    def __init__(self, num_classes, *, pretrained=False, weights_path=None):
+        super().__init__()
+        if type(num_classes) is not int or num_classes <= 0:
+            raise ValueError("PCB num_classes must be a positive integer from the source dataset")
+        self.num_classes = num_classes
+        self.backbone = PCBBackbone(pretrained=pretrained, weights_path=weights_path)
+        self.pool = PCBStripePool()
+        self.reductions = PCBPartReductions()
+        self.classifiers = PCBIdentityClassifiers(num_classes)
+
+    def forward(self, images):
+        local_features = self.reductions(self.pool(self.backbone(images)))
+        # Huang's ExtractFeature concatenates post-ReLU parts along axis 1.
+        # Keep this branch attached to autograd and independent of classifiers.
+        embedding = torch.cat(local_features, dim=1)
+        return {
+            "emb": embedding,
+            "feat_raw": None,
+            "feat_bn": None,
+            "logits": self.classifiers(local_features),
+        }

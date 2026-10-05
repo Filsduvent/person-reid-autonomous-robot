@@ -1,4 +1,4 @@
-"""PCB component tests through identity classifiers, independent of network/cache."""
+"""PCB component and public output tests, independent of network/cache."""
 
 import hashlib
 import math
@@ -683,3 +683,180 @@ def test_identity_classifiers_reject_malformed_features(malformation):
         features[-1] = None
     with pytest.raises(ValueError, match="PCB"):
         heads(features)
+
+
+class _SentinelLocalFeatures(nn.Module):
+    def forward(self, values):
+        return tuple(values[:, index:index + 1].expand(-1, 256) for index in range(6))
+
+
+def _sentinel_pcb():
+    # Exercise the real public forward and real classifiers with exact local values.
+    model = pcb.PCB(num_classes=3, pretrained=False)
+    model.backbone = nn.Identity()
+    model.pool = nn.Identity()
+    model.reductions = _SentinelLocalFeatures()
+    return model
+
+
+@pytest.mark.parametrize("training", [False, True])
+def test_pcb_public_descriptor_exact_order_no_normalization_and_classifier_independence(training):
+    from reid.models.outputs import ensure_output_dict, get_embedding
+
+    model = _sentinel_pcb().train(training)
+    values = torch.tensor([[1., 2., 3., 4., 5., 6.], [7., 8., 9., 10., 11., 12.]])
+    with torch.no_grad():
+        outputs = model(values)
+        assert set(outputs) == {"emb", "feat_raw", "feat_bn", "logits"}
+        assert outputs["feat_raw"] is outputs["feat_bn"] is None
+        assert model.embedding_dim == 1536 and model.feat_dim is None
+        assert ensure_output_dict(outputs) is outputs
+        assert get_embedding(outputs) is outputs["emb"]
+        expected = values.repeat_interleave(256, dim=1)
+        torch.testing.assert_close(outputs["emb"], expected, rtol=0, atol=0)
+        assert outputs["emb"].shape == (2, 1536)
+        assert (outputs["emb"].norm(dim=1) > 1).all()
+        for index, head in enumerate(model.classifiers.fc_list):
+            block = expected[:, index * 256:(index + 1) * 256]
+            torch.testing.assert_close(outputs["logits"][index], torch.nn.functional.linear(
+                block, head.weight, head.bias))
+            head.weight.zero_()
+            head.bias.fill_(100 + index)
+        changed = model(values)
+        torch.testing.assert_close(changed["emb"], outputs["emb"], rtol=0, atol=0)
+        for index, logits in enumerate(changed["logits"]):
+            assert not torch.equal(logits, outputs["logits"][index])
+            torch.testing.assert_close(logits, torch.full((2, 3), 100. + index), rtol=0, atol=0)
+        zeros = model(torch.zeros(1, 6))
+        assert torch.equal(zeros["emb"], torch.zeros(1, 1536))
+        assert torch.isfinite(zeros["emb"]).all()
+
+
+@pytest.mark.parametrize("training,batch_size", [(True, 2), (False, 1)])
+def test_pcb_public_real_forward_and_descriptor_gradient(training, batch_size):
+    torch.manual_seed(9)
+    model = pcb.PCB(num_classes=7, pretrained=False).train(training)
+    assert set(dict(model.named_children())) == {"backbone", "pool", "reductions", "classifiers"}
+    assert not any(isinstance(module, (nn.Dropout, nn.AdaptiveAvgPool2d)) for module in model.modules())
+    assert all(module.training == training for module in model.modules())
+    captured = {}
+    def capture(name):
+        def hook(module, args, output):
+            captured[name] = output
+            if training:
+                for tensor in output if isinstance(output, tuple) else (output,):
+                    tensor.retain_grad()
+        return hook
+    handles = [module.register_forward_hook(capture(name)) for name, module in
+               (("map", model.backbone), ("pooled", model.pool), ("local", model.reductions))]
+    images = torch.randn(batch_size, 3, 384, 128, requires_grad=training)
+    try:
+        with torch.set_grad_enabled(training):
+            outputs = model(images)
+    finally:
+        for handle in handles:
+            handle.remove()
+    assert set(outputs) == {"emb", "feat_raw", "feat_bn", "logits"}
+    assert model.embedding_dim == 1536 and model.feat_dim is None
+    assert outputs["feat_raw"] is outputs["feat_bn"] is None
+    assert outputs["emb"].shape == (batch_size, 1536)
+    assert isinstance(outputs["logits"], tuple) and len(outputs["logits"]) == 6
+    assert all(logit.shape == (batch_size, 7) and torch.isfinite(logit).all()
+               for logit in outputs["logits"])
+    assert torch.isfinite(outputs["emb"]).all()
+    torch.testing.assert_close(outputs["emb"], torch.cat(captured["local"], dim=1), rtol=0, atol=0)
+    for index, feature in enumerate(captured["local"]):
+        assert (feature >= 0).all()  # post-ReLU local representation
+        torch.testing.assert_close(outputs["logits"][index], model.classifiers.fc_list[index](feature))
+    if training:
+        outputs["emb"].square().mean().backward()
+        for component in (model.backbone, model.reductions):
+            for name, parameter in component.named_parameters():
+                assert parameter.grad is not None and torch.isfinite(parameter.grad).all(), name
+        for tensor in (captured["map"], *captured["pooled"], *captured["local"], images):
+            assert tensor.grad is not None and torch.isfinite(tensor.grad).all()
+            assert torch.count_nonzero(tensor.grad) > 0
+        for reduction in model.reductions.local_conv_list:
+            assert torch.count_nonzero(reduction[0].weight.grad) > 0
+        assert torch.count_nonzero(model.backbone.conv1.weight.grad) > 0
+        # Retrieval branches before classifiers: descriptor loss must not update heads.
+        assert all(parameter.grad is None for parameter in model.classifiers.parameters())
+
+
+def test_pcb_composition_preserves_historical_backbone_and_source_classes(monkeypatch):
+    source = historical_fixture(pcb.PCBBackbone(pretrained=False))
+    calls = []
+    def read(path):
+        calls.append(path)
+        return source
+    monkeypatch.setattr(pcb, "_read_historical_weights", read)
+    model = pcb.PCB(num_classes=11, pretrained=True, weights_path="mock-historical.pth")
+    assert calls == ["mock-historical.pth"]
+    for key, value in model.backbone.state_dict().items():
+        expected = torch.zeros_like(value) if key.endswith("num_batches_tracked") else source[key]
+        torch.testing.assert_close(value, expected, rtol=0, atol=0)
+    assert model.num_classes == 11
+    assert all(head.out_features == 11 for head in model.classifiers.fc_list)
+    with pytest.raises(ValueError, match="positive integer"):
+        pcb.PCB(num_classes=0, pretrained=True)
+    assert calls == ["mock-historical.pth"]  # invalid construction must not read weights
+
+
+def test_actual_pcb_feature_extraction_returns_raw_embedding():
+    import numpy as np
+    from reid.engine.evaluator import extract_features
+    from torch.utils.data import DataLoader
+
+    torch.manual_seed(10)
+    model = pcb.PCB(num_classes=3, pretrained=False).eval()
+    image = torch.randn(3, 384, 128)
+    with torch.no_grad():
+        raw = model(image.unsqueeze(0))["emb"].numpy()
+    loader = DataLoader([(image, 9, 2, "synthetic.jpg", 0)], batch_size=1)
+    model.train()  # extractor owns eval/no-grad behavior
+    features, pids, cameras, names, marks = extract_features(model, loader, torch.device("cpu"))
+    assert not model.training and features.shape == (1, 1536)
+    np.testing.assert_array_equal(features, raw)
+    assert pids.tolist() == [9] and cameras.tolist() == [2]
+    assert names.tolist() == ["synthetic.jpg"] and marks.tolist() == [0]
+    assert all(parameter.grad is None for parameter in model.parameters())
+
+
+@pytest.mark.parametrize("normalize_feat", [False, True])
+def test_pcb_evaluator_owns_one_global_normalization(normalize_feat, monkeypatch):
+    import numpy as np
+    import reid.engine.evaluator as evaluator
+    from torch.utils.data import DataLoader
+
+    model = _sentinel_pcb().eval()
+    rows = torch.tensor([[1., 2., 3., 4., 5., 6.], [6., 5., 4., 3., 2., 1.],
+                         [2., 4., 6., 8., 10., 12.], [12., 10., 8., 6., 4., 2.]])
+    samples = [(row, index % 2, int(index >= 2), f"fixture-{index}", int(index >= 2))
+               for index, row in enumerate(rows)]
+    loader = DataLoader(samples, batch_size=2, shuffle=False)
+    raw = rows.repeat_interleave(256, dim=1).numpy()
+    collected = evaluator.extract_features(model, loader, torch.device("cpu"))[0]
+    np.testing.assert_array_equal(collected, raw)
+    calls = []
+    original_normalize, original_dist = evaluator.normalize, evaluator.compute_dist
+    def normalize(values, axis=1):
+        calls.append("normalize")
+        assert axis == 1
+        np.testing.assert_array_equal(values, raw)
+        return original_normalize(values, axis=axis)
+    def distance(query, gallery, metric):
+        calls.append("distance")
+        assert metric == "euclidean"
+        expected = raw / (np.linalg.norm(raw, axis=1, keepdims=True) + 1e-12) if normalize_feat else raw
+        np.testing.assert_allclose(query, expected[:2], rtol=0, atol=0)
+        np.testing.assert_allclose(gallery, expected[2:], rtol=0, atol=0)
+        if normalize_feat:
+            np.testing.assert_allclose(np.linalg.norm(query, axis=1), np.ones(2), rtol=1e-6)
+        return original_dist(query, gallery, metric=metric)
+    monkeypatch.setattr(evaluator, "normalize", normalize)
+    monkeypatch.setattr(evaluator, "compute_dist", distance)
+    cfg = {"eval": {"normalize_feat": normalize_feat, "distance": "euclidean",
+                    "topk": [1, 5, 10], "rerank": {"enabled": False}}}
+    scores = evaluator.evaluate_reid(cfg, model, loader, torch.device("cpu"))
+    assert calls == (["normalize", "distance"] if normalize_feat else ["distance"])
+    assert all(np.isfinite(scores[key]) for key in ("mAP", "mINP", "Rank1", "Rank5", "Rank10"))

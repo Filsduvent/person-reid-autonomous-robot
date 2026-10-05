@@ -643,19 +643,61 @@ All phases must update their implementation record, decisions/deviations, review
 
 ### Phase 9 — Retrieval and public PCB outputs
 
-- **Objective:** Complete honest model outputs and retrieval metadata.
-- **Why this step exists:** Evaluation must receive the selected descriptor without fabricated BNNeck features.
-- **Prerequisites:** Phase 8 reviewed and explicit authorization.
-- **Files to inspect:** `reid/models/outputs.py`, `reid/engine/evaluator.py`, reference `ExtractFeature` and `TestSet`.
-- **Files expected to change:** `reid/models/pcb.py`, proposed `tests/test_pcb_model.py`, `plan.md`.
-- **Implementation tasks:** Concatenate post-ReLU local features top-to-bottom; expose `emb`, six-logit tuple, `feat_raw=None`, `feat_bn=None`, `embedding_dim=1536`, `feat_dim=None` consistently across modes.
-- **Validation/tests:** Sentinel local features prove concatenation order; descriptor equals local concat and is not forcibly unit-normalized; single-image eval; required dictionary keys; no dropout/global branch; finite output and gradients.
-- **Exit criteria:** Model output contract verified independently of framework registration.
-- **Status:** `[ ] NOT STARTED`; authorization absent.
-- **Implementation record:** None.
-- **Decisions/deviations:** Evaluator owns normalization; no changes to metric implementations.
-- **Review notes:** STOP.
-- **Next step:** Phase 10, separately authorized.
+- **Objective:** Complete the raw PCB retrieval descriptor, public model outputs and dimension metadata.
+- **Why this step exists:** Evaluation must receive the selected local-feature descriptor without fabricated BNNeck features.
+- **Prerequisites:** Satisfied. The user reviewed and accepted Phase 8 and explicitly authorized ONLY Phase 9 in attachment `7b0ec34a-fb48-44ce-93c5-49663453bd21/Pasted text.txt` on 2026-10-05. Phase 8 is recorded as implemented/validated and reviewed/accepted and is committed/pushed as `0fdb6cae80c14a9f0d9e9619766087c8910c155a`. Earlier authorization wording is historical; this dated record supersedes it for Phase 9 only.
+- **Files to inspect:** Complete roadmap; current PCB components/tests; pinned Huang `PCBModel.py`, `train_pcb.py:ExtractFeature`, `TestSet.py`, `distance.py`; framework `reid/models/outputs.py`, `reid/engine/evaluator.py`, `reid/metrics/distance.py` and evaluator tests.
+- **Files expected to change:** `reid/models/pcb.py`, `tests/test_pcb_model.py`, `plan.md` only.
+- **Implementation tasks:** Compose existing components; concatenate six post-ReLU local features in spatial order; expose raw `emb`, six-logit tuple, `feat_raw=None`, `feat_bn=None`, `embedding_dim=1536`, `feat_dim=None` consistently in train/eval. Keep normalization external.
+- **Validation/tests:** Exact sentinel descriptor blocks/order and lack of normalization; classifier-independent embeddings; actual train/single-image eval outputs; descriptor gradients to backbone/reductions; unchanged extraction/evaluator compatibility and one external global normalization; earlier PCB and relevant baseline/checkpoint/evaluator regressions.
+- **Exit criteria:** Satisfied: public output contract and retrieval path verified independently of builder registration.
+- **Status:** Completion `[x] IMPLEMENTED + VALIDATED` on 2026-10-05; review `[x] REVIEWED AND ACCEPTED` by the user on 2026-10-05. Phase 10 remains unstarted and unauthorized.
+- **Implementation record:** Starting branch `main`, tracking `origin/main`; HEAD `0fdb6cae80c14a9f0d9e9619766087c8910c155a`; working tree clean. Read the complete current roadmap and authorization; confirmed Phase 8 acceptance; inspected the existing PCB components, framework output/evaluation interfaces, and clean Huang reference checkout at `1686e889eb01c28a54b633051418012e15d9c9f3`. No applicable AGENTS.md found in the repository or checked ancestors.
+
+  Reference behavior rechecked: `bpm/model/PCBModel.py:60–65` retains the post-Conv/BN/ReLU local features separately from classifier logits. `script/experiment/train_pcb.py:250–277` (`ExtractFeature`) collects those local tensors and concatenates them along feature axis 1. `bpm/dataset/TestSet.py:122–129` stacks collected descriptors and optionally normalizes each complete row; line 188 uses Euclidean query/gallery distance. `bpm/utils/distance.py:7–10` uses norm plus float32 epsilon. Our existing evaluator uses global normalization with `1e-12` and Euclidean distance; the previously frozen numerical adaptation is preserved.
+
+  Exact files changed:
+  - `reid/models/pcb.py`: added `PCB(nn.Module)` composing `backbone`, `pool`, `reductions`, and `classifiers`; raw concatenation, output dictionary and dimension metadata; updated module description. All Phase 5–8 component implementations and historical weight loading remain byte-for-byte unchanged.
+  - `tests/test_pcb_model.py`: retained all 75 prior cases and added eight Phase 9 cases, including narrow evaluator compatibility tests; updated module description. No production evaluator or output-helper edits.
+  - `plan.md`: this Phase 9 section only; text outside it remains byte-for-byte unchanged.
+
+  Direct construction and output:
+  ```python
+  model = PCB(num_classes=source_num_classes, pretrained=False)
+  # pretrained=True and optional weights_path delegate to the verified backbone loader.
+  outputs = model(images)
+  # {
+  #   "emb": Tensor[B,1536],
+  #   "feat_raw": None,
+  #   "feat_bn": None,
+  #   "logits": (Tensor[B,C], ... six tensors ...),
+  # }
+  ```
+  Positive source C is validated before constructing/loading the backbone. The existing six heads receive the same C; no target-dataset inference. Construction initializes only the existing components through their validated constructors, with no blanket initializer. A mocked historical-load composition test verifies every backbone tensor survives subsequent construction and source C reaches all six classifiers. The default non-pretrained path remains offline; future training builder wiring must opt into the frozen historical initialization.
+
+  Forward computes `local_features = reductions(pool(backbone(images)))`, then `torch.cat(local_features, dim=1)`. Blocks `[0:256]`, `[256:512]`, `[512:768]`, `[768:1024]`, `[1024:1280]`, `[1280:1536]` correspond to parts 1–6, top-to-bottom. These are post-BN/ReLU features. The classifier branch consumes the same local features separately; embeddings neither depend on logits nor detach from autograd. No model-side per-part/global normalization, additional BNNeck, dropout, global branch, normalization/clamping fallback, or extra output field. `embedding_dim=1536` is retrieval width; `feat_dim=None` honestly declares no exposed legacy metric-loss feature. Both modes return exactly the same four keys with all six logits; only standard BN behavior changes. Single-image evaluation works; single-image pooled-BN training remains unsupported as established earlier.
+
+  Validation evidence:
+  - A test-only sentinel producer feeds the real public forward and real classifiers with parts filled by 1–6 and a second batch row 7–12. Exact comparison with repeated blocks proves order, 256-value block widths, correct concatenation axis and no per-part/global normalization. Norms exceed one by construction. Controlled zero local features produce a finite zero descriptor. Existing `ensure_output_dict` and `get_embedding` accept the dictionary directly.
+  - For both modes, expected logits match each head applied to its own descriptor block. Mutating every classifier's weights/biases changes logits while the descriptor remains exactly equal, establishing the branch before classification.
+  - Seed-9 actual-model tests on `[2,3,384,128]` in train mode and `[1,3,384,128]` in eval mode verify metadata, exact keys, None metric fields, six finite logits, finite `[B,1536]` embeddings, and exact equality to captured post-ReLU local concatenation. Child-module structure is exactly the four accepted components; no dropout/adaptive pooling added.
+  - A descriptor-only squared-mean scalar backward in train mode yields non-None finite gradients for all backbone/reduction parameters, and finite nonzero gradients at input, backbone map, every pooled stripe/local feature, every reduction Conv weight and stem weight. Classifier gradients remain None for this descriptor-only objective, proving graph separation. Existing Phase 8 manual six-head CE tests still verify the supervision branch. No optimizer step or training experiment.
+  - Seed-10 actual PCB single-image feature extraction through unchanged `extract_features` returns an array exactly equal to direct raw model `emb`, preserving ID/camera/name/mark metadata. The extractor switches to eval and applies no-grad externally; it does not normalize.
+  - A controlled four-sample query/gallery fixture uses the real public PCB forward with sentinel local features and real classifiers. Unmodified `evaluate_reid` completes with finite core metrics for normalization both enabled and disabled. Delegating spies verify the collected raw `[4,1536]` matrix, exactly one axis-1 normalization when enabled (none when disabled), and Euclidean distance inputs exactly equal to `raw / (norm + 1e-12)` or raw respectively. Normalized ordinary nonzero rows have unit norm within rtol=1e-6. Actual ranking/distance functions run unchanged; this is synthetic compatibility validation, not a dataset result.
+
+  Exact validation command from repository root:
+  ```bash
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -rs -p no:cacheprovider tests/test_pcb_model.py tests/test_model_forward.py tests/test_model_interface.py tests/test_resnet50_strong_baseline.py tests/test_checkpoint_reconstruction.py tests/test_checkpoint.py tests/test_evaluation_harness.py > /tmp/phase9-validation.log 2>&1
+  git diff --check
+  git diff --stat
+  git status --short --branch
+  ```
+  Result: **146 passed, 1 skipped in 53.57 s; zero failures**. This comprises 83 PCB cases (75 retained + eight new), 57 passing baseline/interface/checkpoint cases, and six existing evaluation-harness cases. One skip at `tests/test_model_forward.py:192`: CUDA unavailable. Regression coverage preserves ResNet50/BoT forward behavior, model interfaces, strong baseline, generic reconstruction/checkpoint persistence and evaluator behavior. Environment rechecked: Python 3.12.3, torch 2.7.1+cpu, torchvision 0.22.1+cpu; CUDA false. No dependency changes. Targeted CPU validation only, not a full repository/GPU suite.
+
+  Final checks: `git diff --check` passed; existing PCB component code and roadmap text outside Phase 9 matched HEAD exactly. Pre-commit validation Git status on `main`: modified `plan.md`, `reid/models/pcb.py`, `tests/test_pcb_model.py` only; no untracked files. No commit or push had been performed at implementation handoff. The user subsequently reviewed and accepted Phase 9 and authorized its commit/push on 2026-10-05. Reference checkout remains clean. Temporary log: `/tmp/phase9-validation.log`.
+- **Decisions/deviations:** No architecture/recipe or scope deviation. Descriptor concatenation occurs in torch inside the model to preserve the training graph, while normalization stays in the common evaluator. No test failures or unresolved implementation blocker. Approved escalated execution was used for the existing filesystem sandbox issue; no repository workaround introduced.
+- **Review notes:** Phase 9 reviewed and accepted by the user on 2026-10-05; commit/push authorized. STOP after publishing this step; Phase 10 requires separate authorization. CPU-only validation. Direct PCB construction/output is complete, but public builder/config-schema integration, generic optional metric-feature/multi-head handling, reconstruction metadata and full PCB checkpoint round trip remain later gates. No loss/training-loop/optimizer changes, presets, training/dataset experiments, cross-domain changes or Phase 10 work implemented. Baseline and evaluation production code remain unchanged.
+- **Next step:** Phase 10 — generic model/output/dimension integration, only after Phase 9 review and separate explicit authorization.
 
 ### Phase 10 — Generic model/output/dimension integration
 
