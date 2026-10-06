@@ -1,0 +1,136 @@
+# Frozen PCB recipe. Dataset root inherits the baseline host convention; verify on Constantine.
+# Common random train loader enforces shuffle=True/drop_last=True; test drop_last=False.
+# Evaluation has no test-time flip; its transform is Resize -> ToTensor -> Normalize.
+experiment:
+  name: pcb_market1501
+  output_dir: exp/pcb/market1501
+  notes: Independent-part PCB; historical ImageNet resnet50-19c8e357.pth; SHA256 19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097.
+    Select ckpt_best.pth by periodic test-query/gallery mAP; no independent validation
+    split.
+system:
+  device: auto
+  gpu_id: 0
+  amp: false
+  log_interval: 20
+repro:
+  seed: 42
+  deterministic: false
+  benchmark: true
+logging:
+  to_file: true
+  tensorboard: true
+  wandb:
+    enabled: false
+    project: reid
+    entity: null
+    tags:
+    - pcb
+data:
+  root: ~/nobackup/Projects/Dataset
+  num_workers: 4
+  pin_memory: true
+  train:
+    dataset:
+      name: market1501
+      split: trainval
+      format: processed
+    images:
+      size:
+      - 384
+      - 128
+    aug:
+      mean:
+      - 0.486
+      - 0.459
+      - 0.408
+      std:
+      - 0.229
+      - 0.224
+      - 0.225
+      mirror: random
+      padding:
+        enabled: false
+      random_crop:
+        enabled: false
+      random_erasing:
+        enabled: false
+    batch:
+      sampler: random
+      batch_size: 64
+  test:
+    dataset:
+      name: market1501
+      split: test
+      format: processed
+    images:
+      size:
+      - 384
+      - 128
+    aug:
+      mean:
+      - 0.486
+      - 0.459
+      - 0.408
+      std:
+      - 0.229
+      - 0.224
+      - 0.225
+      mirror: none
+    loader:
+      shuffle: false
+    batch:
+      size: 32
+model:
+  name: pcb
+  variant: independent_part_reduction
+  pretrained: true
+loss:
+  id:
+    enabled: true
+    label_smoothing: 0.0
+    weight: 1.0
+    head_aggregation: sum
+  triplet:
+    enabled: false
+  center:
+    enabled: false
+optim:
+  name: sgd
+  lr: 0.1
+  momentum: 0.9
+  nesterov: false
+  weight_decay: 0.0005
+  bias_lr_factor: 1.0
+  weight_decay_bias: 0.0005
+  param_groups:
+  - prefix: backbone.
+    lr_mult: 0.1
+sched:
+  name: warmup_multistep
+  milestones:
+  - 40
+  gamma: 0.1
+  warmup_iters: 0
+  warmup_factor: 1.0
+  warmup_method: linear
+train:
+  epochs: 120
+  eval_interval: 10
+  save:
+    save_best: true
+    save_last: true
+    metric: mAP
+    resume: ''
+eval:
+  weight: ''
+  normalize_feat: true
+  distance: euclidean
+  topk:
+  - 1
+  - 5
+  - 10
+  rerank:
+    enabled: false
+  export:
+    format:
+    - json
