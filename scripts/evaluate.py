@@ -105,12 +105,24 @@ def main():
     from reid.utils.config import load_config, save_yaml, validate_reid_config
     from reid.utils.config_schema import validate_config
     from reid.utils.device import device_summary, select_device
+    from reid.utils.evaluation_config import prepare_standalone_config
     from reid.utils.io import ensure_dir
     from reid.utils.logger import setup_logger
 
     cfg = load_config(args.config, overrides=args.opts)
     validate_config(cfg)
     validate_reid_config(cfg)
+
+    weight_path = args.weight or cfg["eval"].get("weight", "")
+    if not weight_path:
+        raise ValueError("No checkpoint path provided. Use --weight or set eval.weight in the config.")
+    weight_path = resolve_repo_relative_path(weight_path)
+    checkpoint = torch.load(weight_path, map_location="cpu")
+    cfg = prepare_standalone_config(checkpoint, cfg)
+    cfg["eval"]["weight"] = weight_path
+    validate_config(cfg)
+    validate_reid_config(cfg)
+    device, _ = select_device(cfg["system"]["device"], cfg["system"].get("gpu_id", 0), cfg)
 
     exp_dir = resolve_repo_relative_path(cfg["experiment"]["output_dir"])
     cfg["experiment"]["output_dir"] = exp_dir
@@ -128,7 +140,6 @@ def main():
         from reid.utils.artifacts import save_run_artifacts
         artifact_paths = save_run_artifacts(exp_dir, argv=sys.argv)
 
-        device, _ = select_device(cfg["system"]["device"], cfg["system"].get("gpu_id", 0), cfg)
         logger.info("Config path: %s", args.config)
         logger.info("Device: %s", device_summary(device))
         logger.info("Resolved config saved to: %s", resolved_config_path)
@@ -139,13 +150,8 @@ def main():
         logger.info("Raw eval stdout saved to: %s", osp.join(logs_dir, "eval_stdout.txt"))
         logger.info("Raw eval stderr saved to: %s", osp.join(logs_dir, "eval_stderr.txt"))
 
-        weight_path = args.weight or cfg["eval"].get("weight", "")
-        if not weight_path:
-            raise ValueError("No checkpoint path provided. Use --weight or set eval.weight in the config.")
-        weight_path = resolve_repo_relative_path(weight_path)
         logger.info("Evaluation checkpoint: %s", weight_path)
 
-        checkpoint = torch.load(weight_path, map_location=device)
         model = reconstruct_model(checkpoint, cfg=cfg).to(device)
 
         test_loader = build_test_loader(cfg)

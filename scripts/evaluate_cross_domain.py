@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import argparse
-import copy
+import json
 import os.path as osp
 import sys
 from pathlib import Path
@@ -20,6 +20,7 @@ from reid.utils.checkpoint import infer_num_classes_from_checkpoint, reconstruct
 from reid.utils.config import load_config, save_yaml, validate_reid_config
 from reid.utils.config_schema import validate_config
 from reid.utils.device import select_device
+from reid.utils.evaluation_config import build_evaluation_config
 from reid.utils.experiment_matrix import build_cross_dataset_record, write_cross_dataset_record
 
 
@@ -39,17 +40,23 @@ def infer_num_classes(checkpoint):
 
 
 def build_cross_domain_config(source_cfg, target_cfg, target_dataset, output_dir):
-    """Keep source architecture/loss settings and substitute target evaluation data only."""
-    cfg = copy.deepcopy(source_cfg)
-    cfg["data"]["root"] = target_cfg["data"]["root"]
-    cfg["data"]["num_workers"] = target_cfg["data"]["num_workers"]
-    cfg["data"]["pin_memory"] = target_cfg["data"]["pin_memory"]
-    cfg["data"]["test"] = copy.deepcopy(target_cfg["data"]["test"])
-    actual_target = cfg["data"]["test"]["dataset"]["name"]
+    """Preserve source semantics while selecting target protocol and execution."""
+    actual_target = target_cfg["data"]["test"]["dataset"]["name"]
     if actual_target != target_dataset:
         raise ValueError(f"Target config dataset is '{actual_target}', expected '{target_dataset}'.")
-    cfg["experiment"]["output_dir"] = str(output_dir)
-    return cfg
+    return build_evaluation_config(source_cfg, target_cfg, output_dir)
+
+
+def validate_output_identity(output_dir, source, target, checkpoint_path):
+    """Refuse to overwrite a different matrix cell/checkpoint in the same directory."""
+    path = Path(output_dir) / "cross_dataset.json"
+    if path.exists():
+        previous = json.loads(path.read_text(encoding="utf-8"))
+        identity = (previous.get("source_dataset"), previous.get("target_dataset"),
+                    previous.get("checkpoint_path"))
+        if identity != (source, target, str(checkpoint_path)):
+            raise ValueError("Output directory contains a different source/target/checkpoint result; "
+                             "choose a separate --output-dir.")
 
 
 def main():
@@ -66,13 +73,15 @@ def main():
         raise ValueError(f"Checkpoint source dataset is '{checkpoint_source}', not '{args.source_dataset}'.")
 
     cfg = build_cross_domain_config(source_cfg, target_cfg, args.target_dataset, args.output_dir)
+    cfg.setdefault("eval", {})["weight"] = str(checkpoint_path)
     validate_config(cfg)
     validate_reid_config(cfg)
     output_dir = Path(args.output_dir)
+    validate_output_identity(output_dir, args.source_dataset, args.target_dataset, checkpoint_path)
     output_dir.mkdir(parents=True, exist_ok=True)
-    save_yaml(cfg, output_dir / "config.resolved.yaml")
 
     device, _ = select_device(cfg["system"]["device"], cfg["system"].get("gpu_id", 0), cfg)
+    save_yaml(cfg, output_dir / "config.resolved.yaml")
     model = reconstruct_model(checkpoint).to(device)
     scores = evaluate_reid(cfg, model, build_test_loader(cfg), device)
     architecture = str(cfg["model"]["name"])
