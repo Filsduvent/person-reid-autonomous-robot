@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import os
+import math
 import re
 import copy
 import yaml
@@ -174,7 +175,29 @@ def validate_model_loss_requirements(cfg: dict, model):
     return feat_dim
 
 
+def validate_optimizer_param_groups(optim_cfg: dict) -> list:
+    """Validate optional prefix rules; actual trainable matches are builder-owned."""
+    rules = optim_cfg.get("param_groups", [])
+    if not isinstance(rules, list):
+        raise ValueError("optim.param_groups must be a list of prefix/lr_mult mappings.")
+    prefixes = set()
+    for rule in rules:
+        if not isinstance(rule, dict) or set(rule) != {"prefix", "lr_mult"}:
+            raise ValueError("Each optim.param_groups rule must contain exactly prefix and lr_mult.")
+        prefix = rule["prefix"]
+        if not isinstance(prefix, str) or not prefix.strip() or prefix != prefix.strip():
+            raise ValueError("optim.param_groups prefix must be a nonempty string without surrounding whitespace.")
+        if prefix in prefixes:
+            raise ValueError(f"Duplicate optim.param_groups prefix: {prefix!r}.")
+        prefixes.add(prefix)
+        mult = rule["lr_mult"]
+        if type(mult) not in (int, float) or not math.isfinite(mult) or mult <= 0:
+            raise ValueError("optim.param_groups lr_mult must be a finite positive number.")
+    return rules
+
+
 def validate_reid_config(cfg: Dict[str, Any], num_classes: int | None = None) -> None:
+    validate_optimizer_param_groups(cfg.get("optim", {}))
     model_cfg = cfg.get("model", {})
     head_cfg = model_cfg.get("head", {})
     loss_cfg = cfg.get("loss", {})

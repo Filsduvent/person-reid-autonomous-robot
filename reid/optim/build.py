@@ -4,6 +4,7 @@ import torch
 from torch.optim.lr_scheduler import MultiStepLR
 
 from reid.optim.lr_scheduler import WarmupMultiStepLR
+from reid.utils.config import validate_optimizer_param_groups
 
 
 def build_optimizer(cfg, model):
@@ -18,6 +19,8 @@ def build_optimizer(cfg, model):
     momentum = float(ocfg.get("momentum", 0.9))
     nesterov = bool(ocfg.get("nesterov", False))
 
+    rules = validate_optimizer_param_groups(ocfg)
+    match_counts = [0] * len(rules)
     params = []
     for param_name, param in model.named_parameters():
         if not param.requires_grad:
@@ -29,14 +32,33 @@ def build_optimizer(cfg, model):
             lr = base_lr * bias_lr_factor
             param_weight_decay = weight_decay_bias
 
-        params.append(
-            {
-                "params": [param],
-                "lr": lr,
-                "weight_decay": param_weight_decay,
-                "param_name": param_name,
-            }
-        )
+        group = {
+            "params": [param],
+            "lr": lr,
+            "weight_decay": param_weight_decay,
+            "param_name": param_name,
+        }
+        if rules:
+            matches = [i for i, rule in enumerate(rules)
+                       if param_name.startswith(rule["prefix"])]
+            if len(matches) > 1:
+                raise ValueError(f"Overlapping optim.param_groups rules match {param_name!r}.")
+            prefix, mult = None, 1.0
+            if matches:
+                index = matches[0]
+                match_counts[index] += 1
+                prefix = rules[index]["prefix"]
+                mult = float(rules[index]["lr_mult"])
+            is_bias = "bias" in param_name  # Preserve historical bias detection.
+            group["lr"] = base_lr * mult * (bias_lr_factor if is_bias else 1.0)
+            owner = f"prefix/{prefix}" if prefix is not None else "default"
+            group.update(prefix=prefix, lr_mult=mult,
+                         group_name=f"{owner}/{'bias' if is_bias else 'regular'}")
+        params.append(group)
+
+    for rule, count in zip(rules, match_counts):
+        if count == 0:
+            raise ValueError(f"optim.param_groups prefix {rule['prefix']!r} matches no trainable parameters.")
 
     if name == "sgd":
         return torch.optim.SGD(params, lr=base_lr, momentum=momentum, nesterov=nesterov)

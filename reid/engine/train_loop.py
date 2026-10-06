@@ -22,6 +22,28 @@ def classification_accuracy(logits, labels):
     return {"acc/id_mean_heads": float(torch.stack(accuracies).mean().cpu())}
 
 
+def learning_rate_metrics(optimizer):
+    """Read current rates using rule metadata, or preserve historical LR tags."""
+    groups = optimizer.param_groups
+    if any("group_name" in group for group in groups):
+        metrics = {}
+        for group in groups:
+            if "group_name" not in group:
+                raise ValueError("Prefix optimizer groups must all carry group_name metadata.")
+            tag = f"lr/{group['group_name']}"
+            if tag in metrics and metrics[tag] != group["lr"]:
+                raise ValueError(f"Inconsistent learning rates for optimizer group {tag!r}.")
+            metrics[tag] = group["lr"]
+        return metrics
+    current_lr = groups[0]["lr"]
+    metrics = {"lr": current_lr, "lr/base": current_lr}
+    bias_lr = next((group["lr"] for group in groups[1:]
+                    if group["lr"] != current_lr), None)
+    if bias_lr is not None:
+        metrics["lr/bias"] = bias_lr
+    return metrics
+
+
 def train_one_epoch(
     model,
     loader,
@@ -92,24 +114,14 @@ def train_one_epoch(
             speed = (batch_size * interval_steps) / max(interval_elapsed, 1e-12)
             last_log_time = time.time()
             avg = running_total / step
-            current_lr = optimizer.param_groups[0]["lr"]
-            bias_lr = next(
-                (
-                    group["lr"]
-                    for group in optimizer.param_groups[1:]
-                    if group["lr"] != current_lr
-                ),
-                None,
-            )
+            lr_metrics = learning_rate_metrics(optimizer)
             avg_accuracy = {key: value / accuracy_steps[key]
                             for key, value in running_accuracy.items()}
 
-            msg = (
-                f"Epoch [{epoch}] Iter [{step}/{num_steps}] "
-                f"loss_total={avg:.4f} lr={current_lr:.6g}"
-            )
-            if bias_lr is not None:
-                msg += f" lr/bias={bias_lr:.6g}"
+            msg = f"Epoch [{epoch}] Iter [{step}/{num_steps}] loss_total={avg:.4f}"
+            for key, value in lr_metrics.items():
+                if key != "lr/base":  # Historical console omits this duplicate tag.
+                    msg += f" {key}={value:.6g}"
             for key, value in avg_accuracy.items():
                 msg += f" {key.replace('/', '_')}={value:.4f}"
             for key in sorted(running_logs):
@@ -128,13 +140,11 @@ def train_one_epoch(
                 for key, value in logs.items():
                     if key != "loss/total":
                         tb_writer.add_scalar(key, value, global_step=global_step)
-                tb_writer.add_scalar("lr", current_lr, global_step=global_step)
-                tb_writer.add_scalar("lr/base", current_lr, global_step=global_step)
+                for key, value in lr_metrics.items():
+                    tb_writer.add_scalar(key, value, global_step=global_step)
                 tb_writer.add_scalar("time/batch", time_per_batch, global_step=global_step)
                 tb_writer.add_scalar("speed/img_per_sec", speed, global_step=global_step)
                 for key, value in avg_accuracy.items():
                     tb_writer.add_scalar(key, value, global_step=global_step)
-                if bias_lr is not None:
-                    tb_writer.add_scalar("lr/bias", bias_lr, global_step=global_step)
 
     return running_total / max(1, num_steps)
