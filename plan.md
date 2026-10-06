@@ -907,11 +907,59 @@ All phases must update their implementation record, decisions/deviations, review
 - **Implementation tasks:** Test frozen no-warmup `[40]` recipe on fixed synthetic loader lengths, including resumed optimizer/scheduler state.
 - **Validation/tests:** Rates actually used at updates 1, `40S`, `40S+1`, `120S`; all groups scale once and retain ratio; no extra decay; constructor and restored-state boundary checks.
 - **Exit criteria:** Required trace established with exact commands/results; no full training needed.
-- **Status:** `[ ] NOT STARTED`; authorization absent.
-- **Implementation record:** None.
-- **Decisions/deviations:** If behavior cannot express the frozen trace, mark BLOCKED and report; do not move/add milestones.
-- **Review notes:** STOP.
-- **Next step:** Phase 15, separately authorized.
+- **Status:** Completion `[x] IMPLEMENTED + VALIDATED` on 2026-10-06; review `[x] REVIEWED AND ACCEPTED` on 2026-10-06. Phase 15 remains unstarted and requires separate authorization.
+- **Implementation record:**
+
+  Authorization: user attachment `/home/filsduvent/.codex/attachments/6279518c-f8bc-41bb-aea8-89a5b2196bfa/Pasted text.txt`, explicitly accepting Phase 13 and authorizing Phase 14 only. Starting branch `main`, HEAD `c171f0e9434d6b0e157b743ff21381393761e1a0` (`Add prefix-based optimizer groups and learning rate logging`), clean working tree. Phase 13 implementation/validation and reviewed/accepted prerequisite confirmed. Read the complete current roadmap before edits; no applicable AGENTS.md found in the repository or checked ancestors. Earlier sections retain their historical authorization statements; this record supplies the current Phase 14 authorization.
+
+  Inspected: `reid/optim/build.py`, `lr_scheduler.py`; `reid/engine/train_loop.py`; `reid/utils/checkpoint.py`; scheduler construction/resume/save paths in `scripts/train.py`; optimizer, scheduler, checkpoint and training tests listed below. Exact changed files: new `tests/test_scheduler_trace.py` and this Phase 14 section of `plan.md` only. **No production files changed.** The existing common scheduler expresses the frozen contract; no correction or methodological blocker was found.
+
+  Frozen test fixture: SGD base LR 0.1, momentum 0.9, Nesterov false, weight decay and bias weight decay 0.0005, bias LR factor 1, and the sole prefix rule `backbone.` with multiplier 0.1. Scheduler `warmup_multistep`, milestones `[40]`, gamma 0.1, warmup_iters 0, warmup_factor 1.0, warmup_method linear. No presets created. The builder multiplies each configured epoch milestone by S. Loader lengths S=1,3,7 produce iteration milestones 40,120,280, respectively.
+
+  Actual order: the common loop calls `scaler.step(optimizer)`, optional auxiliary step, `scaler.update()`, then `scheduler.step()`, then reads LR metrics for console/TensorBoard. AMP is disabled in the bounded loop probe, as selected for PCB. Scheduler construction leaves `last_epoch=0` and the initial LRs unchanged; after k scheduler steps it holds the rates for update k+1. An optimizer pre-step hook captures the rates actually presented to each update. Complete traces contain 120,360,840 synthetic optimizer calls, with no dataset or model forward/backward in the trace helpers. Every used and post-step group LR is checked, not only selected epochs.
+
+  Required boundary table, verified for each S (LRs actually used):
+
+  | Optimizer update | Backbone LR | New-layer LR |
+  |---|---:|---:|
+  | 1 | 0.01 | 0.1 |
+  | S | 0.01 | 0.1 |
+  | S+1 | 0.01 | 0.1 |
+  | 40S-1 | 0.01 | 0.1 |
+  | 40S | 0.01 | 0.1 |
+  | 40S+1 | 0.001 | 0.01 |
+  | 120S | 0.001 | 0.01 |
+
+  Thus updates 1 through 40S (epochs 1–40) use 0.01/0.1; updates 40S+1 through 120S (epochs 41–120) use 0.001/0.01. Constructor and first-three-update probes establish no effective warmup. Every group has exactly one transition, at update 40S+1, by factor 0.1; new/backbone remains 10 throughout. Explicit 60S,80S,100S,120S probes and all intervening updates establish no later decay. Decimal LR expectations and ratios use relative tolerance 1e-14 (LR absolute tolerance zero), accommodating ordinary binary product rounding without masking a second decay. Restored versus continuous LR traces compare exactly.
+
+  Negative controls for S=3,7 confirm that `[41]` in the common warmup scheduler leaves update 40S+1 at the initial rates and first decays update 41S+1, one epoch too late. The legacy `step` branch retains raw iteration milestone 40 regardless of S and first uses reduced rates at update 41. These are isolated test controls, not changes to the selected `[40]` policy or scheduler type. Existing ResNet50 warmup/multiple-milestone tests are retained unchanged.
+
+  Resume evidence: 15 serialized checkpoint cases cover completed-update positions 10S,40S-1,40S,40S+1,60S for each S. Tiny synthetic constant gradients populate SGD momentum state. Tests use production `save_checkpoint` and `load_checkpoint`, constructing the new optimizer and scheduler before loading, as `scripts/train.py` does. Optimizer group metadata/LRs, momentum buffers and scheduler state restore exactly. At completed update 40S the saved current rates are already 0.001/0.01, correctly used by the next update. Every resumed used-LR and post-step-LR suffix through 120S equals the uninterrupted suffix exactly, with the combined trace independently checked against the frozen policy. Mid-epoch positions exercise state restoration only: they do not establish data-loader position recovery or alter the script's epoch+1 resume convention. Assumes unchanged S and group layout. RNG, sampler, AMP/scaler state and full bitwise training-resume equivalence remain outside scope.
+
+  Logging evidence: after 39S synthetic optimizer/scheduler calls, a tiny two-layer plugin runs two bounded three-batch common-loop calls labelled epochs 40 and 41 (six CPU CE/backward/optimizer steps total; no PCB images or dataset training). Pre-step hooks prove update 40S still uses 0.01/0.1. Its console and TensorBoard LR diagnostics already show 0.001/0.01, the NEXT update's rates; update 40S+1 then uses those rates. All prefix/default bias/regular TensorBoard tags are checked at each step; console boundary values are checked too. This preserves historical post-scheduler logging semantics without redesign or retrospective reinterpretation.
+
+  Real PCB integration: common builder, source C=3, pretrained false, historical weight reader and model forward forbidden. All 195 trainable parameter groups (159 backbone, 36 reductions/classifiers) pass the same complete trace checks for S=1,3,7. Calls have no gradients, no momentum state and no parameter updates; no image forward/backward or downloads. Existing bounded PCB backward/optimizer tests also pass in the affected regression suite; no full training, GPU experiments or authoritative checkpoints were produced.
+
+  Environment: `/home/filsduvent/environments/Reid/bin/python`, Python 3.12.3, torch 2.7.1+cpu, torchvision 0.22.1+cpu; CUDA unavailable. Exact commands from repository root:
+  ```bash
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -rs -p no:cacheprovider tests/test_scheduler_trace.py -k 'constructor or legacy' > /tmp/phase14-trace.log 2>&1
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -rs -p no:cacheprovider tests/test_scheduler_trace.py -k checkpoint > /tmp/phase14-resume.log 2>&1
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -rs -p no:cacheprovider tests/test_scheduler_trace.py -k 'common_loop or real_pcb' > /tmp/phase14-integration.log 2>&1
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 /home/filsduvent/environments/Reid/bin/python -B -m pytest -q -rs -p no:cacheprovider tests/test_scheduler_trace.py tests/test_optim_build.py tests/test_optimizer_param_groups.py tests/test_train_loop_optim.py tests/test_training_diagnostics.py tests/test_checkpoint.py tests/test_checkpoint_reconstruction.py tests/test_resnet50_strong_baseline.py tests/test_train_orchestration.py > /tmp/phase14-regression.log 2>&1
+  git diff --check
+  git status --short
+  ```
+  Results, in order:
+  1. **5 passed, 0 failed, 0 skipped, 19 deselected**, 4.58 s — constructor, complete traces/all groups and negative controls.
+  2. **15 passed, 0 failed, 0 skipped, 9 deselected**, 5.42 s — optimizer/scheduler checkpoint restoration and continuation.
+  3. **4 passed, 0 failed, 0 skipped, 20 deselected**, 7.26 s — actual common-loop order/logs and real PCB groups.
+  4. **176 passed, 0 failed, 3 skipped**, 47.16 s — all 24 new cases plus existing optimizer/group, ResNet50 warmup/scheduler, training-loop/diagnostic, checkpoint/reconstruction and orchestration regressions. Skips: three CUDA-only cases at `tests/test_train_loop_optim.py:125`, CUDA unavailable. Focused reruns are not added to this total. This is the affected regression suite, not the Phase 17 full offline gate.
+
+  Failures/resolutions: no test failures or production incompatibility. The existing filesystem sandbox fails to initialize (`mountinfo path is not absolute`); approved escalated execution was used, with no repository workaround. Final whitespace and change-scope checks pass; all plan content outside Phase 14 matches HEAD byte-for-byte. Resulting Git status: modified `plan.md`, untracked `tests/test_scheduler_trace.py`; all production files unchanged. Changes were uncommitted/unpushed at implementation handoff. The user subsequently reviewed and accepted Phase 14 and explicitly authorized its commit/push on 2026-10-06.
+
+- **Decisions/deviations:** Tests/documentation only; no scientific deviation or new scheduler. A focused test file keeps the frozen trace, restoration and logging acceptance checks together. No changes to milestones, warmup behavior, optimizer or training-loop semantics, historical configs, presets, dataset behavior or cross-domain preprocessing.
+- **Review notes:** Phase 14 reviewed and accepted by the user on 2026-10-06; commit/push authorized. STOP after publishing this step. Exact synthetic LR behavior is validated; no real-loader feasibility or full resume reproducibility claim. Phase 15 has not started and is not authorized.
+- **Next step:** Phase 15 — Source preprocessing in common evaluation, only after Phase 14 review and separate explicit authorization.
 
 ### Phase 15 — Source preprocessing in common evaluation
 
