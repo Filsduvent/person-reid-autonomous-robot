@@ -1,0 +1,835 @@
+phase: 20
+status: reviewed_and_accepted
+audit_date: '2026-10-06'
+code:
+  repository: /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot
+  branch_at_audit: main
+  training_commit: 66ea88d06ba0f79c298b19abe1652ae892d69fdd
+  origin_main_and_live_remote_verified: 66ea88d06ba0f79c298b19abe1652ae892d69fdd
+  remote: git@github-personal:Filsduvent/person-reid-autonomous-robot.git
+  working_tree_clean_before_documentation: true
+  launch_checkout: detached at training_commit after documentation accepted and committed
+environment:
+  host: constantine
+  python: /home/addirakoze/environments/Reid/bin/python
+  python_version: 3.11.2
+  torch: 2.7.1+cu126
+  torchvision: 0.22.1+cu126
+  cuda_runtime: '12.6'
+  cudnn: 90501
+  driver: 570.211.01
+  gpu: NVIDIA TITAN Xp
+  gpu_uuid: GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c
+  cuda_visible_bytes: 12774801408
+  activation: source /home/addirakoze/environments/Reid/bin/activate
+  tmux: 3.3a
+  package_inventory: docs/pcb_environment_freeze.txt
+reference_commit: 1686e889eb01c28a54b633051418012e15d9c9f3
+resume_policy: fresh runs only; separately review interrupted state and preserve historical best
+storage_available_bytes: 3405158223872
+storage_operational_allowance_bytes: 10737418240
+data_root: /home/addirakoze/nobackup/Projects/Dataset
+physical_data_root: /mnt/hd-data/addirakoze/Projects/Dataset
+partition_sha256:
+  market1501/partitions.pkl: 3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab
+  market1501/train_test_split.pkl: 0501b8b8c11ccf5a5b8aea19f2cce509ae3f2c2602063c92afaf4446c5529949
+  duke/partitions.pkl: 25929417e0a8780548924d4f58f4f644ee18098e957df41a571650eb05e6b638
+  duke/train_test_split.pkl: beb21338194506fb9b04ce0f400ac38d920c861cc5c75c581a8ace0e4429845a
+  cuhk03/detected/partitions.pkl: a1fd9a06748dd217325820b2ed5c5814de364a6b5e91cb7a93e1924915034f97
+  cuhk03/re_ranking_train_test_split.pkl: 22558735b7a423dacd9158352b6bcc76944c048eaf1df9ada253dbe58a175c3c
+  cuhk03/cuhk03_new_protocol_config_detected.mat: ef438e7775fce6d08ef6dff84d2235bd4bed63850dbbf7025f3251e45c7fa721
+  cuhk03/splits_new_detected.json: d25235134237c6b84f5200098a53d264335c1ef530901067d486505f51b1bb70
+  msmt17/MSMT17_V2/list_train.txt: 00930d5911e66ec6ac4d9b177e61b49433658758cc091231bf7cfcb83c70d0bf
+  msmt17/MSMT17_V2/list_val.txt: 1b42a24d568a37648405e209f3c50d0d82e908e7009d22326e3089a48f9a7f8c
+  msmt17/MSMT17_V2/list_query.txt: 46b568a56e6e7567175c3350f74362f522d3b898242e0c6d4f87e27ee71cab03
+  msmt17/MSMT17_V2/list_gallery.txt: fccd30161c9185bc05f4ee5fa86af5768aab256799b526f87dc5f3a1900288fd
+weight:
+  path: /home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth
+  sha256: 19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097
+  bytes: 102502400
+runs:
+  market1501:
+    config: configs/pcb/market1501.yaml
+    sha256: a0d689383e3e054a406d14172129072f1660da3852c8cab4177cbefccb746f77
+    output_dir: /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/pcb/market1501
+    output_absent: true
+    train_ids: 751
+    train_images: 12936
+    query: 3368
+    gallery: 15913
+    test_images_including_auxiliary: 31969
+    steps_per_epoch: 202
+    test_batches: 1000
+    dropped_train_images: 8
+    lr_by_update:
+      '1':
+      - 0.010000000000000002
+      - 0.1
+      '8080':
+      - 0.010000000000000002
+      - 0.1
+      '8081':
+      - 0.0010000000000000002
+      - 0.010000000000000002
+      '24240':
+      - 0.0010000000000000002
+      - 0.010000000000000002
+    parameters: 27816410
+    model_state_bytes: 111490880
+    estimated_checkpoint_tensor_bytes: 222756520
+    train_transform: "Compose(\n    Resize(size=(384, 128), interpolation=bilinear, max_size=None, antialias=True)\n\
+      \    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0.486, 0.459, 0.408], std=[0.229, 0.224,\
+      \ 0.225])\n)"
+    test_transform: "Compose(\n    Resize(size=(384, 128), interpolation=bilinear, max_size=None, antialias=True)\n\
+      \    ToTensor()\n    Normalize(mean=[0.486, 0.459, 0.408], std=[0.229, 0.224, 0.225])\n)"
+    resolved_config:
+      experiment:
+        name: pcb_market1501
+        output_dir: /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/pcb/market1501
+        notes: Independent-part PCB; historical ImageNet resnet50-19c8e357.pth; SHA256 19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097.
+          Select ckpt_best.pth by periodic test-query/gallery mAP; no independent validation split.
+      system:
+        device: auto
+        gpu_id: 0
+        amp: false
+        log_interval: 20
+      repro:
+        seed: 42
+        deterministic: false
+        benchmark: true
+      logging:
+        to_file: true
+        tensorboard: true
+        wandb:
+          enabled: false
+          project: reid
+          entity: null
+          tags:
+          - pcb
+      data:
+        root: /home/addirakoze/nobackup/Projects/Dataset
+        num_workers: 4
+        pin_memory: true
+        train:
+          dataset:
+            name: market1501
+            split: trainval
+            format: processed
+          images:
+            size:
+            - 384
+            - 128
+          aug:
+            mean:
+            - 0.486
+            - 0.459
+            - 0.408
+            std:
+            - 0.229
+            - 0.224
+            - 0.225
+            mirror: random
+            padding:
+              enabled: false
+            random_crop:
+              enabled: false
+            random_erasing:
+              enabled: false
+          batch:
+            sampler: random
+            batch_size: 64
+        test:
+          dataset:
+            name: market1501
+            split: test
+            format: processed
+          images:
+            size:
+            - 384
+            - 128
+          aug:
+            mean:
+            - 0.486
+            - 0.459
+            - 0.408
+            std:
+            - 0.229
+            - 0.224
+            - 0.225
+            mirror: none
+          loader:
+            shuffle: false
+          batch:
+            size: 32
+      model:
+        name: pcb
+        variant: independent_part_reduction
+        pretrained: true
+      loss:
+        id:
+          enabled: true
+          label_smoothing: 0.0
+          weight: 1.0
+          head_aggregation: sum
+        triplet:
+          enabled: false
+        center:
+          enabled: false
+      optim:
+        name: sgd
+        lr: 0.1
+        momentum: 0.9
+        nesterov: false
+        weight_decay: 0.0005
+        bias_lr_factor: 1.0
+        weight_decay_bias: 0.0005
+        param_groups:
+        - prefix: backbone.
+          lr_mult: 0.1
+      sched:
+        name: warmup_multistep
+        milestones:
+        - 40
+        gamma: 0.1
+        warmup_iters: 0
+        warmup_factor: 1.0
+        warmup_method: linear
+      train:
+        epochs: 120
+        eval_interval: 10
+        save:
+          save_best: true
+          save_last: true
+          metric: mAP
+          resume: ''
+      eval:
+        weight: ''
+        normalize_feat: true
+        distance: euclidean
+        topk:
+        - 1
+        - 5
+        - 10
+        rerank:
+          enabled: false
+        export:
+          format:
+          - json
+    selected_best_epoch: null
+    selected_best_sha256: null
+    final_state_sha256: null
+    metrics: null
+    manual_launch_command: "(\nset -e\nsource /home/addirakoze/environments/Reid/bin/activate\ncd /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot\n\
+      test \"$(hostname -s)\" = constantine\ntest -z \"$(git status --porcelain)\"\ngit switch --detach 66ea88d06ba0f79c298b19abe1652ae892d69fdd\n\
+      test \"$(git rev-parse HEAD)\" = 66ea88d06ba0f79c298b19abe1652ae892d69fdd\ntest ! -e exp/pcb/market1501\n\
+      test ! -L exp/pcb/market1501\nexport CUDA_VISIBLE_DEVICES=GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c\nexport\
+      \ YOLO_OFFLINE=true\n/home/addirakoze/environments/Reid/bin/python - <<'PY_PREFLIGHT'\nimport sys, hashlib\n\
+      from pathlib import Path\nimport torch, torchvision\nassert sys.version_info[:3] == (3,11,2)\nassert torch.__version__\
+      \ == \"2.7.1+cu126\" and torchvision.__version__ == \"0.22.1+cu126\"\nassert torch.version.cuda == \"12.6\"\
+      \ and torch.backends.cudnn.version() == 90501\nassert torch.cuda.is_available() and torch.cuda.device_count()\
+      \ == 1\np = torch.cuda.get_device_properties(0)\nassert p.name == \"NVIDIA TITAN Xp\" and p.total_memory ==\
+      \ 12774801408\nassert str(p.uuid).removeprefix(\"GPU-\") == \"bb0efb3f-f2ea-d40d-8769-e4e989bab10c\"\ndef\
+      \ check(path, expected):\n    with open(path, \"rb\") as stream:\n        assert hashlib.file_digest(stream,\
+      \ \"sha256\").hexdigest() == expected, str(path)\ncheck(\"configs/pcb/market1501.yaml\", \"a0d689383e3e054a406d14172129072f1660da3852c8cab4177cbefccb746f77\"\
+      )\nw = Path(torch.hub.get_dir()) / \"checkpoints/resnet50-19c8e357.pth\"\nassert str(w) == \"/home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth\"\
+      \ncheck(w, \"19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097\")\nbase = Path(\"/home/addirakoze/nobackup/Projects/Dataset\"\
+      )\nassert str(base.resolve()) == \"/mnt/hd-data/addirakoze/Projects/Dataset\"\nfor relative, digest in {'market1501/partitions.pkl':\
+      \ '3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab', 'market1501/train_test_split.pkl': '0501b8b8c11ccf5a5b8aea19f2cce509ae3f2c2602063c92afaf4446c5529949'}.items():\n\
+      \    check(base / relative, digest)\nprint(\"Frozen source preflight passed; starting fresh market1501 PCB\
+      \ training.\")\nPY_PREFLIGHT\n/home/addirakoze/environments/Reid/bin/python -u scripts/train.py --config configs/pcb/market1501.yaml\n\
+      )"
+    final_state_epoch: null
+    selected_best_selection_map: null
+  duke:
+    config: configs/pcb/duke.yaml
+    sha256: a30afbcec6b55f874923bab36dc6fba99114dd24947cabd3b8fb1170c6448f85
+    output_dir: /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/pcb/duke
+    output_absent: true
+    train_ids: 702
+    train_images: 16522
+    query: 2228
+    gallery: 17661
+    test_images_including_auxiliary: 19889
+    steps_per_epoch: 258
+    test_batches: 622
+    dropped_train_images: 10
+    lr_by_update:
+      '1':
+      - 0.010000000000000002
+      - 0.1
+      '10320':
+      - 0.010000000000000002
+      - 0.1
+      '10321':
+      - 0.0010000000000000002
+      - 0.010000000000000002
+      '30960':
+      - 0.0010000000000000002
+      - 0.010000000000000002
+    parameters: 27740852
+    model_state_bytes: 111188648
+    estimated_checkpoint_tensor_bytes: 222152056
+    train_transform: "Compose(\n    Resize(size=(384, 128), interpolation=bilinear, max_size=None, antialias=True)\n\
+      \    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0.486, 0.459, 0.408], std=[0.229, 0.224,\
+      \ 0.225])\n)"
+    test_transform: "Compose(\n    Resize(size=(384, 128), interpolation=bilinear, max_size=None, antialias=True)\n\
+      \    ToTensor()\n    Normalize(mean=[0.486, 0.459, 0.408], std=[0.229, 0.224, 0.225])\n)"
+    resolved_config:
+      experiment:
+        name: pcb_duke
+        output_dir: /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/pcb/duke
+        notes: Independent-part PCB; historical ImageNet resnet50-19c8e357.pth; SHA256 19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097.
+          Select ckpt_best.pth by periodic test-query/gallery mAP; no independent validation split.
+      system:
+        device: auto
+        gpu_id: 0
+        amp: false
+        log_interval: 20
+      repro:
+        seed: 42
+        deterministic: false
+        benchmark: true
+      logging:
+        to_file: true
+        tensorboard: true
+        wandb:
+          enabled: false
+          project: reid
+          entity: null
+          tags:
+          - pcb
+      data:
+        root: /home/addirakoze/nobackup/Projects/Dataset
+        num_workers: 4
+        pin_memory: true
+        train:
+          dataset:
+            name: duke
+            split: trainval
+            format: processed
+          images:
+            size:
+            - 384
+            - 128
+          aug:
+            mean:
+            - 0.486
+            - 0.459
+            - 0.408
+            std:
+            - 0.229
+            - 0.224
+            - 0.225
+            mirror: random
+            padding:
+              enabled: false
+            random_crop:
+              enabled: false
+            random_erasing:
+              enabled: false
+          batch:
+            sampler: random
+            batch_size: 64
+        test:
+          dataset:
+            name: duke
+            split: test
+            format: processed
+          images:
+            size:
+            - 384
+            - 128
+          aug:
+            mean:
+            - 0.486
+            - 0.459
+            - 0.408
+            std:
+            - 0.229
+            - 0.224
+            - 0.225
+            mirror: none
+          loader:
+            shuffle: false
+          batch:
+            size: 32
+      model:
+        name: pcb
+        variant: independent_part_reduction
+        pretrained: true
+      loss:
+        id:
+          enabled: true
+          label_smoothing: 0.0
+          weight: 1.0
+          head_aggregation: sum
+        triplet:
+          enabled: false
+        center:
+          enabled: false
+      optim:
+        name: sgd
+        lr: 0.1
+        momentum: 0.9
+        nesterov: false
+        weight_decay: 0.0005
+        bias_lr_factor: 1.0
+        weight_decay_bias: 0.0005
+        param_groups:
+        - prefix: backbone.
+          lr_mult: 0.1
+      sched:
+        name: warmup_multistep
+        milestones:
+        - 40
+        gamma: 0.1
+        warmup_iters: 0
+        warmup_factor: 1.0
+        warmup_method: linear
+      train:
+        epochs: 120
+        eval_interval: 10
+        save:
+          save_best: true
+          save_last: true
+          metric: mAP
+          resume: ''
+      eval:
+        weight: ''
+        normalize_feat: true
+        distance: euclidean
+        topk:
+        - 1
+        - 5
+        - 10
+        rerank:
+          enabled: false
+        export:
+          format:
+          - json
+    selected_best_epoch: null
+    selected_best_sha256: null
+    final_state_sha256: null
+    metrics: null
+    manual_launch_command: "(\nset -e\nsource /home/addirakoze/environments/Reid/bin/activate\ncd /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot\n\
+      test \"$(hostname -s)\" = constantine\ntest -z \"$(git status --porcelain)\"\ngit switch --detach 66ea88d06ba0f79c298b19abe1652ae892d69fdd\n\
+      test \"$(git rev-parse HEAD)\" = 66ea88d06ba0f79c298b19abe1652ae892d69fdd\ntest ! -e exp/pcb/duke\ntest !\
+      \ -L exp/pcb/duke\nexport CUDA_VISIBLE_DEVICES=GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c\nexport YOLO_OFFLINE=true\n\
+      /home/addirakoze/environments/Reid/bin/python - <<'PY_PREFLIGHT'\nimport sys, hashlib\nfrom pathlib import\
+      \ Path\nimport torch, torchvision\nassert sys.version_info[:3] == (3,11,2)\nassert torch.__version__ == \"\
+      2.7.1+cu126\" and torchvision.__version__ == \"0.22.1+cu126\"\nassert torch.version.cuda == \"12.6\" and torch.backends.cudnn.version()\
+      \ == 90501\nassert torch.cuda.is_available() and torch.cuda.device_count() == 1\np = torch.cuda.get_device_properties(0)\n\
+      assert p.name == \"NVIDIA TITAN Xp\" and p.total_memory == 12774801408\nassert str(p.uuid).removeprefix(\"\
+      GPU-\") == \"bb0efb3f-f2ea-d40d-8769-e4e989bab10c\"\ndef check(path, expected):\n    with open(path, \"rb\"\
+      ) as stream:\n        assert hashlib.file_digest(stream, \"sha256\").hexdigest() == expected, str(path)\n\
+      check(\"configs/pcb/duke.yaml\", \"a30afbcec6b55f874923bab36dc6fba99114dd24947cabd3b8fb1170c6448f85\")\nw\
+      \ = Path(torch.hub.get_dir()) / \"checkpoints/resnet50-19c8e357.pth\"\nassert str(w) == \"/home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth\"\
+      \ncheck(w, \"19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097\")\nbase = Path(\"/home/addirakoze/nobackup/Projects/Dataset\"\
+      )\nassert str(base.resolve()) == \"/mnt/hd-data/addirakoze/Projects/Dataset\"\nfor relative, digest in {'duke/partitions.pkl':\
+      \ '25929417e0a8780548924d4f58f4f644ee18098e957df41a571650eb05e6b638', 'duke/train_test_split.pkl': 'beb21338194506fb9b04ce0f400ac38d920c861cc5c75c581a8ace0e4429845a'}.items():\n\
+      \    check(base / relative, digest)\nprint(\"Frozen source preflight passed; starting fresh duke PCB training.\"\
+      )\nPY_PREFLIGHT\n/home/addirakoze/environments/Reid/bin/python -u scripts/train.py --config configs/pcb/duke.yaml\n\
+      )"
+    final_state_epoch: null
+    selected_best_selection_map: null
+  cuhk03:
+    config: configs/pcb/cuhk03.yaml
+    sha256: 0b13581f5de394a2b3f2587ee6ec61b4a9ba05c219a887ae3bd9b7e20d10c1c8
+    output_dir: /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/pcb/cuhk03
+    output_absent: true
+    train_ids: 767
+    train_images: 7365
+    query: 1400
+    gallery: 5332
+    test_images_including_auxiliary: 6732
+    steps_per_epoch: 115
+    test_batches: 211
+    dropped_train_images: 5
+    lr_by_update:
+      '1':
+      - 0.010000000000000002
+      - 0.1
+      '4600':
+      - 0.010000000000000002
+      - 0.1
+      '4601':
+      - 0.0010000000000000002
+      - 0.010000000000000002
+      '13800':
+      - 0.0010000000000000002
+      - 0.010000000000000002
+    parameters: 27841082
+    model_state_bytes: 111589568
+    estimated_checkpoint_tensor_bytes: 222953896
+    train_transform: "Compose(\n    Resize(size=(384, 128), interpolation=bilinear, max_size=None, antialias=True)\n\
+      \    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0.486, 0.459, 0.408], std=[0.229, 0.224,\
+      \ 0.225])\n)"
+    test_transform: "Compose(\n    Resize(size=(384, 128), interpolation=bilinear, max_size=None, antialias=True)\n\
+      \    ToTensor()\n    Normalize(mean=[0.486, 0.459, 0.408], std=[0.229, 0.224, 0.225])\n)"
+    resolved_config:
+      experiment:
+        name: pcb_cuhk03
+        output_dir: /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/pcb/cuhk03
+        notes: Independent-part PCB; historical ImageNet resnet50-19c8e357.pth; SHA256 19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097.
+          Select ckpt_best.pth by periodic test-query/gallery mAP; no independent validation split.
+      system:
+        device: auto
+        gpu_id: 0
+        amp: false
+        log_interval: 20
+      repro:
+        seed: 42
+        deterministic: false
+        benchmark: true
+      logging:
+        to_file: true
+        tensorboard: true
+        wandb:
+          enabled: false
+          project: reid
+          entity: null
+          tags:
+          - pcb
+      data:
+        root: /home/addirakoze/nobackup/Projects/Dataset
+        num_workers: 4
+        pin_memory: true
+        train:
+          dataset:
+            name: cuhk03
+            split: trainval
+            format: processed
+            image_type: detected
+            protocol: processed_partition
+            split_id: null
+          images:
+            size:
+            - 384
+            - 128
+          aug:
+            mean:
+            - 0.486
+            - 0.459
+            - 0.408
+            std:
+            - 0.229
+            - 0.224
+            - 0.225
+            mirror: random
+            padding:
+              enabled: false
+            random_crop:
+              enabled: false
+            random_erasing:
+              enabled: false
+          batch:
+            sampler: random
+            batch_size: 64
+        test:
+          dataset:
+            name: cuhk03
+            split: test
+            format: processed
+            image_type: detected
+            protocol: processed_partition
+            split_id: null
+          images:
+            size:
+            - 384
+            - 128
+          aug:
+            mean:
+            - 0.486
+            - 0.459
+            - 0.408
+            std:
+            - 0.229
+            - 0.224
+            - 0.225
+            mirror: none
+          loader:
+            shuffle: false
+          batch:
+            size: 32
+      model:
+        name: pcb
+        variant: independent_part_reduction
+        pretrained: true
+      loss:
+        id:
+          enabled: true
+          label_smoothing: 0.0
+          weight: 1.0
+          head_aggregation: sum
+        triplet:
+          enabled: false
+        center:
+          enabled: false
+      optim:
+        name: sgd
+        lr: 0.1
+        momentum: 0.9
+        nesterov: false
+        weight_decay: 0.0005
+        bias_lr_factor: 1.0
+        weight_decay_bias: 0.0005
+        param_groups:
+        - prefix: backbone.
+          lr_mult: 0.1
+      sched:
+        name: warmup_multistep
+        milestones:
+        - 40
+        gamma: 0.1
+        warmup_iters: 0
+        warmup_factor: 1.0
+        warmup_method: linear
+      train:
+        epochs: 120
+        eval_interval: 10
+        save:
+          save_best: true
+          save_last: true
+          metric: mAP
+          resume: ''
+      eval:
+        weight: ''
+        normalize_feat: true
+        distance: euclidean
+        topk:
+        - 1
+        - 5
+        - 10
+        rerank:
+          enabled: false
+        export:
+          format:
+          - json
+    selected_best_epoch: null
+    selected_best_sha256: null
+    final_state_sha256: null
+    metrics: null
+    manual_launch_command: "(\nset -e\nsource /home/addirakoze/environments/Reid/bin/activate\ncd /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot\n\
+      test \"$(hostname -s)\" = constantine\ntest -z \"$(git status --porcelain)\"\ngit switch --detach 66ea88d06ba0f79c298b19abe1652ae892d69fdd\n\
+      test \"$(git rev-parse HEAD)\" = 66ea88d06ba0f79c298b19abe1652ae892d69fdd\ntest ! -e exp/pcb/cuhk03\ntest\
+      \ ! -L exp/pcb/cuhk03\nexport CUDA_VISIBLE_DEVICES=GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c\nexport YOLO_OFFLINE=true\n\
+      /home/addirakoze/environments/Reid/bin/python - <<'PY_PREFLIGHT'\nimport sys, hashlib\nfrom pathlib import\
+      \ Path\nimport torch, torchvision\nassert sys.version_info[:3] == (3,11,2)\nassert torch.__version__ == \"\
+      2.7.1+cu126\" and torchvision.__version__ == \"0.22.1+cu126\"\nassert torch.version.cuda == \"12.6\" and torch.backends.cudnn.version()\
+      \ == 90501\nassert torch.cuda.is_available() and torch.cuda.device_count() == 1\np = torch.cuda.get_device_properties(0)\n\
+      assert p.name == \"NVIDIA TITAN Xp\" and p.total_memory == 12774801408\nassert str(p.uuid).removeprefix(\"\
+      GPU-\") == \"bb0efb3f-f2ea-d40d-8769-e4e989bab10c\"\ndef check(path, expected):\n    with open(path, \"rb\"\
+      ) as stream:\n        assert hashlib.file_digest(stream, \"sha256\").hexdigest() == expected, str(path)\n\
+      check(\"configs/pcb/cuhk03.yaml\", \"0b13581f5de394a2b3f2587ee6ec61b4a9ba05c219a887ae3bd9b7e20d10c1c8\")\n\
+      w = Path(torch.hub.get_dir()) / \"checkpoints/resnet50-19c8e357.pth\"\nassert str(w) == \"/home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth\"\
+      \ncheck(w, \"19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097\")\nbase = Path(\"/home/addirakoze/nobackup/Projects/Dataset\"\
+      )\nassert str(base.resolve()) == \"/mnt/hd-data/addirakoze/Projects/Dataset\"\nfor relative, digest in {'cuhk03/detected/partitions.pkl':\
+      \ 'a1fd9a06748dd217325820b2ed5c5814de364a6b5e91cb7a93e1924915034f97', 'cuhk03/re_ranking_train_test_split.pkl':\
+      \ '22558735b7a423dacd9158352b6bcc76944c048eaf1df9ada253dbe58a175c3c', 'cuhk03/cuhk03_new_protocol_config_detected.mat':\
+      \ 'ef438e7775fce6d08ef6dff84d2235bd4bed63850dbbf7025f3251e45c7fa721', 'cuhk03/splits_new_detected.json': 'd25235134237c6b84f5200098a53d264335c1ef530901067d486505f51b1bb70'}.items():\n\
+      \    check(base / relative, digest)\nprint(\"Frozen source preflight passed; starting fresh cuhk03 PCB training.\"\
+      )\nPY_PREFLIGHT\n/home/addirakoze/environments/Reid/bin/python -u scripts/train.py --config configs/pcb/cuhk03.yaml\n\
+      )"
+    final_state_epoch: null
+    selected_best_selection_map: null
+  msmt17:
+    config: configs/pcb/msmt17.yaml
+    sha256: 3d618f16698e13192b485a6a1b9424db67e25e7e13e99b1f5d49fafc5598a8f8
+    output_dir: /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/pcb/msmt17
+    output_absent: true
+    train_ids: 1041
+    train_images: 30248
+    query: 11659
+    gallery: 82161
+    test_images_including_auxiliary: 93820
+    steps_per_epoch: 472
+    test_batches: 2932
+    dropped_train_images: 40
+    lr_by_update:
+      '1':
+      - 0.010000000000000002
+      - 0.1
+      '18880':
+      - 0.010000000000000002
+      - 0.1
+      '18881':
+      - 0.0010000000000000002
+      - 0.010000000000000002
+      '56640':
+      - 0.0010000000000000002
+      - 0.010000000000000002
+    parameters: 28263590
+    model_state_bytes: 113279600
+    estimated_checkpoint_tensor_bytes: 226333960
+    train_transform: "Compose(\n    Resize(size=(384, 128), interpolation=bilinear, max_size=None, antialias=True)\n\
+      \    RandomHorizontalFlip(p=0.5)\n    ToTensor()\n    Normalize(mean=[0.486, 0.459, 0.408], std=[0.229, 0.224,\
+      \ 0.225])\n)"
+    test_transform: "Compose(\n    Resize(size=(384, 128), interpolation=bilinear, max_size=None, antialias=True)\n\
+      \    ToTensor()\n    Normalize(mean=[0.486, 0.459, 0.408], std=[0.229, 0.224, 0.225])\n)"
+    resolved_config:
+      experiment:
+        name: pcb_msmt17
+        output_dir: /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/pcb/msmt17
+        notes: Independent-part PCB; historical ImageNet resnet50-19c8e357.pth; SHA256 19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097.
+          Select ckpt_best.pth by periodic test-query/gallery mAP; no independent validation split.
+      system:
+        device: auto
+        gpu_id: 0
+        amp: false
+        log_interval: 20
+      repro:
+        seed: 42
+        deterministic: false
+        benchmark: true
+      logging:
+        to_file: true
+        tensorboard: true
+        wandb:
+          enabled: false
+          project: reid
+          entity: null
+          tags:
+          - pcb
+      data:
+        root: /home/addirakoze/nobackup/Projects/Dataset
+        num_workers: 4
+        pin_memory: true
+        train:
+          dataset:
+            name: msmt17
+            split: train
+            format: raw
+          images:
+            size:
+            - 384
+            - 128
+          aug:
+            mean:
+            - 0.486
+            - 0.459
+            - 0.408
+            std:
+            - 0.229
+            - 0.224
+            - 0.225
+            mirror: random
+            padding:
+              enabled: false
+            random_crop:
+              enabled: false
+            random_erasing:
+              enabled: false
+          batch:
+            sampler: random
+            batch_size: 64
+        test:
+          dataset:
+            name: msmt17
+            split: test
+            format: raw
+          images:
+            size:
+            - 384
+            - 128
+          aug:
+            mean:
+            - 0.486
+            - 0.459
+            - 0.408
+            std:
+            - 0.229
+            - 0.224
+            - 0.225
+            mirror: none
+          loader:
+            shuffle: false
+          batch:
+            size: 32
+      model:
+        name: pcb
+        variant: independent_part_reduction
+        pretrained: true
+      loss:
+        id:
+          enabled: true
+          label_smoothing: 0.0
+          weight: 1.0
+          head_aggregation: sum
+        triplet:
+          enabled: false
+        center:
+          enabled: false
+      optim:
+        name: sgd
+        lr: 0.1
+        momentum: 0.9
+        nesterov: false
+        weight_decay: 0.0005
+        bias_lr_factor: 1.0
+        weight_decay_bias: 0.0005
+        param_groups:
+        - prefix: backbone.
+          lr_mult: 0.1
+      sched:
+        name: warmup_multistep
+        milestones:
+        - 40
+        gamma: 0.1
+        warmup_iters: 0
+        warmup_factor: 1.0
+        warmup_method: linear
+      train:
+        epochs: 120
+        eval_interval: 10
+        save:
+          save_best: true
+          save_last: true
+          metric: mAP
+          resume: ''
+      eval:
+        weight: ''
+        normalize_feat: true
+        distance: euclidean
+        topk:
+        - 1
+        - 5
+        - 10
+        rerank:
+          enabled: false
+        export:
+          format:
+          - json
+    selected_best_epoch: null
+    selected_best_sha256: null
+    final_state_sha256: null
+    metrics: null
+    manual_launch_command: "(\nset -e\nsource /home/addirakoze/environments/Reid/bin/activate\ncd /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot\n\
+      test \"$(hostname -s)\" = constantine\ntest -z \"$(git status --porcelain)\"\ngit switch --detach 66ea88d06ba0f79c298b19abe1652ae892d69fdd\n\
+      test \"$(git rev-parse HEAD)\" = 66ea88d06ba0f79c298b19abe1652ae892d69fdd\ntest ! -e exp/pcb/msmt17\ntest\
+      \ ! -L exp/pcb/msmt17\nexport CUDA_VISIBLE_DEVICES=GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c\nexport YOLO_OFFLINE=true\n\
+      /home/addirakoze/environments/Reid/bin/python - <<'PY_PREFLIGHT'\nimport sys, hashlib\nfrom pathlib import\
+      \ Path\nimport torch, torchvision\nassert sys.version_info[:3] == (3,11,2)\nassert torch.__version__ == \"\
+      2.7.1+cu126\" and torchvision.__version__ == \"0.22.1+cu126\"\nassert torch.version.cuda == \"12.6\" and torch.backends.cudnn.version()\
+      \ == 90501\nassert torch.cuda.is_available() and torch.cuda.device_count() == 1\np = torch.cuda.get_device_properties(0)\n\
+      assert p.name == \"NVIDIA TITAN Xp\" and p.total_memory == 12774801408\nassert str(p.uuid).removeprefix(\"\
+      GPU-\") == \"bb0efb3f-f2ea-d40d-8769-e4e989bab10c\"\ndef check(path, expected):\n    with open(path, \"rb\"\
+      ) as stream:\n        assert hashlib.file_digest(stream, \"sha256\").hexdigest() == expected, str(path)\n\
+      check(\"configs/pcb/msmt17.yaml\", \"3d618f16698e13192b485a6a1b9424db67e25e7e13e99b1f5d49fafc5598a8f8\")\n\
+      w = Path(torch.hub.get_dir()) / \"checkpoints/resnet50-19c8e357.pth\"\nassert str(w) == \"/home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth\"\
+      \ncheck(w, \"19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097\")\nbase = Path(\"/home/addirakoze/nobackup/Projects/Dataset\"\
+      )\nassert str(base.resolve()) == \"/mnt/hd-data/addirakoze/Projects/Dataset\"\nfor relative, digest in {'msmt17/MSMT17_V2/list_train.txt':\
+      \ '00930d5911e66ec6ac4d9b177e61b49433658758cc091231bf7cfcb83c70d0bf', 'msmt17/MSMT17_V2/list_val.txt': '1b42a24d568a37648405e209f3c50d0d82e908e7009d22326e3089a48f9a7f8c',\
+      \ 'msmt17/MSMT17_V2/list_query.txt': '46b568a56e6e7567175c3350f74362f522d3b898242e0c6d4f87e27ee71cab03', 'msmt17/MSMT17_V2/list_gallery.txt':\
+      \ 'fccd30161c9185bc05f4ee5fa86af5768aab256799b526f87dc5f3a1900288fd'}.items():\n    check(base / relative,\
+      \ digest)\nprint(\"Frozen source preflight passed; starting fresh msmt17 PCB training.\")\nPY_PREFLIGHT\n\
+      /home/addirakoze/environments/Reid/bin/python -u scripts/train.py --config configs/pcb/msmt17.yaml\n)"
+    final_state_epoch: null
+    selected_best_selection_map: null
+network_attempts: []
+verification:
+  actual_cli_help: passed
+  actual_cli_argument_parsing: all_four_passed
+  shell_syntax: all_four_passed_without_execution
+  extracted_read_only_launch_preflights_on_gpu: all_four_passed
+  training_executed: false
+  plan_outside_phase20_unchanged: true
