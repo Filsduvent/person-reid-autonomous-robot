@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "timestamp_utc": "2026-10-12T01:12:00.176941+00:00",
+  "artifact_receipt": "preservation-artifacts.json",
+  "original_stage_a_unchanged": true,
+  "feature_preexisting_files": 233,
+  "feature_preexisting_intentional_changes": [
+    "docs/lodo_decision_register.md"
+  ],
+  "decision_register_append_only": true,
+  "production_implementation_snapshot_unchanged_after_full_tests": true,
+  "official_output_directories_created": 0,
+  "training_evaluation_gpu_jobs_launched": 0,
+  "commits_staged_or_pushed": 0,
+  "diff_check": "PASS",
+  "roots": {
+    "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot": {
+      "branch": "main",
+      "head": "3b015c964b99bfe8ad4b7842bd174d3bc58af607",
+      "status": " M docs/preliminary_results_log.md\n M plan.md\n?? docs/lodo_decision_register.md\n?? docs/lodo_experiment_protocol.md\n?? docs/lodo_implementation_plan.md\n?? docs/pcb_cuhk03_results.yaml\n?? docs/pcb_duke_results.yaml\n?? docs/pcb_market1501_results.yaml\n?? docs/pcb_msmt17_results.yaml\n",
+      "staged": ""
+    },
+    "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot-lodo": {
+      "branch": "feature/lodo-v1",
+      "head": "3b015c964b99bfe8ad4b7842bd174d3bc58af607",
+      "status": " M .gitignore\n M reid/data/build.py\n M reid/engine/train_loop.py\n M reid/optim/build.py\n M reid/optim/lr_scheduler.py\n M reid/utils/config.py\n M reid/utils/config_schema.py\n M scripts/evaluate.py\n M scripts/train.py\n?? configs/lodo/\n?? docs/lodo_cpu_integration_validation.md\n?? docs/lodo_cuda_abc_qualification.md\n?? docs/lodo_cuda_backward_determinism.md\n?? docs/lodo_cuda_numerical_investigation.md\n?? docs/lodo_cuda_policy_integration.md\n?? docs/lodo_cuda_recovery_qualification.md\n?? docs/lodo_decision_register.md\n?? docs/lodo_evaluation_contract.md\n?? docs/lodo_experiment_protocol.md\n?? docs/lodo_gpu_readiness.md\n?? docs/lodo_gpu_smoke_validation.md\n?? docs/lodo_implementation_plan.md\n?? docs/lodo_official_experiment_protocol.md\n?? docs/lodo_official_launch_runbook.md\n?? docs/lodo_phase10_evidence/\n?? docs/lodo_phase10_readiness.md\n?? docs/lodo_phase9r3_evidence/\n?? docs/lodo_recovery_contract.md\n?? docs/lodo_titan_cuda_abc_authorized_attempt.md\n?? docs/lodo_titan_cuda_abc_qualification.md\n?? docs/lodo_titan_cuda_bc_continuation.md\n?? reid/data/index_observation.py\n?? reid/data/lodo_preflight.py\n?? reid/data/multi_source.py\n?? reid/engine/update_control.py\n?? reid/utils/lodo_checkpoint.py\n?? reid/utils/lodo_comparison.py\n?? reid/utils/lodo_cuda_policy.py\n?? reid/utils/lodo_device.py\n?? reid/utils/lodo_evaluation.py\n?? reid/utils/lodo_protocol.py\n?? reid/utils/lodo_recovery.py\n?? scripts/lodo_official_preparation.py\n?? tests/lodo_cuda_abc_diagnostic.py\n?? tests/lodo_cuda_admission_diagnostic.py\n?? tests/lodo_cuda_backward_probe.py\n?? tests/lodo_cuda_deterministic_continuation.py\n?? tests/lodo_cuda_numerical_diagnostic.py\n?? tests/lodo_cuda_policy_artifacts.py\n?? tests/lodo_cuda_policy_campaign.py\n?? tests/lodo_cuda_policy_performance.py\n?? tests/lodo_cuda_policy_qualification.py\n?? tests/lodo_cuda_recovery_smoke.py\n?? tests/lodo_cuda_smoke.py\n?? tests/lodo_cuda_titan_abc_campaign.py\n?? tests/lodo_cuda_titan_bc_continuation.py\n?? tests/test_lodo_checkpoint.py\n?? tests/test_lodo_config.py\n?? tests/test_lodo_cuda_abc_diagnostic.py\n?? tests/test_lodo_cuda_admission_diagnostic.py\n?? tests/test_lodo_cuda_backward_probe.py\n?? tests/test_lodo_cuda_deterministic_continuation.py\n?? tests/test_lodo_cuda_numerical_diagnostic.py\n?? tests/test_lodo_cuda_policy.py\n?? tests/test_lodo_cuda_policy_artifacts.py\n?? tests/test_lodo_cuda_policy_performance.py\n?? tests/test_lodo_cuda_policy_qualification.py\n?? tests/test_lodo_cuda_recovery.py\n?? tests/test_lodo_cuda_recovery_smoke_contract.py\n?? tests/test_lodo_cuda_smoke_contract.py\n?? tests/test_lodo_device.py\n?? tests/test_lodo_evaluation.py\n?? tests/test_lodo_integration.py\n?? tests/test_lodo_official_preparation.py\n?? tests/test_lodo_updates.py\n?? tests/test_multi_source_dataset.py\n",
+      "staged": ""
+    }
+  }
+}

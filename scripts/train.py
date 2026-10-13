@@ -1,4 +1,5 @@
 import argparse
+import copy
 import json
 import logging
 import os
@@ -6,11 +7,13 @@ import os.path as osp
 import sys
 from pathlib import Path
 
-import torch
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+
+# Capture the launching workspace environment before importing CUDA-dependent code.
+from reid.utils.lodo_cuda_policy import activate_policy, validate_runtime
+import torch
 
 from reid.data.build import build_test_loader, build_train_loader
 from reid.engine.train_loop import train_one_epoch
@@ -320,9 +323,161 @@ def save_training_plots(plots_dir, topk, loss_history, eval_history, logger):
             os.environ["MPLCONFIGDIR"] = old_mpl_dir
 
 
+
+def run_lodo_training(cfg):
+    """Target-free shared-engine execution; optional retained boundary recovery."""
+    from datetime import datetime, timezone
+    import shutil
+    import time
+    from reid.engine.update_control import UpdateProgress
+    from reid.utils.lodo_protocol import validate_output_path
+    from reid.utils.lodo_checkpoint import (atomic_write, canonical_json, loader_contract,
+        make_identity, save_lodo_checkpoint, restore_lodo_checkpoint, validate_resume_path, read_checkpoint)
+    from reid.utils.lodo_device import authorization_uuid, select_lodo_device
+    from reid.utils.lodo_recovery import (recovery_policy, cuda_boundary, select_generation,
+                                         recovery_event_environment)
+
+    cfg = copy.deepcopy(cfg)
+    authorization_uuid(cfg)
+    activate_policy(cfg)  # opt-in only, before device discovery, seeding or loaders
+    policy = recovery_policy(cfg)
+    run_dir = validate_output_path(cfg)
+    resume = cfg['train']['save'].get('resume', '')
+    checkpoint_dir = run_dir / 'checkpoints'
+    last = checkpoint_dir / 'ckpt_last.pth'
+    terminal = checkpoint_dir / 'ckpt_terminal.pth'
+    path = validate_resume_path(cfg, run_dir) if resume else None
+    fallback = []
+    if resume and policy is not None and Path(resume).name != 'ckpt_terminal.pth':
+        path, fallback = select_generation(cfg, run_dir)
+    if resume and (terminal.exists() or terminal.with_suffix('.json').exists()):
+        path = terminal
+    inspect_first = cuda_boundary(cfg) and bool(resume)
+    if inspect_first:
+        device, device_guard, device_evidence = torch.device('cpu'), None, None
+    else:
+        device, device_guard, device_evidence = select_lodo_device(cfg)
+    set_seed(seed=cfg['repro']['seed'], deterministic=cfg['repro']['deterministic'],
+             benchmark=cfg['repro']['benchmark'])
+    validate_runtime(cfg)
+    loader, classes = build_train_loader(cfg)
+    loader_contract(loader)
+    validate_reid_config(cfg, num_classes=classes)
+    model = build_model(cfg, num_classes=classes, initialize_pretrained=not bool(resume)).to(device)
+    dim = validate_model_loss_requirements(cfg, model)
+    criterion = build_criterion(cfg, num_classes=classes, feat_dim=dim).to(device)
+    optimizer = build_optimizer(cfg, model)
+    auxiliary = build_center_optimizer(cfg, criterion)
+    scheduler = build_scheduler(cfg, optimizer, steps_per_epoch=len(loader))
+    arguments = dict(cfg=cfg, loader=loader, model=model, criterion=criterion,
+                     optimizer=optimizer, auxiliary=auxiliary, scheduler=scheduler)
+    make_identity(**arguments, cpu_inspection=inspect_first)
+    if inspect_first:
+        # All tensor/provenance/worker/position checks on CPU BEFORE CUDA discovery.
+        checked, _, checked_kind = restore_lodo_checkpoint(path, **arguments,
+                                                           cpu_inspection=True, validate_only=True)
+        if checked_kind == 'terminal':
+            return checked
+        device, device_guard, device_evidence = select_lodo_device(cfg)
+        model.to(device);criterion.to(device)
+    events = []
+    event_path = run_dir / 'recovery_events.json'
+    if resume:
+        progress, position, kind = restore_lodo_checkpoint(path, **arguments)
+        epoch = position['next_epoch']
+        if kind == 'terminal':
+            return progress
+        last = path
+        events = json.loads(event_path.read_text()) if event_path.exists() else []
+        event = dict(event='rollback_resume', checkpoint=str(path),
+                     restored_primary_updates=progress.completed_primary_updates,
+                     restart_epoch=epoch, discarded_epoch_replayed=True)
+        if policy is not None:
+            _, proof = read_checkpoint(path)
+            event.update(recovery_event_environment(cfg),checkpoint_sha256=proof['checkpoint_sha256'],
+                         invalid_generations=fallback, cuda_admission=device_evidence)
+        events.append(event)
+        atomic_write(event_path, lambda stream: stream.write(canonical_json(events)))
+    else:
+        run_dir.parent.mkdir(parents=True, exist_ok=True)
+        run_dir.mkdir(exist_ok=False)
+        checkpoint_dir.mkdir()
+        if device_evidence is not None:
+            atomic_write(run_dir / 'cuda_admission.json',
+                         lambda stream: stream.write(canonical_json(device_evidence)))
+        progress = UpdateProgress(cfg['train']['max_updates'], auxiliary=auxiliary is not None)
+        progress.bind(loader)
+        epoch = 1
+
+    def save_boundary(destination, *, terminal_snapshot=False, cursor=0):
+        started = time.perf_counter()
+        proof = save_lodo_checkpoint(destination, progress=progress, next_epoch=epoch,
+                     cursor=cursor, kind='terminal' if terminal_snapshot else 'recovery', **arguments)
+        duration = time.perf_counter()-started
+        actual = destination
+        if policy is not None:
+            if not terminal_snapshot:
+                selection = copy.deepcopy(cfg);selection['train']['save']['resume'] = str(checkpoint_dir/'ckpt_last.pth')
+                actual, _ = select_generation(selection, run_dir)
+            metrics_path = run_dir/'checkpoint_metrics.json'
+            metrics = json.loads(metrics_path.read_text()) if metrics_path.exists() else []
+            metrics.append(dict(timestamp_utc=datetime.now(timezone.utc).isoformat(),checkpoint=str(actual),
+                                kind='terminal' if terminal_snapshot else 'recovery',
+                                completed_updates=progress.completed_primary_updates,write_seconds=duration,
+                                bytes=actual.stat().st_size,disk_free_bytes=shutil.disk_usage(run_dir).free,
+                                checkpoint_sha256=proof['checkpoint_sha256']))
+            atomic_write(metrics_path,lambda stream:stream.write(canonical_json(metrics)))
+        return actual
+
+    if not resume:
+        last = save_boundary(last)
+    boundary_updates = progress.completed_primary_updates
+    boundary_attempts = progress.attempted_batches
+    boundary_exposure = copy.deepcopy(progress.exposure.presentations)
+    try:
+        while not progress.budget_completed:
+            if device_guard is not None:
+                device_guard()
+            result = train_one_epoch(model, loader, criterion, optimizer, auxiliary, device,
+                                     False, cfg['system']['log_interval'], scheduler=scheduler,
+                                     epoch=epoch, update_progress=progress, before_update=device_guard)
+            if progress.budget_completed:
+                if device_guard is not None:
+                    device_guard()
+                save_boundary(terminal, terminal_snapshot=True,cursor=result.attempted_batches)
+                return progress
+            epoch += 1
+            if policy is None or (epoch-1) % policy['every_epochs'] == 0:
+                last = save_boundary(checkpoint_dir/'ckpt_last.pth')
+                boundary_updates = progress.completed_primary_updates
+                boundary_attempts = progress.attempted_batches
+                boundary_exposure = copy.deepcopy(progress.exposure.presentations)
+    except BaseException as error:
+        recoverable = device.type == 'cpu' or cuda_boundary(cfg)
+        event = dict(event='interruption_rollback_required' if recoverable else 'interruption_fresh_restart_required',
+                     epoch=epoch, discarded_attempted_batches=progress.attempted_batches-boundary_attempts,
+                     discarded_successful_updates=progress.completed_primary_updates-boundary_updates,
+                     discarded_source_presentations={phase: dict(counts-boundary_exposure[phase])
+                         for phase,counts in progress.exposure.presentations.items()},
+                     consistent=progress.consistent, reason=str(error), recover_from=str(last) if recoverable else None)
+        if policy is not None:
+            event.update(recovery_event_environment(cfg),source_boundary_updates=boundary_updates)
+        events.append(event)
+        atomic_write(event_path, lambda stream: stream.write(canonical_json(events)))
+        raise
+    return progress
+
+
 def main():
     args = parse_args()
     cfg = load_config(args.config, overrides=args.opts)
+    from reid.utils.lodo_protocol import has_lodo_protocol
+    if has_lodo_protocol(cfg):
+        from reid.utils.lodo_operational import validate_training_admission
+        validate_training_admission(args.config, cfg, root=REPO_ROOT)
+        validate_config(cfg)
+        validate_reid_config(cfg)
+        return run_lodo_training(cfg)
     validate_config(cfg)
     validate_reid_config(cfg)
 

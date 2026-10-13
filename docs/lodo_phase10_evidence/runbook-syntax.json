@@ -1,0 +1,62 @@
+{
+  "status": "PASS",
+  "checks": [
+    {
+      "block": 1,
+      "shell_syntax": "PASS",
+      "executed": false
+    },
+    {
+      "block": 2,
+      "shell_syntax": "PASS",
+      "executed": false,
+      "embedded_python": [
+        {
+          "block": 1,
+          "syntax": "PASS",
+          "executed": false
+        },
+        {
+          "block": 2,
+          "syntax": "PASS",
+          "executed": false
+        }
+      ]
+    },
+    {
+      "block": 3,
+      "shell_syntax": "PASS",
+      "executed": false
+    },
+    {
+      "block": 4,
+      "shell_syntax": "PASS",
+      "executed": false,
+      "embedded_python": [
+        {
+          "block": 1,
+          "syntax": "PASS",
+          "executed": false
+        }
+      ]
+    },
+    {
+      "block": 5,
+      "shell_syntax": "PASS",
+      "executed": false
+    },
+    {
+      "block": 6,
+      "shell_syntax": "PASS",
+      "executed": false,
+      "embedded_python": [
+        {
+          "block": 1,
+          "syntax": "PASS",
+          "executed": false
+        }
+      ]
+    }
+  ],
+  "official_commands_executed": false
+}

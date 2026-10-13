@@ -1,0 +1,57 @@
+{
+  "environment": {
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": ".:scripts:tests",
+    "CUDA_VISIBLE_DEVICES": "",
+    "CUBLAS_WORKSPACE_CONFIG": ":4096:8"
+  },
+  "interpreter": "/home/addirakoze/environments/Reid/bin/python",
+  "workdir": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot-lodo",
+  "full_command": "timeout 1800 /home/addirakoze/environments/Reid/bin/python -B -m pytest -p no:cacheprovider tests -q --junitxml=/tmp/lodo10f-full.xml > /tmp/lodo10f-full.log 2>&1",
+  "focused_command": "timeout 300 /home/addirakoze/environments/Reid/bin/python -B -m pytest -p no:cacheprovider tests/test_lodo_official_preparation.py -q --junitxml=/tmp/lodo10f-focused.xml > /tmp/lodo10f-focused.log 2>&1",
+  "full": {
+    "total": 1386,
+    "passed": 1382,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 4,
+    "seconds": 531.855,
+    "skip_reasons": [
+      {
+        "test": "tests.test_model_forward.test_resnet50_last_stride_forward_on_cuda_if_available",
+        "reason": "CUDA is not available in this environment"
+      },
+      {
+        "test": "tests.test_train_loop_optim.test_train_loop_runs_on_cuda_for_loss_combinations[cfg0]",
+        "reason": "CUDA is not available in this environment"
+      },
+      {
+        "test": "tests.test_train_loop_optim.test_train_loop_runs_on_cuda_for_loss_combinations[cfg1]",
+        "reason": "CUDA is not available in this environment"
+      },
+      {
+        "test": "tests.test_train_loop_optim.test_train_loop_runs_on_cuda_for_loss_combinations[cfg2]",
+        "reason": "CUDA is not available in this environment"
+      }
+    ]
+  },
+  "focused": {
+    "total": 25,
+    "passed": 25,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 8.534,
+    "skip_reasons": []
+  },
+  "audit_fixture_correction": "Initial additional static fold comparison expected a whole target dict path; actual recursive comparison emits nested target.name/metadata_sha256 paths. Corrected only /tmp audit allowlist to expected target children, preserved attempt1 source; no production/config/science/hash changes.",
+  "pytest_baseline_failures": 0,
+  "regressions": 0,
+  "additional_document_audit_corrections": [
+    "The historical implementation patch contains source additions, not untracked documents. A temporary extractor incorrectly assumed document diff headers; replaced it with reversible edit reconstruction and exact original hash checks.",
+    "Temporary reconstruction needed leading/trailing blank-line corrections; final original SHA256 checks passed for all four docs.",
+    "One temporary correction command used unavailable python; reran with the established absolute Reid interpreter. No pytest failure, production edit or scientific hash refresh resulted."
+  ]
+}

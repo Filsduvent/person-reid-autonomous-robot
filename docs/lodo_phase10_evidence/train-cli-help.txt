@@ -1,0 +1,6 @@
+usage: train.py [-h] --config CONFIG [-o ...]
+
+options:
+  -h, --help          show this help message and exit
+  --config CONFIG
+  -o ..., --opts ...  Optional config overrides as key=value pairs.

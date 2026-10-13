@@ -9,6 +9,7 @@ from reid.data.msmt17 import MSMT17RawTest, MSMT17RawTrain
 from reid.data.protocol import validate_eval_dataset, validate_train_dataset
 from reid.data.samplers import PKBatchSampler
 from reid.data.transforms import build_train_tf, build_test_tf
+from reid.utils.lodo_protocol import has_lodo_protocol, require_explicit_lodo, validate_lodo_config
 
 
 DATASET_DISPLAY_NAMES = {
@@ -142,6 +143,10 @@ def _build_msmt17_test_dataset(root, split, dataset_format, transform):
 
 
 def build_train_loader(cfg):
+    require_explicit_lodo(cfg)
+    is_lodo = has_lodo_protocol(cfg)
+    if is_lodo:
+        validate_lodo_config(cfg)
     root = cfg["data"]["root"]
     tcfg = cfg["data"]["train"]
 
@@ -154,10 +159,13 @@ def build_train_loader(cfg):
 
     dataset_cfg = tcfg["dataset"]
     ds_name = dataset_cfg["name"]
-    split = dataset_cfg["split"]
-    dataset_format = str(dataset_cfg.get("format", "processed")).lower()
+    split = "virtual_train" if is_lodo else dataset_cfg["split"]
+    dataset_format = "virtual" if is_lodo else str(dataset_cfg.get("format", "processed")).lower()
 
-    if ds_name == "market1501":
+    if is_lodo:
+        from reid.data.multi_source import build_multi_source_dataset
+        dataset = build_multi_source_dataset(cfg, tf)
+    elif ds_name == "market1501":
         dataset = _build_market1501_train_dataset(root, split, dataset_format, tf)
     elif ds_name == "cuhk03":
         dataset = _build_cuhk03_train_dataset(root, split, dataset_format, dataset_cfg, tf)
@@ -222,6 +230,9 @@ def build_train_loader(cfg):
         )
 
     loader.effective_batch_size = batch_size
+    if is_lodo:
+        from reid.data.index_observation import ObservedTrainLoader
+        loader = ObservedTrainLoader(loader, sampler_mode=sampler_name)
     return loader, int(dataset.num_classes)
 
 

@@ -1,0 +1,53 @@
+{
+  "environment": {
+    "interpreter": "/home/addirakoze/environments/Reid/bin/python",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONPATH": ".:scripts:tests",
+    "CUDA_VISIBLE_DEVICES": "",
+    "CUBLAS_WORKSPACE_CONFIG": ":4096:8"
+  },
+  "full": {
+    "tests": 1386,
+    "passed": 1382,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 4,
+    "junit_seconds": 511.057,
+    "skips": [
+      {
+        "test": "tests.test_model_forward.test_resnet50_last_stride_forward_on_cuda_if_available",
+        "reason": "CUDA is not available in this environment"
+      },
+      {
+        "test": "tests.test_train_loop_optim.test_train_loop_runs_on_cuda_for_loss_combinations[cfg0]",
+        "reason": "CUDA is not available in this environment"
+      },
+      {
+        "test": "tests.test_train_loop_optim.test_train_loop_runs_on_cuda_for_loss_combinations[cfg1]",
+        "reason": "CUDA is not available in this environment"
+      },
+      {
+        "test": "tests.test_train_loop_optim.test_train_loop_runs_on_cuda_for_loss_combinations[cfg2]",
+        "reason": "CUDA is not available in this environment"
+      }
+    ]
+  },
+  "focused": {
+    "tests": 25,
+    "passed": 25,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "junit_seconds": 6.974,
+    "skips": []
+  },
+  "full_pytest_seconds": 511.1,
+  "focused_pytest_seconds": 6.97,
+  "full_command": "timeout 1800 /home/addirakoze/environments/Reid/bin/python -B -m pytest -p no:cacheprovider tests -q --junitxml=/tmp/lodo-phase10-full.xml",
+  "focused_command": "timeout 300 /home/addirakoze/environments/Reid/bin/python -B -m pytest -p no:cacheprovider tests/test_lodo_official_preparation.py -q --junitxml=/tmp/lodo-phase10-focused.xml",
+  "workdir": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot-lodo",
+  "regressions_observed": 0,
+  "audit_fixture_failure": "Preserved first audit literal .01 equality failure; corrected audit expectation to frozen LR arithmetic, no production/config/tolerance edits."
+}

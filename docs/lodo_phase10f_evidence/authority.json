@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "decision_source": "Explicit user Phase10F instruction",
+  "attachment": "/home/addirakoze/.codex/attachments/80f6ea81-0e11-44b3-b5df-bafd263ff4b1/Pasted text.txt",
+  "instruction_sha256": "80a8350a863eb1973eccd73982a26d8a75aeb86edbc71963e57d92bbd40726c7",
+  "client_date": "2026-10-11",
+  "timestamp_utc": "2026-10-12T01:36:09.606314+00:00",
+  "local_commit_limit": 1,
+  "branch": "feature/lodo-v1",
+  "scientific_signoff": "APPROVED_WITH_RECORDED_LIMITATIONS",
+  "official_launch": "NOT_APPROVED",
+  "official_resume": "NOT_APPROVED",
+  "real_target_evaluation": "NOT_APPROVED",
+  "gpu_allocation": "PENDING",
+  "advisor_signoff": "NOT_SUPPLIED_NOT_INFERRED"
+}

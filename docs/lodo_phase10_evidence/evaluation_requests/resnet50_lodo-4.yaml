@@ -1,0 +1,18 @@
+# DO NOT EXECUTE BEFORE SEPARATE POST-TRAINING APPROVAL.
+mode: lodo_held_out
+version: 1
+architecture: resnet50
+fold: LODO-4
+target: msmt17
+checkpoint: /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot-lodo/exp/lodo/v1/resnet50/LODO-4/seed42/official-candidate-20261011/checkpoints/ckpt_terminal.pth
+expected:
+  config_digest: 47986b17b19373d09678718217da61a8b319a671450bdbb9d3e5f684ed5bad77
+  map_digest: 332f999102894db105360a2765483b23a4653c52fec41443a7f5ff5a7b3618ff
+  data_digest: 34d6d14d82687c4eee4bfc9dee9de30a264ac561245a957d21345e640a897c4b
+  num_classes: 2220
+synthetic: false
+output_dir: exp/lodo_eval/v1/benchmark/resnet50/LODO-4/seed42/official-candidate-20261011
+data_root: /mnt/hd-data/addirakoze/Projects/Dataset
+num_workers: 0
+batch_size: 32
+stage_a_records: []

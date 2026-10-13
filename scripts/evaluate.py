@@ -110,6 +110,24 @@ def main():
     from reid.utils.logger import setup_logger
 
     cfg = load_config(args.config, overrides=args.opts)
+    if cfg.get('mode') == 'lodo_held_out':
+        if args.opts:
+            raise ValueError('LODO evaluation requires the exact pinned request; overrides are forbidden')
+        if args.weight:
+            raise ValueError('LODO evaluation requires the pinned request checkpoint; --weight overrides are forbidden')
+        from reid.utils.lodo_evaluation import evaluate_lodo
+        from reid.utils.lodo_operational import evaluation_admission, write_private
+        import tempfile
+        admission = evaluation_admission(args.config, cfg, root=REPO_ROOT)
+        base = REPO_ROOT/'.local/lodo_evaluation/v2'
+        base.mkdir(parents=True, exist_ok=True)
+        audit = Path(tempfile.mkdtemp(prefix='evaluation-', dir=base))
+        write_private(audit/'execution-admission.json', admission)
+        result = evaluate_lodo(cfg)
+        write_private(audit/'completion.json', dict(status='COMPLETED', result=result[0]['artifacts']))
+        return result
+    if 'mode' in cfg or 'protocol' in cfg:
+        raise ValueError('Use an explicit lodo_held_out evaluation request for Stage B')
     validate_config(cfg)
     validate_reid_config(cfg)
 

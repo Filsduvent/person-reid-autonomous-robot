@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "blocks": [
+    {
+      "block": 1,
+      "bash": "PASS",
+      "embedded_python": 0,
+      "executed": false
+    },
+    {
+      "block": 2,
+      "bash": "PASS",
+      "embedded_python": 2,
+      "executed": false
+    },
+    {
+      "block": 3,
+      "bash": "PASS",
+      "embedded_python": 0,
+      "executed": false
+    },
+    {
+      "block": 4,
+      "bash": "PASS",
+      "embedded_python": 1,
+      "executed": false
+    },
+    {
+      "block": 5,
+      "bash": "PASS",
+      "embedded_python": 0,
+      "executed": false
+    },
+    {
+      "block": 6,
+      "bash": "PASS",
+      "embedded_python": 1,
+      "executed": false
+    }
+  ],
+  "official_commands_executed": false
+}

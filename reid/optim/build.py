@@ -3,7 +3,8 @@
 import torch
 from torch.optim.lr_scheduler import MultiStepLR
 
-from reid.optim.lr_scheduler import WarmupMultiStepLR
+from reid.optim.lr_scheduler import WarmupMultiStepLR, SuccessfulUpdateLR
+from reid.utils.lodo_protocol import has_lodo_protocol, require_explicit_lodo, validate_lodo_config
 from reid.utils.config import validate_optimizer_param_groups
 
 
@@ -96,6 +97,13 @@ def build_center_optimizer(cfg, criterion):
 def build_scheduler(cfg, optimizer, steps_per_epoch=None):
     """Build the learning-rate scheduler from YAML config."""
 
+    require_explicit_lodo(cfg)
+    if has_lodo_protocol(cfg):
+        validate_lodo_config(cfg)
+        sched_cfg = cfg['sched']
+        return SuccessfulUpdateLR(optimizer, milestones=sched_cfg['milestones'],
+                                  gamma=sched_cfg['gamma'], warmup_iters=sched_cfg['warmup_iters'],
+                                  warmup_factor=sched_cfg['warmup_factor'])
     sched_cfg = cfg.get("sched")
     if not sched_cfg:
         return None

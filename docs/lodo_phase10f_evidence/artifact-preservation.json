@@ -1,0 +1,26 @@
+{
+  "timestamp_utc": "2026-10-12T01:26:43.858875+00:00",
+  "roots": {
+    "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot": {
+      "artifact_stats_matched": 1777,
+      "artifact_full_sha256_matched": 1667,
+      "head": "3b015c964b99bfe8ad4b7842bd174d3bc58af607",
+      "branch": "main",
+      "staged": "",
+      "exp_membership_unchanged": true,
+      "original_sources_matched": 175,
+      "original_git_status_unchanged": true
+    },
+    "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot-lodo": {
+      "artifact_stats_matched": 2852,
+      "artifact_full_sha256_matched": 2844,
+      "head": "3b015c964b99bfe8ad4b7842bd174d3bc58af607",
+      "branch": "feature/lodo-v1",
+      "staged": "",
+      "exp_membership_unchanged": true
+    }
+  },
+  "scope": "All recorded artifact stats and selected full hashes, not every image or every large original checkpoint",
+  "original_result_files_matched": 33,
+  "status": "PASS"
+}

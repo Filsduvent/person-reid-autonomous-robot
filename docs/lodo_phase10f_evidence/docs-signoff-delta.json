@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "authority": "Phase10F explicit narrow documentation sign-off",
+  "before_sha256": {
+    "docs/lodo_experiment_protocol.md": "2e5354aae71388b0711eac1c5e8dc672e5a753bca7e55f99491d4f885fda345a",
+    "docs/lodo_decision_register.md": "35b51791a07babf0078274b4ee5fe1893774e8d36f086184a9738f7e972dc8b6",
+    "docs/lodo_official_experiment_protocol.md": "4c966ccce5a14b9e879c8d27bc5543b9d6bbf3ff0797104946dc3c35f78e0b7a",
+    "docs/lodo_official_launch_runbook.md": "7fe8c662572a653a9ff4bff56ec4e21b88585e71a53ac59746f3a405e1faa2a2"
+  },
+  "after_sha256": {
+    "docs/lodo_experiment_protocol.md": "ac94ad409fd7b7cc0eeee7e3c589a606d6f95e6cb08f0c82a0443caada762371",
+    "docs/lodo_decision_register.md": "09d05858843841c8588a21738ed754099801def7ea66274231c8b71bbc338305",
+    "docs/lodo_official_experiment_protocol.md": "b44e98e56dbcf36512d5ccdc94024060797fa58b437455cd698f35765caa3a78",
+    "docs/lodo_official_launch_runbook.md": "e1743c15e508ed8a137d5b5cca9b2693d5747657bf05782a66c14fa20f1cc089"
+  },
+  "changes": [
+    "Prepend current sign-off notices without rewriting historical science/results",
+    "Append D49-D54 with explicit approval scope and remaining limits",
+    "Remove duplicate resume-preflight prose and require actual --frozen-commit in post-freeze CPU runbook command"
+  ],
+  "candidate_manifests_changed": false,
+  "production_config_tests_changed": false,
+  "historical_phase10_proof": "Unchanged historical receipt pins pre-signoff document hashes; authorized doc deltas are recorded here, not silently refreshed."
+}

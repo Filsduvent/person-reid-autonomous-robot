@@ -1,0 +1,163 @@
+# CANDIDATE ONLY. DO NOT EXECUTE BEFORE EXPLICIT APPROVAL.
+experiment:
+  name: lodo_v1_pcb_lodo-2_seed42
+  output_dir: exp/lodo/v1/pcb/LODO-2/seed42/official-candidate-20261011
+  notes: PHASE 10 CANDIDATE; DO NOT EXECUTE BEFORE EXPLICIT FREEZE, ALLOCATION AND
+    LAUNCH APPROVAL
+system:
+  device: cuda
+  gpu_id: 0
+  amp: false
+  log_interval: 20
+repro:
+  seed: 42
+  deterministic: true
+  benchmark: false
+  cuda_policy: strict_cuda_deterministic_v1
+logging:
+  to_file: false
+  tensorboard: false
+data:
+  root: /mnt/hd-data/addirakoze/Projects/Dataset
+  num_workers: 0
+  pin_memory: true
+  train:
+    dataset:
+      name: multi_source
+      sources:
+      - name: market1501
+        format: processed
+        split: trainval
+        metadata_sha256: 3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab
+      - name: cuhk03
+        format: processed
+        split: trainval
+        image_type: detected
+        protocol: processed_partition
+        split_id: null
+        provenance:
+          intended_protocol: detected_new
+          verification: unverified
+        metadata_sha256: a1fd9a06748dd217325820b2ed5c5814de364a6b5e91cb7a93e1924915034f97
+      - name: msmt17
+        format: raw
+        split: train
+        lists:
+        - list_train.txt
+        image_subdir: msmt17/MSMT17_V2/mask_train_v2
+        metadata_sha256: 00930d5911e66ec6ac4d9b177e61b49433658758cc091231bf7cfcb83c70d0bf
+    images:
+      size:
+      - 384
+      - 128
+    aug:
+      mean:
+      - 0.486
+      - 0.459
+      - 0.408
+      std:
+      - 0.229
+      - 0.224
+      - 0.225
+      mirror: random
+      padding:
+        enabled: false
+      random_crop:
+        enabled: false
+      random_erasing:
+        enabled: false
+    batch:
+      sampler: random
+      batch_size: 64
+      drop_last: true
+  test:
+    dataset:
+      name: duke
+      format: processed
+      split: test
+      metadata_sha256: 25929417e0a8780548924d4f58f4f644ee18098e957df41a571650eb05e6b638
+    images:
+      size:
+      - 384
+      - 128
+    aug:
+      mean:
+      - 0.486
+      - 0.459
+      - 0.408
+      std:
+      - 0.229
+      - 0.224
+      - 0.225
+      mirror: none
+    loader:
+      shuffle: false
+    batch:
+      size: 32
+model:
+  name: pcb
+  variant: independent_part_reduction
+  pretrained: true
+loss:
+  id:
+    enabled: true
+    label_smoothing: 0.0
+    weight: 1.0
+    head_aggregation: sum
+  triplet:
+    enabled: false
+  center:
+    enabled: false
+optim:
+  name: sgd
+  lr: 0.1
+  momentum: 0.9
+  nesterov: false
+  weight_decay: 0.0005
+  bias_lr_factor: 1.0
+  weight_decay_bias: 0.0005
+  param_groups:
+  - prefix: backbone.
+    lr_mult: 0.1
+sched:
+  name: warmup_multistep
+  milestones:
+  - 31400
+  gamma: 0.1
+  warmup_iters: 0
+  warmup_factor: 1.0
+  warmup_method: linear
+  unit: successful_primary_updates
+train:
+  mode: successful_updates
+  max_updates: 94200
+  evaluate_during_training: false
+  checkpoint_selection: terminal
+  save:
+    save_best: false
+    save_last: true
+    save_terminal: true
+    resume: ''
+  recovery:
+    version: 1
+    policy: completed_epoch_boundary
+    every_epochs: 1
+    keep_generations: 2
+eval:
+  weight: ''
+  normalize_feat: true
+  distance: euclidean
+  topk:
+  - 1
+  - 5
+  - 10
+  rerank:
+    enabled: false
+  export:
+    format:
+    - json
+protocol:
+  name: multi_source_lodo
+  version: 1
+  architecture: pcb
+  fold: LODO-2

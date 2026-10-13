@@ -1,0 +1,18 @@
+# DO NOT EXECUTE BEFORE SEPARATE POST-TRAINING APPROVAL.
+mode: lodo_held_out
+version: 1
+architecture: pcb
+fold: LODO-3
+target: cuhk03
+checkpoint: /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot-lodo/exp/lodo/v1/pcb/LODO-3/seed42/official-candidate-20261011/checkpoints/ckpt_terminal.pth
+expected:
+  config_digest: e0f59a7689f1a5bb856f3e08ad4b591089f1f016557ad065db6335041229b839
+  map_digest: 5caf9706605d6626d557637713e794cf959f54cd2c8d9a6eebeb3c95a5b44970
+  data_digest: 34d6d14d82687c4eee4bfc9dee9de30a264ac561245a957d21345e640a897c4b
+  num_classes: 2494
+synthetic: false
+output_dir: exp/lodo_eval/v1/benchmark/pcb/LODO-3/seed42/official-candidate-20261011
+data_root: /mnt/hd-data/addirakoze/Projects/Dataset
+num_workers: 0
+batch_size: 32
+stage_a_records: []

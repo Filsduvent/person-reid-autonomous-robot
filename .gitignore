@@ -162,3 +162,6 @@ results/resnet50_selected_matrix/
 nohup.out
 :memory:.ses
 configs/runtime_qualification_common.yaml
+
+# LODO data-layer Python sources are code, not local dataset artifacts.
+!/reid/data/

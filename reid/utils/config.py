@@ -8,6 +8,8 @@ import copy
 import yaml
 from typing import Any, Dict, List, Tuple
 
+from reid.utils.lodo_protocol import has_lodo_protocol, require_explicit_lodo, validate_lodo_config
+
 
 def _expect_choice(name: str, value: Any, allowed: set[str]) -> str:
     value = str(value).lower()
@@ -196,7 +198,10 @@ def validate_optimizer_param_groups(optim_cfg: dict) -> list:
     return rules
 
 
-def validate_reid_config(cfg: Dict[str, Any], num_classes: int | None = None) -> None:
+def validate_reid_config(cfg: Dict[str, Any], num_classes: int | None = None, *, project_root=None) -> None:
+    require_explicit_lodo(cfg)
+    if has_lodo_protocol(cfg):
+        validate_lodo_config(cfg, project_root=project_root)
     validate_optimizer_param_groups(cfg.get("optim", {}))
     model_cfg = cfg.get("model", {})
     head_cfg = model_cfg.get("head", {})

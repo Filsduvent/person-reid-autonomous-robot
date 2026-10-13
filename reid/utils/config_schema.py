@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from reid.utils.lodo_protocol import has_lodo_protocol, require_explicit_lodo, validate_lodo_config
+
 
 REQUIRED_TOP_LEVEL_SECTIONS = (
     "experiment",
@@ -61,11 +63,12 @@ def _get_required(cfg: dict, dotted_key: str) -> Any:
     return current
 
 
-def validate_config(cfg: dict) -> None:
+def validate_config(cfg: dict, *, project_root=None) -> None:
     """
     Validate the experiment-level YAML schema used by train/evaluate/smoke.
 
-    This intentionally checks structure and required experiment knobs only.
+    Stage A checks structure and required experiment knobs as before.
+    Explicit LODO opt-in additionally checks the versioned scientific contract.
     Model/loss compatibility is handled by validate_reid_config after overrides
     and, when needed, after num_classes is known.
     """
@@ -77,7 +80,11 @@ def validate_config(cfg: dict) -> None:
             raise ValueError(f"Missing config section: {section}")
         _require_mapping(cfg[section], section)
 
+    require_explicit_lodo(cfg)
+    lodo = has_lodo_protocol(cfg)
     for key in REQUIRED_KEYS:
+        if lodo and key == "train.epochs":
+            continue
         _get_required(cfg, key)
 
     system_device = str(_get_required(cfg, "system.device")).lower()
@@ -91,3 +98,6 @@ def validate_config(cfg: dict) -> None:
     loss_cfg = cfg["loss"]
     if not isinstance(loss_cfg, dict):
         raise ValueError("Config section 'loss' must be a mapping.")
+
+    if lodo:
+        validate_lodo_config(cfg, project_root=project_root)

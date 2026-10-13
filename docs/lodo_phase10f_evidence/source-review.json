@@ -1,0 +1,2963 @@
+{
+  "status": "PASS",
+  "entire_archived_patch_bytes": 590622,
+  "entire_archived_patch_lines": 10200,
+  "tracked_patch_prefix_verified": true,
+  "full_untracked_additions_verified": 45,
+  "source_review": [
+    {
+      "path": "reid/data/index_observation.py",
+      "lines": 104,
+      "functions": [
+        "__init__",
+        "__iter__",
+        "__len__",
+        "__init__",
+        "__getattr__",
+        "__len__",
+        "__iter__",
+        "observation"
+      ],
+      "imports": [
+        "collections",
+        "torch.utils.data"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "aef84386ebb720efbce2c1802d7a5a28aeb157c78a3b4b779cc60296160ca417"
+    },
+    {
+      "path": "reid/data/lodo_preflight.py",
+      "lines": 187,
+      "functions": [
+        "_root",
+        "_inside",
+        "_msmt_image_dir",
+        "_names",
+        "_inventory",
+        "_tokens",
+        "_disjoint",
+        "_unique",
+        "_read_inventory",
+        "preflight_lodo"
+      ],
+      "imports": [
+        "pathlib",
+        "reid.data.cuhk03",
+        "reid.data.market1501",
+        "reid.data.msmt17",
+        "reid.utils.io",
+        "reid.utils.lodo_protocol"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "ce6cfe89be2155d498d991c80dee624d283a3475a7c103c270754cb664d8756b"
+    },
+    {
+      "path": "reid/data/multi_source.py",
+      "lines": 176,
+      "functions": [
+        "canonical_json",
+        "_integer",
+        "build_multi_source_dataset",
+        "__init__",
+        "__len__",
+        "resolve_index",
+        "__getitem__",
+        "serialize_mapping",
+        "mapping_metadata",
+        "serialize_sidecar",
+        "validate_sidecar",
+        "validate_mapping"
+      ],
+      "imports": [
+        "dataclasses",
+        "numbers",
+        "operator",
+        "pathlib",
+        "reid.data",
+        "reid.data.lodo_preflight",
+        "reid.data.protocol",
+        "reid.utils.lodo_protocol",
+        "torch.utils.data"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "e9e012a127a8fa9c374fec6f7526d1b5b650a47ccd19a608ffe608d0d88211df"
+    },
+    {
+      "path": "reid/engine/update_control.py",
+      "lines": 258,
+      "functions": [
+        "nonnegative_integer",
+        "validate_update_mode",
+        "finite_gradients",
+        "finite_parameters",
+        "epoch_batches",
+        "__init__",
+        "__init__",
+        "resolve",
+        "record",
+        "summary",
+        "__post_init__",
+        "budget_completed",
+        "bind",
+        "fail",
+        "check_totals"
+      ],
+      "imports": [
+        "collections",
+        "dataclasses",
+        "numbers",
+        "pathlib",
+        "reid.data.index_observation",
+        "reid.optim.lr_scheduler"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "4c248a9263fde578660f2e5a74f085856e2b5c2d34338228915e87d6d94097c9"
+    },
+    {
+      "path": "reid/utils/lodo_checkpoint.py",
+      "lines": 522,
+      "functions": [
+        "digest",
+        "file_digest",
+        "loader_contract",
+        "optimizer_contract",
+        "center_module",
+        "make_identity",
+        "rng_state",
+        "restore_rng",
+        "progress_state",
+        "restore_progress",
+        "validate_progress",
+        "atomic_write",
+        "read_checkpoint",
+        "validate_resume_path",
+        "save_lodo_checkpoint",
+        "restore_lodo_checkpoint",
+        "validate_rng",
+        "validate_optimizer_tensors",
+        "write"
+      ],
+      "imports": [
+        "collections",
+        "dataclasses",
+        "pathlib",
+        "reid.data.index_observation",
+        "reid.data.multi_source",
+        "reid.data.samplers",
+        "reid.engine.update_control",
+        "reid.utils.lodo_cuda_policy",
+        "reid.utils.lodo_device",
+        "reid.utils.lodo_protocol",
+        "reid.utils.lodo_recovery"
+      ],
+      "review_sensitive_call_names": [
+        "load",
+        "replace",
+        "save",
+        "unlink"
+      ],
+      "sha256": "596937d79ecde92b5f862e44d2359e573296ebfd77dc9e3fe4f396cff3255dc4"
+    },
+    {
+      "path": "reid/utils/lodo_comparison.py",
+      "lines": 95,
+      "functions": [
+        "_compatible_reference",
+        "compare_stage_a"
+      ],
+      "imports": [
+        "pathlib",
+        "reid.utils.lodo_evaluation"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "d20b7126ab7e90f2c02b23e73afcb5d6c572673e7125b4323a0c22e1e4b71235"
+    },
+    {
+      "path": "reid/utils/lodo_cuda_policy.py",
+      "lines": 84,
+      "functions": [
+        "policy_name",
+        "policy_contract",
+        "validate_environment",
+        "runtime_controls",
+        "validate_runtime",
+        "activate_policy",
+        "checkpoint_schema"
+      ],
+      "imports": [],
+      "review_sensitive_call_names": [],
+      "sha256": "5fccd5d32f8c9291ce2e641fec6b028211890b8699f7474d83d762e921235bf7"
+    },
+    {
+      "path": "reid/utils/lodo_device.py",
+      "lines": 161,
+      "functions": [
+        "_query",
+        "audit_gpu",
+        "authorization_uuid",
+        "select_lodo_device",
+        "validate_placement",
+        "recheck"
+      ],
+      "imports": [
+        "datetime",
+        "reid.utils.device",
+        "reid.utils.lodo_cuda_policy",
+        "reid.utils.lodo_recovery"
+      ],
+      "review_sensitive_call_names": [
+        "run",
+        "set_device"
+      ],
+      "sha256": "1762ba0a5ab9c6a455f9960673604cd2eba699a6474ba1bda93154f109dd51fb"
+    },
+    {
+      "path": "reid/utils/lodo_evaluation.py",
+      "lines": 228,
+      "functions": [
+        "_require",
+        "validate_request",
+        "validate_terminal",
+        "target_metadata",
+        "evaluation_output",
+        "retrieval_contract",
+        "metric_vector",
+        "publish_result",
+        "read_result",
+        "evaluate_lodo"
+      ],
+      "imports": [
+        "pathlib",
+        "reid.data.build",
+        "reid.data.multi_source",
+        "reid.engine.evaluator",
+        "reid.utils.checkpoint",
+        "reid.utils.evaluation_config",
+        "reid.utils.lodo_checkpoint",
+        "reid.utils.lodo_comparison",
+        "reid.utils.lodo_protocol"
+      ],
+      "review_sensitive_call_names": [
+        "to"
+      ],
+      "sha256": "abd3d76ee1936141b70a51c2e170798d4484643332fa6b9d47b92041115d8d48"
+    },
+    {
+      "path": "reid/utils/lodo_protocol.py",
+      "lines": 383,
+      "functions": [
+        "has_lodo_protocol",
+        "require_explicit_lodo",
+        "_mapping",
+        "_at",
+        "_equal",
+        "_expect",
+        "_keys",
+        "validate_fold",
+        "_descriptor",
+        "_contract",
+        "validate_output_path",
+        "validate_lodo_config",
+        "_canonical_numbers",
+        "scientific_configuration",
+        "serialize_scientific_configuration",
+        "configuration_identity",
+        "operational_configuration"
+      ],
+      "imports": [
+        "__future__",
+        "pathlib",
+        "reid.utils.lodo_checkpoint",
+        "reid.utils.lodo_cuda_policy",
+        "reid.utils.lodo_recovery"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "c7cfbddb6290855e1a189b94d2c6e9435e961f202a5aa578924e4a1923d9aa98"
+    },
+    {
+      "path": "reid/utils/lodo_recovery.py",
+      "lines": 174,
+      "functions": [
+        "recovery_policy",
+        "cuda_boundary",
+        "execution_environment",
+        "validate_boundary",
+        "generation_name",
+        "_read_index",
+        "select_generation",
+        "publish_generation",
+        "recovery_event_environment"
+      ],
+      "imports": [
+        "datetime",
+        "importlib.metadata",
+        "pathlib",
+        "reid.utils.lodo_checkpoint",
+        "reid.utils.lodo_cuda_policy",
+        "reid.utils.lodo_device"
+      ],
+      "review_sensitive_call_names": [
+        "unlink"
+      ],
+      "sha256": "c5dfbfed5e671feccb29ad74009be2f6aceb6cd0bb79cf6798faf2667a66b4fe"
+    },
+    {
+      "path": "scripts/lodo_official_preparation.py",
+      "lines": 247,
+      "functions": [
+        "seal",
+        "validate_envelope",
+        "verify_code",
+        "metadata_only",
+        "dataset_evidence",
+        "verify_manifest",
+        "verify_runtime",
+        "main",
+        "forbidden"
+      ],
+      "imports": [
+        "PIL",
+        "__future__",
+        "collections",
+        "contextlib",
+        "importlib.metadata",
+        "pathlib",
+        "reid.data.build",
+        "reid.data.multi_source",
+        "reid.models.pcb",
+        "reid.utils.config",
+        "reid.utils.config_schema",
+        "reid.utils.lodo_checkpoint",
+        "reid.utils.lodo_evaluation",
+        "reid.utils.lodo_protocol",
+        "reid.utils.lodo_recovery",
+        "torchvision.models",
+        "unittest.mock"
+      ],
+      "review_sensitive_call_names": [
+        "check_output"
+      ],
+      "sha256": "2ec36caefea27f6f54263ae849e01e2aa74c3271cfe5f8dce7f71491c0afa56a"
+    },
+    {
+      "path": "tests/lodo_cuda_abc_diagnostic.py",
+      "lines": 471,
+      "functions": [
+        "cpu_tree",
+        "fingerprint",
+        "difference",
+        "flatten",
+        "compare",
+        "output_path",
+        "install_engine_observation",
+        "guards",
+        "boundary_capture",
+        "observe_restore",
+        "environment",
+        "diagnostic_budget",
+        "continuation_artifacts",
+        "_run",
+        "read_common",
+        "run",
+        "non_tensors",
+        "__init__",
+        "capture",
+        "flush",
+        "named_state",
+        "ownership",
+        "install_model",
+        "install_criterion",
+        "gradients",
+        "attach_optimizer",
+        "attach_auxiliary",
+        "accounting",
+        "backward",
+        "scale",
+        "tracer",
+        "prohibited",
+        "modules",
+        "optimizers",
+        "rng",
+        "loader",
+        "model",
+        "criterion",
+        "optimizer",
+        "auxiliary",
+        "scheduler",
+        "epoch",
+        "saved",
+        "before",
+        "after",
+        "after",
+        "before",
+        "after",
+        "after",
+        "observed",
+        "expect",
+        "layer"
+      ],
+      "imports": [
+        "contextlib",
+        "lodo_cuda_admission_diagnostic",
+        "lodo_cuda_numerical_diagnostic",
+        "lodo_cuda_recovery_smoke",
+        "lodo_cuda_smoke",
+        "pathlib",
+        "reid.data",
+        "reid.engine",
+        "reid.utils",
+        "scripts",
+        "test_lodo_config",
+        "unittest.mock"
+      ],
+      "review_sensitive_call_names": [
+        "load",
+        "run",
+        "save",
+        "to"
+      ],
+      "sha256": "d93e1f31cd4d57269dd8892b01c2f007a8f6e2ae3bf3e8e4bcf6020a10e02f3e"
+    },
+    {
+      "path": "tests/lodo_cuda_admission_diagnostic.py",
+      "lines": 156,
+      "functions": [
+        "write_once_json",
+        "owner",
+        "logged_admission",
+        "publish_final_status",
+        "__init__",
+        "snapshot",
+        "check",
+        "captured"
+      ],
+      "imports": [
+        "contextlib",
+        "datetime",
+        "pathlib",
+        "reid.utils",
+        "unittest.mock"
+      ],
+      "review_sensitive_call_names": [
+        "run",
+        "unlink"
+      ],
+      "sha256": "738c4821a781aaf89be2b935873e27554a4395748d7f7a1056be2565158aa516"
+    },
+    {
+      "path": "tests/lodo_cuda_backward_probe.py",
+      "lines": 360,
+      "functions": [
+        "tensor_evidence",
+        "hashes",
+        "compare_traces",
+        "apply_policy",
+        "probe_directory",
+        "probe_contract",
+        "execute",
+        "ownership",
+        "campaign",
+        "__init__",
+        "install_model",
+        "install_graph",
+        "close",
+        "before",
+        "after",
+        "pre",
+        "post",
+        "loss_hook",
+        "backward",
+        "step"
+      ],
+      "imports": [
+        "contextlib",
+        "datetime",
+        "lodo_cuda_admission_diagnostic",
+        "lodo_cuda_titan_bc_continuation",
+        "pathlib",
+        "unittest.mock"
+      ],
+      "review_sensitive_call_names": [
+        "load",
+        "run",
+        "save",
+        "to"
+      ],
+      "sha256": "a981f40ba1f08e89b17c16883d8bab4c4e3c9bdab4925f2f1ca4969566976b72"
+    },
+    {
+      "path": "tests/lodo_cuda_deterministic_continuation.py",
+      "lines": 171,
+      "functions": [
+        "checked_rejection",
+        "validate_completed_a",
+        "child",
+        "run"
+      ],
+      "imports": [
+        "datetime",
+        "lodo_cuda_admission_diagnostic",
+        "lodo_cuda_titan_abc_campaign",
+        "pathlib",
+        "unittest.mock"
+      ],
+      "review_sensitive_call_names": [
+        "load",
+        "run"
+      ],
+      "sha256": "40ae2d1d2a42150731d05efe4ef709608e9547d2415312173583ef56990bc273"
+    },
+    {
+      "path": "tests/lodo_cuda_numerical_diagnostic.py",
+      "lines": 168,
+      "functions": [
+        "tensor_difference",
+        "parameter_associations",
+        "nested_equal",
+        "audit_prior_boundaries",
+        "analyze_prior",
+        "tensors"
+      ],
+      "imports": [
+        "pathlib",
+        "reid.utils.lodo_checkpoint",
+        "reid.utils.lodo_recovery"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "ebfef7f15e497179caaabfc1cd118c89107b70f5dd1bec1d8be3e1108217642f"
+    },
+    {
+      "path": "tests/lodo_cuda_policy_artifacts.py",
+      "lines": 133,
+      "functions": [
+        "rehash",
+        "inspect_arch",
+        "main",
+        "inspected_output",
+        "prohibited",
+        "interrupted"
+      ],
+      "imports": [
+        "contextlib",
+        "lodo_cuda_abc_diagnostic",
+        "lodo_cuda_admission_diagnostic",
+        "lodo_cuda_policy_qualification",
+        "lodo_cuda_smoke",
+        "pathlib",
+        "reid.utils",
+        "reid.utils.lodo_cuda_policy",
+        "scripts",
+        "unittest.mock"
+      ],
+      "review_sensitive_call_names": [
+        "save",
+        "unlink"
+      ],
+      "sha256": "29de53166d1d0e736b920c68df5a6e351015d4bd5d3055997bb5b95b34bd8bce"
+    },
+    {
+      "path": "tests/lodo_cuda_policy_campaign.py",
+      "lines": 104,
+      "functions": [
+        "tree_hashes",
+        "numerical_gate",
+        "main",
+        "execute"
+      ],
+      "imports": [
+        "datetime",
+        "lodo_cuda_admission_diagnostic",
+        "lodo_cuda_policy_qualification",
+        "pathlib",
+        "reid.utils"
+      ],
+      "review_sensitive_call_names": [
+        "Popen"
+      ],
+      "sha256": "cce4ddee28e6a79277a86ff9d3bd1e347db083a81f5d8f10aeeb3836792266c8"
+    },
+    {
+      "path": "tests/lodo_cuda_policy_performance.py",
+      "lines": 103,
+      "functions": [
+        "measure",
+        "timing_output",
+        "loader",
+        "model",
+        "criterion",
+        "epoch",
+        "tracer",
+        "before"
+      ],
+      "imports": [
+        "contextlib",
+        "lodo_cuda_abc_diagnostic",
+        "lodo_cuda_admission_diagnostic",
+        "lodo_cuda_policy_qualification",
+        "lodo_cuda_recovery_smoke",
+        "lodo_cuda_smoke",
+        "pathlib",
+        "reid.utils",
+        "reid.utils.lodo_cuda_policy",
+        "scripts",
+        "test_lodo_config",
+        "unittest.mock"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "2686e9bb19ac3732d6dc959bc650ba64cc4e49a7fac61db53cfcb01e95445473"
+    },
+    {
+      "path": "tests/lodo_cuda_policy_qualification.py",
+      "lines": 343,
+      "functions": [
+        "campaign_path",
+        "output_path",
+        "clone_boundary",
+        "compare_values",
+        "run",
+        "materialize",
+        "structure",
+        "__init__",
+        "capture",
+        "flush",
+        "ownership",
+        "state",
+        "restored",
+        "accounting",
+        "loader",
+        "model",
+        "criterion",
+        "optimizer",
+        "auxiliary",
+        "scheduler",
+        "epoch",
+        "backward",
+        "trace",
+        "restored",
+        "saved",
+        "before",
+        "after",
+        "observed",
+        "prohibited",
+        "select",
+        "scaled"
+      ],
+      "imports": [
+        "contextlib",
+        "lodo_cuda_abc_diagnostic",
+        "lodo_cuda_admission_diagnostic",
+        "lodo_cuda_numerical_diagnostic",
+        "lodo_cuda_recovery_smoke",
+        "lodo_cuda_smoke",
+        "pathlib",
+        "reid.utils",
+        "reid.utils.lodo_cuda_policy",
+        "scripts",
+        "test_lodo_config",
+        "unittest.mock"
+      ],
+      "review_sensitive_call_names": [
+        "kill",
+        "load",
+        "run",
+        "save"
+      ],
+      "sha256": "e012d9baebdc1e0ac4436e1fa7503899cac689936641f2ca5d877037f07f214e"
+    },
+    {
+      "path": "tests/lodo_cuda_recovery_smoke.py",
+      "lines": 223,
+      "functions": [
+        "smoke_output",
+        "equal_saved",
+        "run",
+        "__init__",
+        "__iter__",
+        "__len__",
+        "loader",
+        "model",
+        "criterion",
+        "restored",
+        "epoch",
+        "optimizer",
+        "auxiliary",
+        "selected",
+        "prohibited",
+        "before",
+        "observe",
+        "checked",
+        "step_after",
+        "step_after"
+      ],
+      "imports": [
+        "contextlib",
+        "itertools",
+        "lodo_cuda_smoke",
+        "pathlib",
+        "reid.data",
+        "reid.engine",
+        "reid.utils",
+        "reid.utils.checkpoint",
+        "reid.utils.lodo_device",
+        "scripts",
+        "test_lodo_config",
+        "unittest.mock"
+      ],
+      "review_sensitive_call_names": [
+        "run",
+        "to"
+      ],
+      "sha256": "62e372cb887109a4d4fecad7ebaee6fe176b74ab64f7ba9f512912008fc02605"
+    },
+    {
+      "path": "tests/lodo_cuda_smoke.py",
+      "lines": 307,
+      "functions": [
+        "smoke_output",
+        "fixture_budget",
+        "terminal_gate",
+        "synthetic_target",
+        "require_production_rejection",
+        "run_case",
+        "main",
+        "expect",
+        "image",
+        "build_loader",
+        "build_model",
+        "build_criterion",
+        "build_optimizer",
+        "build_aux",
+        "epoch",
+        "prohibited",
+        "visit_Constant",
+        "before",
+        "observed",
+        "before",
+        "after",
+        "guard",
+        "after"
+      ],
+      "imports": [
+        "PIL",
+        "collections",
+        "contextlib",
+        "pathlib",
+        "reid.data",
+        "reid.engine",
+        "reid.utils",
+        "reid.utils.checkpoint",
+        "reid.utils.evaluation_config",
+        "reid.utils.lodo_device",
+        "scripts",
+        "test_lodo_config",
+        "unittest.mock"
+      ],
+      "review_sensitive_call_names": [
+        "exec",
+        "save",
+        "to"
+      ],
+      "sha256": "df9939c6098ea9fc8858482093aef15f7b01593f9925e4e84ce4fa30e4abb82e"
+    },
+    {
+      "path": "tests/lodo_cuda_titan_abc_campaign.py",
+      "lines": 98,
+      "functions": [
+        "require_allocation",
+        "run",
+        "flush"
+      ],
+      "imports": [
+        "datetime",
+        "lodo_cuda_abc_diagnostic",
+        "lodo_cuda_admission_diagnostic",
+        "pathlib"
+      ],
+      "review_sensitive_call_names": [
+        "run"
+      ],
+      "sha256": "f5b44ccd5562633334f53846b7a9eec9f44a34ca2195663cc5ae83fed498928a"
+    },
+    {
+      "path": "tests/lodo_cuda_titan_bc_continuation.py",
+      "lines": 114,
+      "functions": [
+        "require_allocation",
+        "run",
+        "verify_origin",
+        "flush"
+      ],
+      "imports": [
+        "datetime",
+        "lodo_cuda_abc_diagnostic",
+        "lodo_cuda_admission_diagnostic",
+        "pathlib"
+      ],
+      "review_sensitive_call_names": [
+        "run"
+      ],
+      "sha256": "5659ee3f7eb7af7aff89b17f8a2134bdcd9004e1acbcd70991b94885cec2a5c3"
+    },
+    {
+      "path": "tests/test_lodo_checkpoint.py",
+      "lines": 461,
+      "functions": [
+        "synthetic",
+        "cfg_for",
+        "seed",
+        "parts",
+        "epoch",
+        "assert_equal",
+        "save",
+        "rewrite",
+        "test_epoch_boundary_next_and_multistep_equivalence",
+        "test_incompatible_payload_rejected_before_model_or_center_mutation",
+        "test_scheduler_restore_actual_pre_step_lr",
+        "target_guards",
+        "test_target_free_mid_epoch_rollback_and_terminal_zero_update",
+        "test_atomic_failure_preserves_previous_checkpoint_and_corruption_rejected",
+        "test_partial_main_center_failure_cannot_checkpoint",
+        "test_unsupported_workers_mid_epoch_and_legacy_resume_rejected",
+        "test_same_run_collision_exception_requires_integrity_and_config",
+        "test_script_dispatches_before_target_or_legacy_artifact_setup",
+        "test_phase4_adapter_checkpoint_integration",
+        "test_manifest_fields_cannot_fabricate_completion",
+        "test_two_file_publication_interruption_fails_closed",
+        "test_center_parameter_ownership_and_effective_branch_checked",
+        "test_missing_center_optimizer_and_nonfinite_optimizer_state_rejected",
+        "test_terminal_requires_exact_budget_and_unrelated_path_is_preserved",
+        "test_active_prefetch_iterator_cannot_be_checkpointed",
+        "test_stage_a_main_still_builds_target_and_selects_metric_best",
+        "test_unsupported_gpu_or_auto_mode_rejected_before_device_setup",
+        "__init__",
+        "serialize_sidecar",
+        "__getitem__",
+        "__init__",
+        "forward",
+        "expect",
+        "prohibited",
+        "build_loader",
+        "model_builder",
+        "interrupted_builder",
+        "failed",
+        "interrupted_sidecar",
+        "poison",
+        "evaluate"
+      ],
+      "imports": [
+        "dataclasses",
+        "pathlib",
+        "reid.data",
+        "reid.data.collate",
+        "reid.data.index_observation",
+        "reid.data.multi_source",
+        "reid.data.protocol",
+        "reid.engine.train_loop",
+        "reid.engine.update_control",
+        "reid.losses.build",
+        "reid.optim.build",
+        "reid.optim.lr_scheduler",
+        "reid.utils",
+        "reid.utils.checkpoint",
+        "reid.utils.config",
+        "scripts",
+        "test_lodo_config",
+        "test_lodo_updates",
+        "test_multi_source_dataset",
+        "torch",
+        "torch.utils.data",
+        "torchvision.transforms",
+        "types"
+      ],
+      "review_sensitive_call_names": [
+        "load",
+        "replace",
+        "save"
+      ],
+      "sha256": "1fe95b76d24e921c14911321842ceabc36388bbd101d9d4bf87eef408173190d"
+    },
+    {
+      "path": "tests/test_lodo_config.py",
+      "lines": 340,
+      "functions": [
+        "descriptor",
+        "lodo_config",
+        "set_value",
+        "test_four_fold_definitions",
+        "test_invalid_folds",
+        "test_valid_architecture_fold_configs",
+        "test_common_contract_rejections",
+        "test_resnet_recipe_rejections",
+        "test_pcb_recipe_rejections",
+        "test_dataset_descriptor_rejections",
+        "test_descriptor_fold_validation",
+        "test_lodo_cannot_fall_back_to_stage_a",
+        "test_required_stage_b_fields",
+        "test_identity_stability_and_operational_separation",
+        "test_equivalent_inferred_descriptors_have_same_identity",
+        "test_invalid_output_namespaces",
+        "test_absolute_output_is_valid_only_under_authorized_root",
+        "test_output_collisions_and_symlink_protection",
+        "test_schema_never_accesses_datasets",
+        "test_existing_stage_a_config_acceptance_is_preserved",
+        "test_stage_a_still_requires_epochs",
+        "guarded"
+      ],
+      "imports": [
+        "pathlib",
+        "reid.utils.config",
+        "reid.utils.config_schema",
+        "reid.utils.lodo_protocol"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "6cce022addbbae9f356d4c844827d9db3f04e55d9fe21f9801fcb6aabac7982c"
+    },
+    {
+      "path": "tests/test_lodo_cuda_abc_diagnostic.py",
+      "lines": 218,
+      "functions": [
+        "test_original_comparison_direction",
+        "test_integer_shape_dtype_and_nonfinite_gates",
+        "test_abc_uses_earlier_as_actual_and_draws_no_rng",
+        "test_capture_rejects_nonfinite_and_bounds_updates",
+        "test_namespace_fail_closed",
+        "test_namespace_collision_and_root_rebinding",
+        "test_restore_captures_actual_order_and_preserves_objects",
+        "test_trace_targets_original_engine_despite_module_wrapper",
+        "test_deterministic_fixture_is_local_and_production_flags_remain_frozen",
+        "test_common_checkpoint_provenance_rejected_before_components",
+        "test_duplicate_event_does_not_replace_evidence",
+        "test_existing_producer_requires_verified_exact_common_resume",
+        "test_existing_producer_resume_rejection_propagates_before_common_read",
+        "test_continuation_namespace_rejects_invalid",
+        "test_continuation_namespace_requires_canonical_existing_directory",
+        "test_continuation_preserves_original_A_and_failed_B",
+        "validate",
+        "common",
+        "reject"
+      ],
+      "imports": [
+        "contextlib",
+        "lodo_cuda_recovery_smoke",
+        "pathlib",
+        "reid.engine.train_loop",
+        "reid.engine.update_control",
+        "reid.utils",
+        "test_lodo_checkpoint",
+        "test_lodo_config",
+        "types"
+      ],
+      "review_sensitive_call_names": [
+        "load",
+        "save"
+      ],
+      "sha256": "400f85f0b411e048c2ec00bb16d999199f12d6950fff54d4cdb35852dba0c79a"
+    },
+    {
+      "path": "tests/test_lodo_cuda_admission_diagnostic.py",
+      "lines": 120,
+      "functions": [
+        "inventory",
+        "journal",
+        "record",
+        "test_accept_keeps_exact_guard_samples_and_no_cuda",
+        "test_rejection_persists_original_sample_before_raising",
+        "test_missing_metric_retains_raw_inventory_and_fails_closed",
+        "test_wrong_uuid_or_declarations_prevent_guard",
+        "test_no_overwrite_atomic_and_symlink_rejection",
+        "test_final_audit_cannot_mask_stopped_publication",
+        "test_self_only_update_guard_and_unknown_owner_fail_closed",
+        "test_threshold_cannot_be_weakened",
+        "test_campaign_needs_separate_exact_allocation_receipt",
+        "test_missing_allocation_receipt_stops_before_inventory_or_output",
+        "query",
+        "fail"
+      ],
+      "imports": [
+        "lodo_cuda_titan_abc_campaign",
+        "reid.utils"
+      ],
+      "review_sensitive_call_names": [
+        "run"
+      ],
+      "sha256": "f5f82a168f105ea477bbbef9659727f205e66fc99e1ce963efcec7cc736152a2"
+    },
+    {
+      "path": "tests/test_lodo_cuda_backward_probe.py",
+      "lines": 211,
+      "functions": [
+        "traced",
+        "test_node_hooks_preserve_gradients_rng_and_complete_graph",
+        "test_identifies_equal_operand_backward_divergence",
+        "test_topology_mismatch_is_explicit",
+        "test_full_hash_detects_changes_outside_bounded_sample",
+        "test_nonfinite_evidence_is_explicit_and_empty_supported",
+        "test_policy_requires_workspace_before_any_backend_mutation",
+        "test_diagnostic_policy_is_explicit_preserves_tf32_and_restorable",
+        "test_invalid_probe_names_rejected_before_writes",
+        "test_namespace_alias_and_collision_rejected",
+        "test_wrong_uuid_rejected_before_checkpoint_or_source_access",
+        "test_ownership_fail_closed",
+        "test_shared_engine_single_update_stop_retains_main_center_and_schedule",
+        "patch_step",
+        "test_probe_contract_selects_existing_verified_resume_validator_and_restores",
+        "test_saved_mask_and_index_dtypes_supported",
+        "forward",
+        "backward",
+        "single",
+        "loss_hook",
+        "__init__",
+        "forward"
+      ],
+      "imports": [
+        "contextlib",
+        "pathlib",
+        "reid.engine.update_control",
+        "test_lodo_checkpoint",
+        "types",
+        "unittest.mock"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "6719468d48f5a15e7dd67f4cdda5fd5801c2b73278cf6b74e5cb2fccfdc3e45c"
+    },
+    {
+      "path": "tests/test_lodo_cuda_deterministic_continuation.py",
+      "lines": 47,
+      "functions": [
+        "test_rejection_checks_budget_namespace_and_frozen_policy_separately",
+        "test_official_budget_not_accepted_as_short_fixture",
+        "test_successful_policy_validation_cannot_be_silently_accepted",
+        "test_unrelated_rejection_is_not_misclassified",
+        "test_incomplete_A_rejected_before_checkpoint_access",
+        "error"
+      ],
+      "imports": [
+        "test_lodo_config"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "b969a43f9c9ff83eaee76354096a6c5f34695e30d11fbd97a976823234d03fa8"
+    },
+    {
+      "path": "tests/test_lodo_cuda_numerical_diagnostic.py",
+      "lines": 58,
+      "functions": [
+        "test_comparison_matches_original_torch_assert_close",
+        "test_relative_error_zero_reference_reported_separately",
+        "test_integers_require_exact_equality",
+        "test_parameter_associations_reject_ambiguous_ownership",
+        "test_forensic_comparison_does_not_draw_rng",
+        "test_nested_rng_arrays_compare_values_without_truth_ambiguity"
+      ],
+      "imports": [
+        "lodo_cuda_numerical_diagnostic"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "a66776fe23e0023db472c21b1cf65d797c45be87b46c5db79203c27a713b719a"
+    },
+    {
+      "path": "tests/test_lodo_cuda_policy.py",
+      "lines": 298,
+      "functions": [
+        "launch",
+        "strict",
+        "test_strict_config_optin_preserves_frozen_science",
+        "test_default_original_identity_and_explicit_original_are_equal",
+        "test_unknown_versions_fail_purely",
+        "test_strict_requires_explicit_cuda_and_matching_declared_flags",
+        "test_stage_a_rejects_policy_without_optin",
+        "test_missing_or_incompatible_workspace_fails_before_cuda_or_sources",
+        "test_workspace_configured_after_module_import_is_rejected",
+        "test_initialized_context_rejected_without_backend_mutation",
+        "test_activation_is_precuda_explicit_preserves_tf32_and_rechecks_drift",
+        "test_incompatible_tf32_is_rejected_without_silent_correction",
+        "test_original_and_cpu_paths_do_not_change_global_flags",
+        "test_device_admission_applies_policy_before_runtime_discovery",
+        "strict_payload",
+        "test_v2_checkpoint_cpu_validation_and_optimizer_binding",
+        "test_wrong_policy_resume_rejected_before_tensor_mutation",
+        "test_strict_runtime_mismatch_rejected_before_cuda",
+        "test_strict_payload_cannot_claim_old_or_unknown_schema",
+        "test_strict_terminal_noop_uses_production_orchestration_without_cuda",
+        "test_launch_environment_verified_in_fresh_cpu_only_subprocess",
+        "test_strict_terminal_schema_remains_cpu_inspectable",
+        "test_strict_coherently_rehashed_wrong_map_fold_policy_rejected",
+        "test_strict_generations_keep_atomic_index_and_reject_corrupt_or_missing",
+        "test_guard_rejects_switching_selected_policy_to_original",
+        "available",
+        "publish",
+        "interrupted"
+      ],
+      "imports": [
+        "pathlib",
+        "reid.engine.update_control",
+        "reid.utils",
+        "reid.utils.config_schema",
+        "scripts",
+        "test_lodo_checkpoint",
+        "test_lodo_config",
+        "test_lodo_cuda_recovery",
+        "test_lodo_device",
+        "test_lodo_evaluation"
+      ],
+      "review_sensitive_call_names": [
+        "replace",
+        "run",
+        "save",
+        "unlink"
+      ],
+      "sha256": "0b64c72f5d55e3e628d5b34dca47b59f378b3e2e64e0dbfcf1f2e17be54966cf"
+    },
+    {
+      "path": "tests/test_lodo_cuda_policy_artifacts.py",
+      "lines": 16,
+      "functions": [
+        "test_rehash_preserves_reader_validation_for_coherent_wrong_map"
+      ],
+      "imports": [
+        "lodo_cuda_policy_artifacts",
+        "reid.utils",
+        "test_lodo_checkpoint",
+        "test_lodo_cuda_policy"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "2feeb1947bfe8c78fe04cfdda43c9e5ad95deafd46590f3cc2133425bafe03b0"
+    },
+    {
+      "path": "tests/test_lodo_cuda_policy_performance.py",
+      "lines": 29,
+      "functions": [
+        "test_benchmark_rejects_incomplete_qualification_before_outputs",
+        "test_benchmark_requires_architecture_recovery_pass",
+        "test_benchmark_policy_environment_fail_closed"
+      ],
+      "imports": [
+        "pathlib"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "48c70a9d7f33f37afcb2acb3b8a7c0b4e5f9e165ec827c0b220e09e4f0dd54ba"
+    },
+    {
+      "path": "tests/test_lodo_cuda_policy_qualification.py",
+      "lines": 74,
+      "functions": [
+        "test_original_tolerances",
+        "test_fail_closed_comparison",
+        "test_namespace_rejects_alias",
+        "test_namespace_preserves_same_run_validator",
+        "test_clone_preserves_exact_checkpoint_inode_and_isolates_metadata",
+        "test_clone_rejects_symlink_before_copy",
+        "test_recorder_bounds_and_does_not_draw_rng",
+        "test_harness_uses_actual_orchestration_and_no_manual_restore_loop",
+        "rejected"
+      ],
+      "imports": [
+        "pathlib",
+        "test_lodo_config"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "a02c72771d4fedd69d34d7ad7fac92ad0e47ec9cab3c8ffe9e8d4dda7cb87642"
+    },
+    {
+      "path": "tests/test_lodo_cuda_recovery.py",
+      "lines": 197,
+      "functions": [
+        "configured",
+        "pointer",
+        "write_boundary",
+        "test_retained_orchestration_rollback_no_double_count_and_terminal_noop",
+        "test_retention_corrupt_latest_fallback_and_immutable_successor",
+        "test_index_publication_failure_keeps_last_valid_generation",
+        "test_unsupported_recovery_policy_rejected",
+        "test_cuda_worker_modes_rejected_before_cuda",
+        "test_nondefault_prefetch_rejected_before_save",
+        "fake_cuda_generation",
+        "test_bad_cuda_resume_rejected_on_cpu_before_discovery",
+        "test_valid_cuda_payload_cpu_inspection_is_nonmutating",
+        "test_optin_does_not_grant_uuid_authority_or_change_scientific_identity",
+        "test_incomplete_latest_pair_falls_back_without_repair",
+        "loader",
+        "model",
+        "failing",
+        "fail",
+        "publish"
+      ],
+      "imports": [
+        "pathlib",
+        "reid.data.index_observation",
+        "reid.engine.update_control",
+        "reid.utils",
+        "reid.utils.lodo_protocol",
+        "scripts",
+        "test_lodo_checkpoint",
+        "test_lodo_updates"
+      ],
+      "review_sensitive_call_names": [
+        "replace",
+        "save",
+        "unlink"
+      ],
+      "sha256": "50a026dc5a055f240cb9045836403f5eb44adfaaab260d898fec202f76a111ab"
+    },
+    {
+      "path": "tests/test_lodo_cuda_recovery_smoke_contract.py",
+      "lines": 25,
+      "functions": [
+        "test_short_epoch_never_changes_original_decisions_or_fetches_third",
+        "test_recovery_smoke_namespace_escape_rejected",
+        "test_valid_fresh_namespace_and_root_rebinding_rejected",
+        "original"
+      ],
+      "imports": [
+        "lodo_cuda_recovery_smoke",
+        "pathlib",
+        "test_lodo_config"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "bacb87da3c63f991adf6cfc9304be58ec7896e1c037fb8532f9e1f60811d0a13"
+    },
+    {
+      "path": "tests/test_lodo_cuda_smoke_contract.py",
+      "lines": 77,
+      "functions": [
+        "test_testonly_budget_is_bounded_restored_and_recipe_preserved",
+        "test_invalid_smoke_budget_rejected",
+        "test_official_or_wrong_fold_output_prohibited",
+        "test_smoke_output_collision_alias_and_resume_rejected",
+        "test_synthetic_heldout_fixture_uses_original_parser_and_cross_camera_positive"
+      ],
+      "imports": [
+        "pathlib",
+        "reid.data.build",
+        "reid.utils",
+        "test_lodo_config"
+      ],
+      "review_sensitive_call_names": [],
+      "sha256": "384da31f9f82a1d65ba07e79e84640b8e9611bdc6ee2d937dec92dc616e1c5c5"
+    },
+    {
+      "path": "tests/test_lodo_device.py",
+      "lines": 227,
+      "functions": [
+        "authorized",
+        "inventory",
+        "cuda_double",
+        "test_explicit_uuid_maps_physical_one_to_logical_zero",
+        "test_authorization_and_visibility_fail_before_cuda_or_images",
+        "test_physical_or_invalid_index_is_never_fallback",
+        "test_auto_and_amp_and_resume_fail_closed",
+        "test_invalid_inventory_precedes_cuda_setup",
+        "test_duplicate_uuid_and_occupied_self_at_initial_admission_rejected",
+        "test_no_fallback_on_runtime_mismatch",
+        "test_guard_detects_revoked_authorization",
+        "test_audit_unavailable_fails_closed",
+        "test_query_is_bounded_read_only_csv",
+        "test_cpu_never_audits_gpu_or_changes_stage_a_device_behavior",
+        "test_cpu_checkpoint_mapping_and_recovery_identity_unchanged",
+        "test_cuda_capability_is_distinct_and_cannot_be_cpu_resumed",
+        "test_placement_precision_and_state_mismatch_rejected",
+        "test_contested_guard_stops_before_transfer_forward_or_exposure",
+        "test_gpu_runtime_overrides_do_not_change_science_or_allow_short_budget",
+        "fail",
+        "run",
+        "load",
+        "contested"
+      ],
+      "imports": [
+        "reid.engine.train_loop",
+        "reid.engine.update_control",
+        "reid.utils",
+        "reid.utils.device",
+        "scripts",
+        "test_lodo_checkpoint",
+        "types"
+      ],
+      "review_sensitive_call_names": [
+        "save"
+      ],
+      "sha256": "27f53a1d3d32acdf81aea22712b978df2dda47ebac1f670330fa8a79bbce9827"
+    },
+    {
+      "path": "tests/test_lodo_evaluation.py",
+      "lines": 329,
+      "functions": [
+        "setup_terminal",
+        "rewrite",
+        "test_all_folds_source_C_original_target_factory_and_result",
+        "test_invalid_terminal_rejected_before_reconstruction_or_target",
+        "test_request_integrity_and_legacy_fail_closed",
+        "test_known_existing_evaluator_metrics_and_same_camera_filter",
+        "stage_a_rows",
+        "test_three_reference_means_envelope_best_run_tie_break_and_pp",
+        "test_missing_or_incomparable_references_never_partial_mean",
+        "test_collision_symlink_corrupt_result_and_terminal_immutability",
+        "test_evaluate_cli_dispatch_preserves_legacy_defaults",
+        "test_actual_architecture_source_class_reconstruction",
+        "test_additional_integrity_and_comparison_cases",
+        "test_comparison_corruption_fails_result_integrity",
+        "__init__",
+        "forward",
+        "builder",
+        "make",
+        "reconstruct",
+        "target"
+      ],
+      "imports": [
+        "PIL",
+        "collections",
+        "pathlib",
+        "reid.data.collate",
+        "reid.data.index_observation",
+        "reid.data.multi_source",
+        "reid.data.samplers",
+        "reid.engine.update_control",
+        "reid.losses.build",
+        "reid.models.build",
+        "reid.optim.build",
+        "reid.utils",
+        "reid.utils.checkpoint",
+        "reid.utils.lodo_comparison",
+        "reid.utils.lodo_protocol",
+        "scripts",
+        "test_lodo_config",
+        "test_multi_source_dataset",
+        "torch",
+        "torch.utils.data",
+        "types"
+      ],
+      "review_sensitive_call_names": [
+        "eval",
+        "replace",
+        "save",
+        "unlink"
+      ],
+      "sha256": "79bf0371c34495eff63e37d08066e3563e8d0013d15dba857719c15dceec71cf"
+    },
+    {
+      "path": "tests/test_lodo_integration.py",
+      "lines": 332,
+      "functions": [
+        "enlarge_synthetic_sources",
+        "smoke_terminal_gate",
+        "reconcile",
+        "test_eight_production_dispatch_workflows",
+        "test_official_boundary_lr_used_with_real_parameter_gradients",
+        "test_production_protocol_still_rejects_smoke_budgets",
+        "test_result_publication_interruption_has_no_valid_completion_proof",
+        "__init__",
+        "forward",
+        "build_loader",
+        "build_model",
+        "build_criterion",
+        "build_optimizer",
+        "build_auxiliary",
+        "dispatch",
+        "target_only",
+        "eval_dispatch",
+        "interrupted",
+        "visit_Constant",
+        "check_loss",
+        "before_step"
+      ],
+      "imports": [
+        "PIL",
+        "collections",
+        "pathlib",
+        "reid.data",
+        "reid.data.protocol",
+        "reid.engine.update_control",
+        "reid.optim.build",
+        "reid.utils",
+        "reid.utils.config",
+        "scripts",
+        "test_lodo_checkpoint",
+        "test_lodo_config",
+        "test_lodo_evaluation",
+        "test_lodo_updates",
+        "test_multi_source_dataset",
+        "torch",
+        "types"
+      ],
+      "review_sensitive_call_names": [
+        "exec",
+        "replace",
+        "save"
+      ],
+      "sha256": "de88295e2b7baff2a1f39ff24def2c513c0a353bda4627ebe5a0929f64d29cd1"
+    },
+    {
+      "path": "tests/test_lodo_official_preparation.py",
+      "lines": 131,
+      "functions": [
+        "proposal",
+        "test_eight_configs_use_actual_cli_without_dispatch",
+        "test_proposal_serialization_is_stable_and_operations_separate",
+        "test_false_freeze_unknown_provenance_and_approval_rejected",
+        "test_same_class_counterfeit_provenance_rejected_before_execution",
+        "test_metadata_guard_blocks_images_target_and_cuda",
+        "test_source_membership_and_hash_change_fail_closed",
+        "test_frozen_revision_requires_actual_full_head_and_clean_status",
+        "test_launch_and_evaluation_are_not_verifier_cli_actions",
+        "test_rehashed_wrong_runtime_rejected_without_cuda",
+        "test_rehashed_wrong_device_rejected_without_cuda",
+        "prohibited",
+        "query"
+      ],
+      "imports": [
+        "PIL",
+        "pathlib",
+        "reid.utils.config",
+        "reid.utils.config_schema",
+        "reid.utils.lodo_protocol",
+        "scripts"
+      ],
+      "review_sensitive_call_names": [
+        "init"
+      ],
+      "sha256": "f011af7264cbd9e6c4ecd994cc177db41e161069688a3b0aadc1658512c30c6b"
+    },
+    {
+      "path": "tests/test_lodo_updates.py",
+      "lines": 428,
+      "functions": [
+        "loader_for",
+        "setup",
+        "run_epoch",
+        "test_observation_preserves_full_index_transform_and_rng_sequences",
+        "test_pk_variable_epochs_replacement_and_no_observation_rng_draws",
+        "test_exact_budgets_across_partial_and_full_epochs",
+        "test_invalid_update_budgets_rejected",
+        "test_partial_loss_uses_processed_batches_and_reports_raw_weighted_terms",
+        "test_fail_closed_counts_and_scheduler",
+        "test_failed_second_batch_separates_attempted_successful_exposure",
+        "test_unused_prefetch_is_not_model_processed",
+        "test_corrupted_sidecar_fails_before_forward",
+        "test_missing_consumed_indices_fails_closed",
+        "test_per_source_slots_distinct_identities_and_actual_small_batch_size",
+        "test_complete_actual_step_used_lr_trace",
+        "test_update_schedule_independent_of_loader_length",
+        "test_center_actual_step_lr_and_noninvasive_weighted_gradients",
+        "test_phase4_original_adapter_factory_integration",
+        "test_stage_a_return_contract_and_new_mode_rejects_amp",
+        "test_same_identity_image_index_reassignment_fails_closed",
+        "test_step_used_and_next_rates_are_explicit_in_opt_in_logging",
+        "test_empty_epoch_fails_instead_of_looping_without_progress",
+        "test_opt_in_center_step_matches_original_manual_fp32_arithmetic",
+        "__init__",
+        "__len__",
+        "__getitem__",
+        "resolve_index",
+        "mapping_metadata",
+        "__init__",
+        "__len__",
+        "__init__",
+        "forward",
+        "second_bad",
+        "missing",
+        "add_scalar",
+        "invalid"
+      ],
+      "imports": [
+        "collections",
+        "dataclasses",
+        "reid.data.build",
+        "reid.data.collate",
+        "reid.data.index_observation",
+        "reid.data.multi_source",
+        "reid.data.protocol",
+        "reid.data.samplers",
+        "reid.engine.train_loop",
+        "reid.engine.update_control",
+        "reid.losses.build",
+        "reid.optim.build",
+        "test_lodo_config",
+        "test_multi_source_dataset",
+        "torch",
+        "torch.utils.data",
+        "torchvision.transforms",
+        "types",
+        "unittest.mock"
+      ],
+      "review_sensitive_call_names": [
+        "replace"
+      ],
+      "sha256": "02423cb55998f726df6f87d5fe3bc5bf931b61906d102a2525824d2d9c97a7b5"
+    },
+    {
+      "path": "tests/test_multi_source_dataset.py",
+      "lines": 345,
+      "functions": [
+        "image",
+        "partition",
+        "change_partition",
+        "tree",
+        "config",
+        "test_four_folds_delegate_and_align_every_index",
+        "test_mapping_namespace_recovery_determinism_and_local_reordering",
+        "test_mapping_identity_excludes_host_paths",
+        "test_existing_loader_collator_and_samplers",
+        "test_invalid_descriptors_fail_before_image_or_loader_access",
+        "test_partition_integrity",
+        "test_filesystem_and_provenance_fail_closed",
+        "test_msmt_train_only_and_raw_reference_checks",
+        "test_mapping_and_sidecar_corruption_rejected",
+        "test_post_construction_source_changes_rejected",
+        "test_returned_local_label_must_align",
+        "test_valid_union_shared_pids_and_metadata_hashes",
+        "test_metadata_mutation_between_preflight_and_loader_rejected",
+        "test_preflight_hash_corruption_rejected",
+        "test_recovered_sidecar_must_match_all_sample_metadata",
+        "test_pid_types_are_not_silently_coerced",
+        "test_original_msmt_in_tree_directory_aliases_are_validated",
+        "test_msmt_target_descriptor_hash_covers_query_and_gallery",
+        "transform",
+        "mutate",
+        "mutating_factory"
+      ],
+      "imports": [
+        "PIL",
+        "collections",
+        "pathlib",
+        "reid.data",
+        "reid.data.lodo_preflight",
+        "reid.data.multi_source",
+        "reid.data.protocol",
+        "reid.utils.lodo_protocol",
+        "test_lodo_config",
+        "torch.utils.data",
+        "torchvision.transforms"
+      ],
+      "review_sensitive_call_names": [
+        "save",
+        "unlink"
+      ],
+      "sha256": "8266b5149b5eac616440bbf67f4be6ec16cfb02b538e8804daa509bd7a51586d"
+    }
+  ],
+  "all_freeze_files": [
+    {
+      "path": ".gitignore",
+      "sha256": "f3da60466a1594d55229abb924c973025b57b17e8cec2de0a7a1ea2437c83d8f",
+      "bytes": 2194,
+      "ignored": false,
+      "format": ""
+    },
+    {
+      "path": "configs/lodo/v1/pcb_lodo-1_seed42.yaml",
+      "sha256": "2fd3246c530c8feff9c5566a5b3a2643a359fdca39713ce04ebcf996c6468466",
+      "bytes": 3349,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "configs/lodo/v1/pcb_lodo-2_seed42.yaml",
+      "sha256": "c7b309fd12bfa0b8196eb2b999540d4a80b0d5b77006ee6f21b4688211622700",
+      "bytes": 3349,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "configs/lodo/v1/pcb_lodo-3_seed42.yaml",
+      "sha256": "eeab4cae608834a6cc61058e940e86cc30d40dd1f4bb8c8ab45f04d06bba832b",
+      "bytes": 3337,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "configs/lodo/v1/pcb_lodo-4_seed42.yaml",
+      "sha256": "374f97dbe23f2246a0ba8aa89f1367e729c4a6b63131ddbb850832480deab190",
+      "bytes": 3370,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "configs/lodo/v1/resnet50_lodo-1_seed42.yaml",
+      "sha256": "c3af6e294ba941f08a122996309e7d3dda302b55fd7dd4585885aeb656fb30e5",
+      "bytes": 4016,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "configs/lodo/v1/resnet50_lodo-2_seed42.yaml",
+      "sha256": "2c0d82cedd21fb2d0272af6d6052b223e936ccf7e1a2174b0b549969e193fafd",
+      "bytes": 4016,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "configs/lodo/v1/resnet50_lodo-3_seed42.yaml",
+      "sha256": "fc02eed6e1d0a0d85bd06d481386f409afb11af8cc0db0a0c4e5b3a2735ebd5b",
+      "bytes": 4004,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "configs/lodo/v1/resnet50_lodo-4_seed42.yaml",
+      "sha256": "0d68d05d6404c0403a3532a1ae57769a2f9a5e7e94db47414802a76b9d891175",
+      "bytes": 4037,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "docs/lodo_cpu_integration_validation.md",
+      "sha256": "e9f11f85fe721c3a4aca83e65e4d578599a81207bcf5e11ac80eeca38ba50367",
+      "bytes": 10276,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_cuda_abc_qualification.md",
+      "sha256": "15f3e1eda916d08b175e5a8f70745696467f429bd6c9892941ffd55f868660b6",
+      "bytes": 15779,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_cuda_backward_determinism.md",
+      "sha256": "557158dd30faf0e6497f28f1159f724b9a4bfe2677f384967c6ff169a9d52919",
+      "bytes": 18660,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_cuda_numerical_investigation.md",
+      "sha256": "91587c48a3796c6bd795b8f92ed02928f80f7f9a3ef278a6357e9adfb25856ab",
+      "bytes": 22242,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_cuda_policy_integration.md",
+      "sha256": "bd51fa44562db63824228c9a9fcc73ccb3d79da98841947923c0c1d358acb0c4",
+      "bytes": 20426,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_cuda_recovery_qualification.md",
+      "sha256": "fa15366dc93c650d00a75d0c363e94bd3df3c9a3e5a72adb6250fbdc1cfa2314",
+      "bytes": 23129,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_decision_register.md",
+      "sha256": "35b51791a07babf0078274b4ee5fe1893774e8d36f086184a9738f7e972dc8b6",
+      "bytes": 21864,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_evaluation_contract.md",
+      "sha256": "c1ede0659d6ecc3fcac0e5d5e952c2f1891492c2dc9124afaf471fca166fea72",
+      "bytes": 7243,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_experiment_protocol.md",
+      "sha256": "2e5354aae71388b0711eac1c5e8dc672e5a753bca7e55f99491d4f885fda345a",
+      "bytes": 23518,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_gpu_readiness.md",
+      "sha256": "f62c649a5c8530f5208c70d07437e6e5d3dac20fca0fbc6b10d9b08abe579c50",
+      "bytes": 14152,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_gpu_smoke_validation.md",
+      "sha256": "7e4d5732b1ae989f0a5d2bb5edc4a1a788b1356b66ab237b3b8ea3b6836fd357",
+      "bytes": 20367,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_implementation_plan.md",
+      "sha256": "77751d47b64bec79520dcb48a608a5f6820f08320f8f1d893a54ac65c2a5c575",
+      "bytes": 34874,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_official_experiment_protocol.md",
+      "sha256": "4c966ccce5a14b9e879c8d27bc5543b9d6bbf3ff0797104946dc3c35f78e0b7a",
+      "bytes": 9920,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_official_launch_runbook.md",
+      "sha256": "7fe8c662572a653a9ff4bff56ec4e21b88585e71a53ac59746f3a405e1faa2a2",
+      "bytes": 18126,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/baseline-snapshot-script.py",
+      "sha256": "c7129a32c09be274a900856c9f6f558329b0f23bd08a7a15c1e84ddee6f5d118",
+      "bytes": 1632,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/candidate-index.json",
+      "sha256": "0f2704fcad4a2e90464d9266bc350372b33bdebafeb7a903c1a29b06182bd8cd",
+      "bytes": 6173,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/candidate-source-refinement.json",
+      "sha256": "c7ae4490d0e12fa9f43dac69b37c7c5658e9805fcdf5abb033ab194d7745cd47",
+      "bytes": 276,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/closeout-generator.py",
+      "sha256": "62ad2c0473aced6b4d4855e05667cc070f313e1db4e74aca98376e412f3051cd",
+      "bytes": 8062,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/cpu-focused.xml",
+      "sha256": "a8217a5853b99a1cc4ab65e57e2e5d1bca652902e8dea7c8e5502fc646176471",
+      "bytes": 3921,
+      "ignored": false,
+      "format": ".xml"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/cpu-full.xml",
+      "sha256": "9b2a3781119d2d86a3f614151a4a50fa2514dab0321f71c9d3da20a732b91439",
+      "bytes": 184929,
+      "ignored": false,
+      "format": ".xml"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/cpu-tests.json",
+      "sha256": "579ed4c8f26cef244ce4330ea15971f6d5a298e3e025e0892beabc2d62aaaf1b",
+      "bytes": 2043,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/cuhk03-provenance.json",
+      "sha256": "10d2d8e80d2a2580c9a8bf4a258ad76d42c5f78b54586bf72081a426ee0fbbeb",
+      "bytes": 1501,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/eight-preflight-results.json",
+      "sha256": "0ad1d97a1baf6e43902080fa42156ae9528f4faabc40eb652c6bc94af3cf75de",
+      "bytes": 5155,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/eval-cli-help.txt",
+      "sha256": "b801cd7f656c05c0852bfa8ac94e857ef4d2e8774437e80545488e2c8a1db4ce",
+      "bytes": 233,
+      "ignored": false,
+      "format": ".txt"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/evaluation_requests/pcb_lodo-1.yaml",
+      "sha256": "166db102d31876beb0fbd1ddc1e26b3e6e4fbdb548c46b6b213d041831de2b28",
+      "bytes": 780,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/evaluation_requests/pcb_lodo-2.yaml",
+      "sha256": "b7dce691cc59e8ad7526ad5006acc9f1dc977e9f5eeb543d6f36218d9691ec17",
+      "bytes": 774,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/evaluation_requests/pcb_lodo-3.yaml",
+      "sha256": "fb2fb90975e76d7b23b2386a3361dfff9db3bc4b10cacb5b9bf940a7c7d6bb79",
+      "bytes": 776,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/evaluation_requests/pcb_lodo-4.yaml",
+      "sha256": "c70974bd7f5a91a33c67244650149b54ea48d9809d6f55d6dd3f5d09d483220c",
+      "bytes": 776,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/evaluation_requests/resnet50_lodo-1.yaml",
+      "sha256": "404264b0915a2ab507a3ace9acdb1832a596b6fb7a5029ddbd342cdf1d09aaf4",
+      "bytes": 795,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/evaluation_requests/resnet50_lodo-2.yaml",
+      "sha256": "17cf3ac57593d5c45f24a3a0134c2ef1c35fa942b641cf5ebf476992c1fd9be0",
+      "bytes": 789,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/evaluation_requests/resnet50_lodo-3.yaml",
+      "sha256": "797d15c989a1e18dbe1751e7c0d43c4ca7f93d7d913b113ca61abf8df132a377",
+      "bytes": 791,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/evaluation_requests/resnet50_lodo-4.yaml",
+      "sha256": "e052108af0e7b5457642e37069ae135da65131c196ebf553e7b3a78c0c060e37",
+      "bytes": 791,
+      "ignored": false,
+      "format": ".yaml"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/evidence-archive-script.py",
+      "sha256": "5698ba6559627547c7cc61494243079134449065a1ef95b1325bc38e18fa255e",
+      "bytes": 3473,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/final-evidence-sha256.json",
+      "sha256": "510d61d18c9e358812a043989ff84c6b54ae6d070bc4954903b259212d81138b",
+      "bytes": 9963,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/implementation-review.patch",
+      "sha256": "d40833321643c4c559ccde08cf7443c16fff80405831bb6d9acef6ae44da7d98",
+      "bytes": 590622,
+      "ignored": false,
+      "format": ".patch"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/lodo_phase10_refine.py",
+      "sha256": "71196dade886e94cdf61a291a1387f3b824c590209a4160be845c0c7e0211258",
+      "bytes": 8419,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/manifests/pcb_lodo-1.json",
+      "sha256": "05b009f49d35cedce09a23bfe8d689b127c788017d464eda2daf731204402b50",
+      "bytes": 24186,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/manifests/pcb_lodo-2.json",
+      "sha256": "f759cfd77cbdb362f4fff8898f03db34206d25af672c2b66bb8595588cb32427",
+      "bytes": 24180,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/manifests/pcb_lodo-3.json",
+      "sha256": "ec80442cd2b34078146753d1f49669239a33bd34d4eb0105536ad13dca886404",
+      "bytes": 24343,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/manifests/pcb_lodo-4.json",
+      "sha256": "7019df2314c92f34cbe94b622da527fe44645ccbaf69e4044d4e8efb71791aa0",
+      "bytes": 24443,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/manifests/resnet50_lodo-1.json",
+      "sha256": "5b773b7affc15a4f4979de706c88ea490a559831d91750082c9edad6354f1d1f",
+      "bytes": 24617,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/manifests/resnet50_lodo-2.json",
+      "sha256": "ef3d593deddb898f64a0298b7e770794a31aedbc223e55aef47dfc6f234e8591",
+      "bytes": 24611,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/manifests/resnet50_lodo-3.json",
+      "sha256": "e6b23a638f1045c416e2c204713aad933553a5ba1591d7eb7a48d94b567338f6",
+      "bytes": 24774,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/manifests/resnet50_lodo-4.json",
+      "sha256": "4fde22addffefba8129feccf737e4b5ae318175b96c6312fc9e046a69661d8e2",
+      "bytes": 24874,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/maps/lodo-1.json",
+      "sha256": "e090e49fde838001a11fd7b41b8b23238bf38df34a36feeb601881082fcd312b",
+      "bytes": 216145,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/maps/lodo-2.json",
+      "sha256": "13f82a58afe58a9df499126a53f6aa0ae48633c8bd036992f66fdc7c41ed2b15",
+      "bytes": 224761,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/maps/lodo-3.json",
+      "sha256": "5caf9706605d6626d557637713e794cf959f54cd2c8d9a6eebeb3c95a5b44970",
+      "bytes": 217741,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/maps/lodo-4.json",
+      "sha256": "332f999102894db105360a2765483b23a4653c52fec41443a7f5ff5a7b3618ff",
+      "bytes": 194131,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/model-and-lr-preflight.json",
+      "sha256": "04237b0297515223211dec3df6515deb055445040dc447d09be0403b6692e6ae",
+      "bytes": 155391,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/original-stage-a-result-hashes.json",
+      "sha256": "049a015b498996f42a9a64c4f92cd89c2b5603a9d3f1f55e06e6588eb75d6c49",
+      "bytes": 4571,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/pip-freeze.txt",
+      "sha256": "cdf20ccda889d63843b76de99db64586db6b2cc52935d405a2a1d6327ca9af70",
+      "bytes": 3583,
+      "ignored": false,
+      "format": ".txt"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/pre-edit-state.json",
+      "sha256": "0c20ef64eda2893ca33ae649c58313439b745605660e797a57053b732ff26791",
+      "bytes": 1631854,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/preparation-generator.py",
+      "sha256": "a64e73eed903998924dc065038bd781b03e808d73824c4b477f17829b3362bf9",
+      "bytes": 8769,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/preservation-artifacts.json",
+      "sha256": "a364469a024d41c89ecfcd44e9b5f98c14d0c86122b7b1358b81283c01922565",
+      "bytes": 955,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/preservation-audit.py",
+      "sha256": "2eff6373aca4e214d3f94a84ad47589b551bad43c5a59d0900afeced6bba1a89",
+      "bytes": 2352,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/preservation-closeout.json",
+      "sha256": "285a6b007b8b57a6a579172eae58b15408ea43350f7f8bcac41eb6c27fee7b90",
+      "bytes": 4117,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/proposed-freeze-files.txt",
+      "sha256": "31b9f7926ce08b0be889c9f4c4e62349829cb714613678b9d8dee47dad5de84a",
+      "bytes": 6119,
+      "ignored": false,
+      "format": ".txt"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/qualification-reverified-final.json",
+      "sha256": "7a5a10ec8a4893dbddc86f9fd827110f757a292e517ba34823443285258364dd",
+      "bytes": 1699,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/qualification-reverified.json",
+      "sha256": "7a5a10ec8a4893dbddc86f9fd827110f757a292e517ba34823443285258364dd",
+      "bytes": 1699,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/read-only-audit-attempt1.py",
+      "sha256": "e21459ec17985dfea83e1442a82bd8f9ce7e4f2781af03dfee31082daef69abe",
+      "bytes": 11396,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/read-only-audit.py",
+      "sha256": "a95b6ec1f91d97cdc65eb0c273e49e5b496eb6319d6c746161e6a06959d1fb2d",
+      "bytes": 11515,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/readiness-report-generator.py",
+      "sha256": "ab64e96eeb5104da881ca56fd59e36a152218ad5a3ee4b786ab651c229c21ca2",
+      "bytes": 30569,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/repository-delta.json",
+      "sha256": "64da11cd0d8baff23768f02fd781baf65d83b4e2ec7f534828ca9840cb3ed5f8",
+      "bytes": 28689,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/resource-audit.json",
+      "sha256": "3994e599a2b3e8fffedef17568c8a8c03fb17b06e4c15452ccc93888bf4747b8",
+      "bytes": 598,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/resource-projections.json",
+      "sha256": "98ce542028b3c7fc98efd7309288ff1e27dea2a52e142b465b5d38fc1e78ffe7",
+      "bytes": 9475,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/runbook-syntax.json",
+      "sha256": "5162cca15b9179765328b2b2d635e4c549834462bd4ed46d6593dd747a6b8f9b",
+      "bytes": 1091,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/sampler-and-source-inventory.json",
+      "sha256": "6bd649faf8715e1428c19e55da31900324e407472f8c34fd00274abc6ccba568",
+      "bytes": 1857,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/sampler-inventory-audit.py",
+      "sha256": "97c8c202a346a29716c85b76e6ba45d1f5a5dba47c9f06235496cb767af418a1",
+      "bytes": 2893,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/stage-a-reference-eligibility.json",
+      "sha256": "82fe0cf1c5de8c442f0dc3709102613107b22408c8ec9fd9ad1a90f47dbc2a08",
+      "bytes": 7188,
+      "ignored": true,
+      "format": ".json"
+    },
+    {
+      "path": "docs/lodo_phase10_evidence/train-cli-help.txt",
+      "sha256": "80a986fd05c7b0aac914f0c69c6b28b65c80f3171b130eda555a4e3d18d18c3c",
+      "bytes": 196,
+      "ignored": false,
+      "format": ".txt"
+    },
+    {
+      "path": "docs/lodo_phase10_readiness.md",
+      "sha256": "476c53e0a1e7614cb148e834579c6afe680135576205377bb4ee2a2f2db48d72",
+      "bytes": 27368,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_phase9r3_evidence/lodo9r3-focused-final.xml",
+      "sha256": "d52a4cddb38479dd964ad706652b0530c846c6085584ce1670720624a1b9bb3b",
+      "bytes": 34999,
+      "ignored": false,
+      "format": ".xml"
+    },
+    {
+      "path": "docs/lodo_phase9r3_evidence/lodo9r3-full.xml",
+      "sha256": "8e426657c572829ea5c2a0be1ce55e01feb466e862ca753c820e6c873d1567dd",
+      "bytes": 176463,
+      "ignored": false,
+      "format": ".xml"
+    },
+    {
+      "path": "docs/lodo_phase9r3_evidence/lodo9r3-initial.xml",
+      "sha256": "c2335ccae622f7e949031d04d00e9f9a884b43b573192b1c23fc0950f9420b6b",
+      "bytes": 32049,
+      "ignored": false,
+      "format": ".xml"
+    },
+    {
+      "path": "docs/lodo_phase9r3_evidence/lodo9r3-policy-final.xml",
+      "sha256": "f41f5cf73b3e6d386bccae21091eb4aedf1d0cebbbc3c1fbf1f170c6832d9d1d",
+      "bytes": 7658,
+      "ignored": false,
+      "format": ".xml"
+    },
+    {
+      "path": "docs/lodo_phase9r3_evidence/lodo9r3-policy-fixture.xml",
+      "sha256": "784fe6a6bed6ec8396cbc8870abe5da0bffce527195ad28d4320cfdbd272322a",
+      "bytes": 7658,
+      "ignored": false,
+      "format": ".xml"
+    },
+    {
+      "path": "docs/lodo_phase9r3_evidence/lodo9r3-policy-initial.xml",
+      "sha256": "680ddc54e83efd48ac9052df71e6e300d60202f3d9d2f53ed4703250bab830c2",
+      "bytes": 6666,
+      "ignored": false,
+      "format": ".xml"
+    },
+    {
+      "path": "docs/lodo_recovery_contract.md",
+      "sha256": "94837424de8dd49fb5d498d66a792772654dfd8bd0c3e43c201381749a213610",
+      "bytes": 10015,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_titan_cuda_abc_authorized_attempt.md",
+      "sha256": "bb4090b935e532306280d2c0e62503f08745d6e35c7f0f09247647c79d2b588d",
+      "bytes": 16416,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_titan_cuda_abc_qualification.md",
+      "sha256": "9265c2f6d491615517a414760309b4b7b00023d9153032eeeda7d1a9229a184e",
+      "bytes": 16203,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "docs/lodo_titan_cuda_bc_continuation.md",
+      "sha256": "6eebbf14a9d313a074a8d657ed6d130e87931c608d3cdb5c2304a3fce236d7f1",
+      "bytes": 19658,
+      "ignored": false,
+      "format": ".md"
+    },
+    {
+      "path": "reid/data/build.py",
+      "sha256": "a6dcbb6f1a6bf0e09b77187c011dae2df4f820869b20871220f4710d2e133c81",
+      "bytes": 11193,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/data/index_observation.py",
+      "sha256": "aef84386ebb720efbce2c1802d7a5a28aeb157c78a3b4b779cc60296160ca417",
+      "bytes": 4816,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/data/lodo_preflight.py",
+      "sha256": "ce6cfe89be2155d498d991c80dee624d283a3475a7c103c270754cb664d8756b",
+      "bytes": 9544,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/data/multi_source.py",
+      "sha256": "e9e012a127a8fa9c374fec6f7526d1b5b650a47ccd19a608ffe608d0d88211df",
+      "bytes": 8964,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/engine/train_loop.py",
+      "sha256": "9c65f1a76fe59bfa3c182ee466d7c027833ac73eaf2fbc1e51d5c274cceab7ba",
+      "bytes": 13575,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/engine/update_control.py",
+      "sha256": "4c248a9263fde578660f2e5a74f085856e2b5c2d34338228915e87d6d94097c9",
+      "bytes": 12867,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/optim/build.py",
+      "sha256": "88ee351fd1f591adb25dc558c86b90d9dceb60f68f72c3d0c34aceb727ba9ac5",
+      "bytes": 5287,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/optim/lr_scheduler.py",
+      "sha256": "7361969f85c9538ec804e8e40064080ffd08b85dca2a7b48f47284b736f92132",
+      "bytes": 4451,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/utils/config.py",
+      "sha256": "492ea2d2e58b3c851fd82d5fec44902036e3c6b5c67ca4226bff4bed4f95a286",
+      "bytes": 9076,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/utils/config_schema.py",
+      "sha256": "4adb332b6d04cc1dfb0a229c02f5831b1951ef94970e2626372182b796667dc1",
+      "bytes": 3018,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/utils/lodo_checkpoint.py",
+      "sha256": "596937d79ecde92b5f862e44d2359e573296ebfd77dc9e3fe4f396cff3255dc4",
+      "bytes": 32087,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/utils/lodo_comparison.py",
+      "sha256": "d20b7126ab7e90f2c02b23e73afcb5d6c572673e7125b4323a0c22e1e4b71235",
+      "bytes": 7288,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/utils/lodo_cuda_policy.py",
+      "sha256": "5fccd5d32f8c9291ce2e641fec6b028211890b8699f7474d83d762e921235bf7",
+      "bytes": 3868,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/utils/lodo_device.py",
+      "sha256": "1762ba0a5ab9c6a455f9960673604cd2eba699a6474ba1bda93154f109dd51fb",
+      "bytes": 8573,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/utils/lodo_evaluation.py",
+      "sha256": "abd3d76ee1936141b70a51c2e170798d4484643332fa6b9d47b92041115d8d48",
+      "bytes": 17351,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/utils/lodo_protocol.py",
+      "sha256": "c7cfbddb6290855e1a189b94d2c6e9435e961f202a5aa578924e4a1923d9aa98",
+      "bytes": 21057,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "reid/utils/lodo_recovery.py",
+      "sha256": "c5dfbfed5e671feccb29ad74009be2f6aceb6cd0bb79cf6798faf2667a66b4fe",
+      "bytes": 9021,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "scripts/evaluate.py",
+      "sha256": "0e72f657c2bfa6651edfb6538fd5852d0b2d6ff9848d6095309d9ba5d76f20ac",
+      "bytes": 7218,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "scripts/lodo_official_preparation.py",
+      "sha256": "2ec36caefea27f6f54263ae849e01e2aa74c3271cfe5f8dce7f71491c0afa56a",
+      "bytes": 15292,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "scripts/train.py",
+      "sha256": "3e2727f2f63c7af20e0a7041d0100b109e9e754221ef781bfcec138f5dd04a4e",
+      "bytes": 29900,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/lodo_cuda_abc_diagnostic.py",
+      "sha256": "d93e1f31cd4d57269dd8892b01c2f007a8f6e2ae3bf3e8e4bcf6020a10e02f3e",
+      "bytes": 28403,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/lodo_cuda_admission_diagnostic.py",
+      "sha256": "738c4821a781aaf89be2b935873e27554a4395748d7f7a1056be2565158aa516",
+      "bytes": 7951,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/lodo_cuda_backward_probe.py",
+      "sha256": "a981f40ba1f08e89b17c16883d8bab4c4e3c9bdab4925f2f1ca4969566976b72",
+      "bytes": 19533,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/lodo_cuda_deterministic_continuation.py",
+      "sha256": "40ae2d1d2a42150731d05efe4ef709608e9547d2415312173583ef56990bc273",
+      "bytes": 10623,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/lodo_cuda_numerical_diagnostic.py",
+      "sha256": "ebfef7f15e497179caaabfc1cd118c89107b70f5dd1bec1d8be3e1108217642f",
+      "bytes": 9918,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/lodo_cuda_policy_artifacts.py",
+      "sha256": "29de53166d1d0e736b920c68df5a6e351015d4bd5d3055997bb5b95b34bd8bce",
+      "bytes": 9091,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/lodo_cuda_policy_campaign.py",
+      "sha256": "cce4ddee28e6a79277a86ff9d3bd1e347db083a81f5d8f10aeeb3836792266c8",
+      "bytes": 6614,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/lodo_cuda_policy_performance.py",
+      "sha256": "2686e9bb19ac3732d6dc959bc650ba64cc4e49a7fac61db53cfcb01e95445473",
+      "bytes": 7272,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/lodo_cuda_policy_qualification.py",
+      "sha256": "e012d9baebdc1e0ac4436e1fa7503899cac689936641f2ca5d877037f07f214e",
+      "bytes": 22833,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/lodo_cuda_recovery_smoke.py",
+      "sha256": "62e372cb887109a4d4fecad7ebaee6fe176b74ab64f7ba9f512912008fc02605",
+      "bytes": 14168,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/lodo_cuda_smoke.py",
+      "sha256": "df9939c6098ea9fc8858482093aef15f7b01593f9925e4e84ce4fa30e4abb82e",
+      "bytes": 18279,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/lodo_cuda_titan_abc_campaign.py",
+      "sha256": "f5b44ccd5562633334f53846b7a9eec9f44a34ca2195663cc5ae83fed498928a",
+      "bytes": 8147,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/lodo_cuda_titan_bc_continuation.py",
+      "sha256": "5659ee3f7eb7af7aff89b17f8a2134bdcd9004e1acbcd70991b94885cec2a5c3",
+      "bytes": 9348,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_checkpoint.py",
+      "sha256": "1fe95b76d24e921c14911321842ceabc36388bbd101d9d4bf87eef408173190d",
+      "bytes": 25754,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_config.py",
+      "sha256": "6cce022addbbae9f356d4c844827d9db3f04e55d9fe21f9801fcb6aabac7982c",
+      "bytes": 16840,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_cuda_abc_diagnostic.py",
+      "sha256": "400f85f0b411e048c2ec00bb16d999199f12d6950fff54d4cdb35852dba0c79a",
+      "bytes": 11886,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_cuda_admission_diagnostic.py",
+      "sha256": "f5f82a168f105ea477bbbef9659727f205e66fc99e1ce963efcec7cc736152a2",
+      "bytes": 5959,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_cuda_backward_probe.py",
+      "sha256": "6719468d48f5a15e7dd67f4cdda5fd5801c2b73278cf6b74e5cb2fccfdc3e45c",
+      "bytes": 9152,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_cuda_deterministic_continuation.py",
+      "sha256": "b969a43f9c9ff83eaee76354096a6c5f34695e30d11fbd97a976823234d03fa8",
+      "bytes": 2250,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_cuda_numerical_diagnostic.py",
+      "sha256": "a66776fe23e0023db472c21b1cf65d797c45be87b46c5db79203c27a713b719a",
+      "bytes": 2710,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_cuda_policy.py",
+      "sha256": "0b64c72f5d55e3e628d5b34dca47b59f378b3e2e64e0dbfcf1f2e17be54966cf",
+      "bytes": 17439,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_cuda_policy_artifacts.py",
+      "sha256": "2feeb1947bfe8c78fe04cfdda43c9e5ad95deafd46590f3cc2133425bafe03b0",
+      "bytes": 878,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_cuda_policy_performance.py",
+      "sha256": "48c70a9d7f33f37afcb2acb3b8a7c0b4e5f9e165ec827c0b220e09e4f0dd54ba",
+      "bytes": 1814,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_cuda_policy_qualification.py",
+      "sha256": "a02c72771d4fedd69d34d7ad7fac92ad0e47ec9cab3c8ffe9e8d4dda7cb87642",
+      "bytes": 4168,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_cuda_recovery.py",
+      "sha256": "50a026dc5a055f240cb9045836403f5eb44adfaaab260d898fec202f76a111ab",
+      "bytes": 11601,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_cuda_recovery_smoke_contract.py",
+      "sha256": "bacb87da3c63f991adf6cfc9304be58ec7896e1c037fb8532f9e1f60811d0a13",
+      "bytes": 1173,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_cuda_smoke_contract.py",
+      "sha256": "384da31f9f82a1d65ba07e79e84640b8e9611bdc6ee2d937dec92dc616e1c5c5",
+      "bytes": 3657,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_device.py",
+      "sha256": "27f53a1d3d32acdf81aea22712b978df2dda47ebac1f670330fa8a79bbce9827",
+      "bytes": 12020,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_evaluation.py",
+      "sha256": "79bf0371c34495eff63e37d08066e3563e8d0013d15dba857719c15dceec71cf",
+      "bytes": 21804,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_integration.py",
+      "sha256": "de88295e2b7baff2a1f39ff24def2c513c0a353bda4627ebe5a0929f64d29cd1",
+      "bytes": 21446,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_official_preparation.py",
+      "sha256": "f011af7264cbd9e6c4ecd994cc177db41e161069688a3b0aadc1658512c30c6b",
+      "bytes": 7656,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_lodo_updates.py",
+      "sha256": "02423cb55998f726df6f87d5fe3bc5bf931b61906d102a2525824d2d9c97a7b5",
+      "bytes": 22423,
+      "ignored": false,
+      "format": ".py"
+    },
+    {
+      "path": "tests/test_multi_source_dataset.py",
+      "sha256": "8266b5149b5eac616440bbf67f4be6ec16cfb02b538e8804daa509bd7a51586d",
+      "bytes": 18765,
+      "ignored": false,
+      "format": ".py"
+    }
+  ],
+  "secret_scan_findings": [],
+  "configs": [
+    {
+      "path": "configs/lodo/v1/pcb_lodo-1_seed42.yaml",
+      "architecture": "pcb",
+      "fold": "LODO-1",
+      "budget": 94200,
+      "changed_from_architecture_lodo1": []
+    },
+    {
+      "path": "configs/lodo/v1/pcb_lodo-2_seed42.yaml",
+      "architecture": "pcb",
+      "fold": "LODO-2",
+      "budget": 94200,
+      "changed_from_architecture_lodo1": [
+        ".data.train.dataset.sources",
+        ".data.test.dataset.metadata_sha256",
+        ".data.test.dataset.name",
+        ".experiment.output_dir",
+        ".experiment.name",
+        ".protocol.fold"
+      ]
+    },
+    {
+      "path": "configs/lodo/v1/pcb_lodo-3_seed42.yaml",
+      "architecture": "pcb",
+      "fold": "LODO-3",
+      "budget": 94200,
+      "changed_from_architecture_lodo1": [
+        ".data.train.dataset.sources",
+        ".data.test.dataset.protocol",
+        ".data.test.dataset.name",
+        ".data.test.dataset.image_type",
+        ".data.test.dataset.split_id",
+        ".data.test.dataset.metadata_sha256",
+        ".data.test.dataset.provenance",
+        ".experiment.output_dir",
+        ".experiment.name",
+        ".protocol.fold"
+      ]
+    },
+    {
+      "path": "configs/lodo/v1/pcb_lodo-4_seed42.yaml",
+      "architecture": "pcb",
+      "fold": "LODO-4",
+      "budget": 94200,
+      "changed_from_architecture_lodo1": [
+        ".data.train.dataset.sources",
+        ".data.test.dataset.image_subdir",
+        ".data.test.dataset.name",
+        ".data.test.dataset.lists",
+        ".data.test.dataset.format",
+        ".data.test.dataset.metadata_sha256",
+        ".experiment.output_dir",
+        ".experiment.name",
+        ".protocol.fold"
+      ]
+    },
+    {
+      "path": "configs/lodo/v1/resnet50_lodo-1_seed42.yaml",
+      "architecture": "resnet50",
+      "fold": "LODO-1",
+      "budget": 85200,
+      "changed_from_architecture_lodo1": []
+    },
+    {
+      "path": "configs/lodo/v1/resnet50_lodo-2_seed42.yaml",
+      "architecture": "resnet50",
+      "fold": "LODO-2",
+      "budget": 85200,
+      "changed_from_architecture_lodo1": [
+        ".data.train.dataset.sources",
+        ".data.test.dataset.metadata_sha256",
+        ".data.test.dataset.name",
+        ".experiment.output_dir",
+        ".experiment.name",
+        ".protocol.fold"
+      ]
+    },
+    {
+      "path": "configs/lodo/v1/resnet50_lodo-3_seed42.yaml",
+      "architecture": "resnet50",
+      "fold": "LODO-3",
+      "budget": 85200,
+      "changed_from_architecture_lodo1": [
+        ".data.train.dataset.sources",
+        ".data.test.dataset.protocol",
+        ".data.test.dataset.name",
+        ".data.test.dataset.image_type",
+        ".data.test.dataset.split_id",
+        ".data.test.dataset.metadata_sha256",
+        ".data.test.dataset.provenance",
+        ".experiment.output_dir",
+        ".experiment.name",
+        ".protocol.fold"
+      ]
+    },
+    {
+      "path": "configs/lodo/v1/resnet50_lodo-4_seed42.yaml",
+      "architecture": "resnet50",
+      "fold": "LODO-4",
+      "budget": 85200,
+      "changed_from_architecture_lodo1": [
+        ".data.train.dataset.sources",
+        ".data.test.dataset.image_subdir",
+        ".data.test.dataset.name",
+        ".data.test.dataset.lists",
+        ".data.test.dataset.format",
+        ".data.test.dataset.metadata_sha256",
+        ".experiment.output_dir",
+        ".experiment.name",
+        ".protocol.fold"
+      ]
+    }
+  ],
+  "method": "Full patch read/reconstruction and AST/static review of every addition; explicit manual review of shared engine/orchestration, recovery, policy, data and manifest boundaries. Secret patterns are bounded screening, not a universal guarantee.",
+  "archival_whitespace_exception": {
+    "schema_version": 1,
+    "status": "VALIDATED_SCOPED_ARCHIVE_EXCEPTION",
+    "authority": "Explicit user continuation: four conditional archival checks and completion of the previously authorized single local freeze",
+    "timestamp_utc": "2026-10-12T01:53:37.918912+00:00",
+    "path": "docs/lodo_phase10_evidence/implementation-review.patch",
+    "sha256": "d40833321643c4c559ccde08cf7443c16fff80405831bb6d9acef6ae44da7d98",
+    "bytes": 590622,
+    "git_mode": "100644",
+    "flagged_line_numbers": [
+      21,
+      22,
+      25,
+      26,
+      34,
+      36,
+      43,
+      54,
+      60,
+      61,
+      72,
+      73,
+      105,
+      255,
+      320,
+      360,
+      365,
+      366,
+      370,
+      461,
+      464,
+      469,
+      470,
+      484,
+      486,
+      489,
+      494,
+      495,
+      500,
+      510,
+      517,
+      532,
+      543,
+      557,
+      563,
+      573,
+      574,
+      725,
+      731
+    ],
+    "flagged_lines": [
+      {
+        "line": 21,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 22,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 25,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 26,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 34,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 36,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 43,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 54,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 60,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 61,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 72,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 73,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 105,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 255,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 320,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 360,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 365,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 366,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 370,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 461,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 464,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 469,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 470,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 484,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 486,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 489,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 494,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 495,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 500,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 510,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 517,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 532,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 543,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 557,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 563,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 573,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 574,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 725,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      },
+      {
+        "line": 731,
+        "literal": " ",
+        "utf8_hex": "20",
+        "meaning": "Unified-diff context marker for an empty source line"
+      }
+    ],
+    "justification": "Historical Phase10 source-review evidence stored as a unified patch; a single space on a blank context line is required patch syntax. Preserve archival bytes and historical digest. This documentation archive is not executable source or an active configuration.",
+    "runtime_source_config_references": [],
+    "raw_check_exit": 2,
+    "raw_check_warning_count": 39,
+    "strict_other_files_command": [
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      ".",
+      ":(exclude)docs/lodo_phase10_evidence/implementation-review.patch"
+    ],
+    "strict_other_files_exit": 0,
+    "strict_other_files_findings": 0,
+    "staged_membership_count": 155,
+    "excluded_paths": [
+      "docs/lodo_phase10_evidence/implementation-review.patch"
+    ],
+    "repository_git_config_or_attributes_changed": false,
+    "exception_scope": "Only the 39 verified single-space context markers in the exact SHA256-pinned archive. Any changed archive hash or additional finding invalidates this exception."
+  }
+}

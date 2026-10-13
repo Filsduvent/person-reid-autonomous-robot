@@ -1,0 +1,7 @@
+usage: evaluate.py [-h] --config CONFIG [--weight WEIGHT] [--opts ...]
+
+options:
+  -h, --help       show this help message and exit
+  --config CONFIG
+  --weight WEIGHT
+  --opts ...       Optional config overrides as key=value pairs.
