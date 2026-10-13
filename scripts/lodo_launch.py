@@ -1,7 +1,8 @@
 """Operational launcher for future reviewed unified Stage B runs (binding v2).
 
-Launch requires a clean wrapper release and an explicit local operator execution
-declaration. The declaration is an audit guard, not cryptographic authorization. --check is read-only and never starts tmux.
+Public commands use the reviewed main console and clean maintained runner.
+Launch requires an explicit local operator execution declaration, an audit guard
+rather than cryptographic authorization. --check never starts tmux.
 Only the standard library is imported in the operator process.
 """
 from __future__ import annotations
@@ -371,14 +372,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config')
     parser.add_argument('--resume',action='store_true')
-    parser.add_argument('--check',action='store_true',help='Read-only preparation; no release approval, receipts or tmux')
+    parser.add_argument('--check',action='store_true',help='Read-only preparation; reviewed console/binding required, no execution approval or tmux')
+    parser.add_argument('--no-follow',action='store_true',help='Dispatch without displaying live logs')
+    parser.add_argument('--monitor',action='store_true',help='Display the latest matching console attempt; never launch')
     parser.add_argument('--_preflight',help=argparse.SUPPRESS)
     parser.add_argument('--_execute',help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args._preflight and args._execute:
         parser.error('Internal modes are mutually exclusive')
-    if (args._preflight or args._execute) and (args.config or args.resume or args.check):
+    if (args._preflight or args._execute) and (args.config or args.resume or args.check or args.no_follow or args.monitor):
         parser.error('Internal modes cannot be combined with public/check-only flags')
+    if args.monitor and (args.resume or args.check):
+        parser.error('--monitor cannot be combined with --resume or --check')
     try:
         if args._preflight:
             with redirect_stdout(sys.stderr):
@@ -390,18 +395,11 @@ def main():
             return
         if not args.config:
             parser.error('--config is required')
-        plan = prepare(args.config,args.resume,require_release=not args.check)
-        if args.check:
-            # Avoid exposing unrelated inherited environment variables.
-            plan['environment'] = {k:plan['environment'][k] for k in ('CUDA_VISIBLE_DEVICES','LODO_AUTHORIZED_GPU_UUID','CUBLAS_WORKSPACE_CONFIG','PYTHONPATH')}
-            print(json.dumps(dict(status='CHECK_ONLY_NOT_AUTHORIZED',plan=plan),indent=2))
-        else:
-            result = dispatch(plan)
-            print('Detached launch dispatched; inspect admission/log to confirm trainer startup.')
-            print(json.dumps(result,indent=2))
-            print('Monitor: tail -f '+shlex.quote(result['log']))
-            print('Attach: tmux attach-session -t '+shlex.quote(result['session']))
-            print('GPU: nvidia-smi -i '+GPU)
+        # Public main-console dispatch delegates to the unchanged clean runner.
+        # Existing preparation/internal APIs stay available for qualification.
+        from lodo_console import launch
+        raise SystemExit(launch(args.config, resume=args.resume, check=args.check,
+                                no_follow=args.no_follow, monitor=args.monitor))
     except (ValueError,OSError,subprocess.SubprocessError,KeyError) as error:
         print('REFUSED: '+str(error),file=sys.stderr)
         raise SystemExit(1)
