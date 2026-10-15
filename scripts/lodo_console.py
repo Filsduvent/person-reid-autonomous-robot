@@ -32,6 +32,14 @@ LOCAL_STAGE_A_CONFIGS = {'configs/' + name + '.yaml' for name in (
     'experiment_market1501_resnet50_triplet_only', 'experiment_msmt17_resnet50_triplet_id_center')}
 CONSOLE_FILES = {'scripts/lodo_launch.py', 'scripts/lodo_console.py',
                  'scripts/lodo_evaluate.py', 'scripts/lodo_results.py'}
+EVALUATION_REVISION_FILES = {
+    'scripts/lodo_console.py', 'scripts/lodo_results.py',
+    'scripts/lodo_gpu_evaluate_worker.py', 'scripts/lodo_qualify_gpu_evaluation.py',
+    'reid/engine/evaluator.py', 'reid/utils/lodo_evaluation.py',
+    'reid/utils/lodo_evaluation_device.py', 'reid/utils/lodo_operational.py',
+    'docs/lodo_gpu_evaluation.md', 'tests/test_lodo_gpu_evaluation.py',
+    'tests/test_lodo_console.py',
+}
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 from reid.utils import lodo_operational as op
@@ -91,6 +99,11 @@ def release():
     if not CONSOLE_FILES <= tracked:
         raise ValueError('Console implementation is not included in the reviewed commit')
     op.clean_head(ENGINE, record['execution_commit'])
+    if record['schema_version'] == 2:
+        changes = set(git(ROOT, 'diff', '--name-only', record['execution_commit'],
+                          record['frontend_commit']).decode().splitlines())
+        if not changes <= EVALUATION_REVISION_FILES:
+            raise ValueError('Evaluation frontend revision changes frozen training source')
     return dict(path=str(path), sha256=digest, record=record)
 
 
@@ -118,9 +131,12 @@ def environment(*, cpu=False):
     return env
 
 
-def frozen_worker(code, values, *, cpu=False):
+def frozen_worker(code, values, *, cpu=False, source=None):
+    source = source or ENGINE
     command = [str(PYTHON), '-B', '-c', code, json.dumps(values)]
-    result = subprocess.run(command, cwd=ENGINE, env=environment(cpu=cpu), capture_output=True, text=True)
+    env = environment(cpu=cpu)
+    env['PYTHONPATH'] = str(source) + os.pathsep + str(source / 'scripts')
+    result = subprocess.run(command, cwd=source, env=env, capture_output=True, text=True)
     if result.returncode:
         raise ValueError('Frozen runner refused: ' + (result.stderr or result.stdout).strip())
     return json.loads(result.stdout)
@@ -132,10 +148,10 @@ from pathlib import Path
 from reid.utils.config import load_config
 from reid.utils.lodo_operational import evaluation_admission
 from scripts.lodo_official_preparation import metadata_only
-p=Path(json.loads(sys.argv[1])['request'])
-with metadata_only(): proof=evaluation_admission(p,load_config(str(p)),root=Path.cwd())
+args=json.loads(sys.argv[1]);p=Path(args['request'])
+with metadata_only(): proof=evaluation_admission(p,load_config(str(p)),root=Path(args['training_root']))
 print(json.dumps(proof))
-''', dict(request=str(path)), cpu=True)
+''', dict(request=str(path), training_root=str(ENGINE)), cpu=True, source=ROOT)
 
 
 def atomic(path, value):
@@ -235,7 +251,14 @@ def execute_evaluation(path):
             raise ValueError('Separate evaluation admission changed')
         command = [str(PYTHON), '-u', str(ENGINE / 'scripts/evaluate.py'), '--config', job['request']]
         with Path(job['log']).open('xb') as log:
-            result = subprocess.run(command, cwd=ENGINE, env=environment(cpu=True), stdout=log, stderr=subprocess.STDOUT)
+            # GPU requests are separately hash-pinned by admission. Metadata
+            # checks remain CUDA-hidden; only the admitted worker sees the GPU.
+            gpu = current.get('status') == 'ADMITTED_CUDA_EVALUATION'
+            env = environment(cpu=not gpu)
+            if gpu:
+                command = [str(PYTHON), '-u', '-B', str(ROOT / 'scripts/lodo_gpu_evaluate_worker.py'), '--job', str(path)]
+                env['PYTHONPATH'] = str(ROOT) + os.pathsep + str(ROOT / 'scripts')
+            result = subprocess.run(command, cwd=ROOT if gpu else ENGINE, env=env, stdout=log, stderr=subprocess.STDOUT)
         if result.returncode:
             status(path, 'FAILED', message='Frozen evaluation failed; inspect log. No metrics registered.', exit_code=result.returncode)
             return

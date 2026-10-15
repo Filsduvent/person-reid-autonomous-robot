@@ -298,6 +298,9 @@ def evaluation_admission(request_path, request, *, root=ROOT):
     if payload['cfg']['experiment']['output_dir'] != str(Path(b['run_dir']).relative_to(root)):
         raise ValueError('Terminal run binding mismatch')
     output = evaluation_output(request, project_root=root)
-    return dict(schema_version=2, status='ADMITTED_CPU_EVALUATION', binding=binding, approval=auth,
+    from reid.utils.lodo_evaluation_device import preflight, execution_spec
+    preflight(request, payload['cfg'], output)
+    status = 'ADMITTED_CUDA_EVALUATION' if execution_spec(request)['device'] == 'cuda' else 'ADMITTED_CPU_EVALUATION'
+    return dict(schema_version=2, status=status, binding=binding, approval=auth,
                 request=str(canonical(request_path)), request_sha256=sha(request_path),
                 terminal_sha256=proof['checkpoint_sha256'], output_dir=str(output))

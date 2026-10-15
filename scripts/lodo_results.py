@@ -52,11 +52,13 @@ def read_release_record():
     record = json.loads(raw)
     keys = {'schema_version', 'record_type', 'frontend_root', 'frontend_commit', 'execution_root', 'execution_commit'}
     if (not isinstance(record, dict) or set(record) != keys or type(record['schema_version']) is not int
-            or record['schema_version'] != 1 or record['record_type'] != 'lodo_main_console_release'
+            or record['schema_version'] not in (1, 2) or record['record_type'] != 'lodo_main_console_release'
             or record['frontend_root'] != str(ROOT) or record['execution_root'] != str(ENGINE)
             or not isinstance(record['frontend_commit'], str)
             or re.fullmatch('[0-9a-f]{40}', record['frontend_commit']) is None
-            or record['execution_commit'] != record['frontend_commit']):
+            or not isinstance(record['execution_commit'], str)
+            or re.fullmatch('[0-9a-f]{40}', record['execution_commit']) is None
+            or (record['schema_version'] == 1 and record['execution_commit'] != record['frontend_commit'])):
         raise ValueError('Invalid main-console release binding')
     return record, hashlib.sha256(raw).hexdigest()
 
@@ -103,7 +105,10 @@ def inspect_artifacts(root, run, result=None):
         raise ValueError('Historical import is scoped to the verified ResNet50 LODO-1 run')
     if root == ENGINE and not parts[3].startswith('unified-'):
         raise ValueError('Maintained-run namespace must begin unified-')
-    sys.path[:0] = [str(root), str(root / 'scripts')]
+    # The reviewed frontend owns result validation (including GPU execution
+    # metadata). The frozen training root still owns config/data/checkpoint
+    # provenance and is independently verified above.
+    sys.path[:0] = [str(ROOT), str(ROOT / 'scripts')]
     import torch
     from reid.utils.config import load_config
     from reid.utils.lodo_protocol import configuration_identity
@@ -153,6 +158,21 @@ def inspect_artifacts(root, run, result=None):
                 raise ValueError('Foreign held-out result namespace')
             measured = read_result(path)
             evaluated = measured['evaluation']['configuration']
+            # The CPU reference has no execution field. GPU feature extraction
+            # must identify the exact UUID/policy and keep ranking on CPU.
+            from reid.utils.lodo_evaluation_device import execution_spec
+            measured_device = measured.get('environment', {}).get('device', 'cpu')
+            if measured_device not in ('cpu', 'cuda'):
+                raise ValueError('Unsupported evaluation execution device')
+            if measured_device == 'cuda':
+                execution = execution_spec(dict(device='cuda'))
+                evidence = measured['environment'].get('cuda_admission', {})
+                if (evaluated.get('execution') != execution
+                        or evidence.get('uuid') != execution['gpu_uuid']
+                        or evidence.get('evaluation_execution') != execution):
+                    raise ValueError('GPU evaluation execution provenance mismatch')
+            elif 'execution' in evaluated:
+                raise ValueError('CPU evaluation cannot claim GPU execution')
             if (measured['synthetic'] is not False or measured['authoritative'] is not True
                     or measured['metric_units'] != 'fraction' or measured['seed'] != 42
                     or measured['terminal'] != dict(path=str(terminal), **proof)
@@ -179,6 +199,8 @@ def inspect_artifacts(root, run, result=None):
                                 result=str(path), result_sha256=sha(path), result_proof_sha256=sha(path.with_name('lodo_result.sha256.json')),
                                 comparison_sha256=sha(path.with_name('comparison.json')), comparison_status=comparison['status'],
                                 metrics=measured['metrics'], metric_units=measured['metric_units'], caveats=caveats))
+            if measured_device == 'cuda':
+                records[-1]['evaluation_execution'] = evaluated['execution']
     if torch.cuda.is_initialized(): raise ValueError('Registry inspection initialized CUDA')
     return records
 
@@ -270,9 +292,18 @@ def new_run_audit(run, result=None):
             admission, _ = op.private_record(path.parent / 'execution-admission.json')
             if (completion.get('status') == 'COMPLETED' and completion.get('result', {}).get('result') == str(result)
                     and any(admission == job['admission'] for job in evaluations)):
+                if admission.get('status') == 'ADMITTED_CUDA_EVALUATION':
+                    evaluator, evaluator_sha = op.private_record(path.parent / 'evaluator-release.json')
+                    matches = [job for job in evaluations if admission == job['admission']]
+                    if (not any(evaluator == job['release'] for job in matches)
+                            or completion.get('evaluator_release_sha256') != evaluator['sha256']):
+                        raise ValueError('GPU evaluator release/completion provenance mismatch')
                 audit['evaluation'] = dict(completion=str(path), completion_sha256=op.sha(path),
                                            admission=str(path.parent / 'execution-admission.json'),
                                            admission_sha256=op.sha(path.parent / 'execution-admission.json'))
+                if admission.get('status') == 'ADMITTED_CUDA_EVALUATION':
+                    audit['evaluation'].update(evaluator_release=str(path.parent/'evaluator-release.json'),
+                                               evaluator_release_sha256=evaluator_sha)
                 return audit
         raise ValueError('No actual frozen evaluator completion receipt for these metrics')
     return audit

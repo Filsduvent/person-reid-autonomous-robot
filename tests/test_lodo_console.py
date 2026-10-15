@@ -351,7 +351,8 @@ def test_evaluation_check_is_metadata_only_in_cuda_hidden_child(sandbox, monkeyp
     assert console.evaluation_check(Path('/approved/request.yaml'))['status'] == 'ADMITTED_CPU_EVALUATION'
     code, values = calls[0][0]
     assert 'with metadata_only()' in code and 'evaluation_admission' in code
-    assert values['request'] == '/approved/request.yaml' and calls[0][1] == {'cpu': True}
+    assert values['request'] == '/approved/request.yaml' and values['training_root'] == str(console.ENGINE)
+    assert calls[0][1] == {'cpu': True, 'source': console.ROOT}
 
 
 def test_evaluation_needs_separate_admission_before_job_creation(sandbox, monkeypatch):

@@ -2,6 +2,7 @@ import os.path as osp
 import json
 import numpy as np
 import torch
+import time
 
 from reid.metrics.distance import compute_dist, normalize
 from reid.metrics.ranking import cmc, mean_ap, mean_inp
@@ -14,10 +15,13 @@ MSMT17_RERANK_WARNING = "[Warning] MSMT17 reranking may require large memory due
 
 
 @torch.no_grad()
-def extract_features(model, loader, device):
+def extract_features(model, loader, device, *, progress=None, before_batch=None):
     model.eval()
     feats, pids, cams, names, marks = [], [], [], [], []
-    for imgs, pid, cam, name, mark in loader:
+    started, images = time.monotonic(), 0
+    for batch_index, (imgs, pid, cam, name, mark) in enumerate(loader, 1):
+        if before_batch is not None:
+            before_batch()
         imgs = imgs.to(device, non_blocking=True)
         outputs = ensure_output_dict(model(imgs))
         emb = outputs.get("emb")
@@ -29,6 +33,10 @@ def extract_features(model, loader, device):
         cams.append(cam.numpy())
         names.append(np.array(name))
         marks.append(mark.numpy())
+        images += len(pid)
+        if progress is not None:
+            progress(dict(phase='features', batch=batch_index, batches=len(loader),
+                          images=images, elapsed_seconds=time.monotonic()-started))
     return (np.vstack(feats),
             np.hstack(pids),
             np.hstack(cams),
@@ -57,8 +65,13 @@ def _warn_rerank_memory(cfg, logger=None):
         print(message)
 
 
-def evaluate_reid(cfg, model, test_loader, device, logger=None):
-    feat, ids, cams, im_names, marks = extract_features(model, test_loader, device)
+def evaluate_reid(cfg, model, test_loader, device, logger=None, *, progress=None, before_batch=None):
+    feat, ids, cams, im_names, marks = extract_features(model, test_loader, device,
+                                                       progress=progress, before_batch=before_batch)
+
+    def report(phase):
+        if progress is not None:
+            progress(dict(phase=phase))
 
     if cfg["eval"]["normalize_feat"]:
         feat = normalize(feat, axis=1)
@@ -73,11 +86,14 @@ def evaluate_reid(cfg, model, test_loader, device, logger=None):
     q_cams = cams[q]
     g_cams = cams[g]
 
+    report('distance_cpu')
     dist = compute_dist(q_feat, g_feat, metric=cfg["eval"]["distance"])
 
+    report('mAP_cpu')
     mAP = mean_ap(dist, q_ids, g_ids, q_cams, g_cams, average=True)
     topk = cfg["eval"]["topk"]
     metric_topk = max(max(topk), 10)
+    report('CMC_cpu')
     cmc_scores = cmc(
         dist, q_ids, g_ids, q_cams, g_cams,
         topk=metric_topk,
@@ -86,6 +102,7 @@ def evaluate_reid(cfg, model, test_loader, device, logger=None):
         first_match_break=True,
         average=True
     )
+    report('mINP_cpu')
     mINP = mean_inp(dist, q_ids, g_ids, q_cams, g_cams, average=True)
 
     out = {

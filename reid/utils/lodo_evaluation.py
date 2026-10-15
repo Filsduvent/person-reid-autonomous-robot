@@ -27,7 +27,9 @@ def _require(condition, message):
 def validate_request(request):
     required = {'mode','version','architecture','fold','target','checkpoint','expected','output_dir','synthetic'}
     _require(isinstance(request,dict) and required <= request.keys(), 'Missing LODO evaluation request fields')
-    _require(not request.keys()-required-{'data_root','batch_size','num_workers','stage_a_records'}, 'Unknown LODO evaluation fields')
+    _require(not request.keys()-required-{'data_root','batch_size','num_workers','stage_a_records','device'}, 'Unknown LODO evaluation fields')
+    from reid.utils.lodo_evaluation_device import execution_spec
+    execution_spec(request)
     _require(request['mode']=='lodo_held_out' and type(request['version']) is int and request['version']==1, 'Unsupported LODO evaluation mode/version')
     _require(type(request['synthetic']) is bool, 'synthetic must be explicit Boolean')
     _require(request['architecture'] in ('resnet50','pcb'), 'Unknown architecture')
@@ -195,15 +197,24 @@ def evaluate_lodo(request,*,project_root=None):
     output=evaluation_output(request,project_root)
     cfg=payload['cfg'];identity=payload['identity'];root=request.get('data_root',cfg['data']['root'])
     metadata=target_metadata(cfg,identity,root)
+    from reid.utils.lodo_evaluation_device import select_device, execution_spec, EvaluationProgress
+    device, guard, device_evidence = select_device(request, cfg, output)
+    progress = EvaluationProgress(device, guard)
+    print(f'[Evaluation] device={device} precision=fp32 ranking=cpu checkpoint={checkpoint}', flush=True)
     runtime=dict(data=dict(root=str(Path(root).resolve()),test=dict(dataset=metadata['dataset'],batch=dict(size=request.get('batch_size',32))),
-                           num_workers=request.get('num_workers',0),pin_memory=False),system=dict(device='cpu'))
+                           num_workers=request.get('num_workers',0),pin_memory=False),system=dict(device=device.type,gpu_id=0))
     evaluation=build_evaluation_config(cfg,runtime,output)
     contract=retrieval_contract(cfg)
     eval_identity=dict(schema_version=1,target=metadata,representation=contract,batch_size=request.get('batch_size',32),precision='fp32')
+    if device.type == 'cuda':
+        eval_identity['execution'] = execution_spec(request)
     # Reconstruction uses ONLY the embedded source cfg and source C.
-    model=reconstruct_model(payload).to(torch.device('cpu'))
+    model=reconstruct_model(payload).to(device)
     loader=build_test_loader(evaluation)
-    scores=evaluate_reid(evaluation,model,loader,torch.device('cpu'))
+    scores=evaluate_reid(evaluation,model,loader,device,progress=progress,before_batch=progress.before_batch)
+    if guard is not None:
+        guard()
+    print('[Evaluation] metrics=' + json.dumps(metric_vector(scores)), flush=True)
     _require(not any(k.startswith('rerank') for k in scores), 'Unexpected reranking result')
     record=dict(schema_version=RESULT_VERSION,record_type='lodo_held_out_result',protocol='lodo_v1',protocol_version=1,
                 architecture=request['architecture'],variant=cfg['model'].get('variant'),fold=request['fold'],
@@ -212,10 +223,12 @@ def evaluate_lodo(request,*,project_root=None):
                 data_digest=identity['data_digest'],sidecar_digest=identity['sidecar_digest'],source_provenance=identity['provenance'],num_classes=identity['num_classes']),
                 terminal=dict(path=str(checkpoint),**manifest),evaluation=dict(config_digest=digest(eval_identity),configuration=eval_identity),
                 representation=contract,metrics=metric_vector(scores),metric_units='fraction',
-                environment=dict(python=platform.python_version(),torch=torch.__version__,device='cpu',num_workers=request.get('num_workers',0)),
+                environment=dict(python=platform.python_version(),torch=torch.__version__,device=device.type,num_workers=request.get('num_workers',0)),
                 artifacts=dict(result=str(output/'lodo_result.json'),comparison=str(output/'comparison.json')),
                 caveats=['Complete training strategies; differences do not isolate domain diversity.']+
                     (['CUHK03 detected processed_partition; official-new provenance remains unverified.'] if 'cuhk03' in identity['sources']+[identity['target']] else []))
+    if device_evidence is not None:
+        record['environment']['cuda_admission'] = device_evidence
     from reid.utils.lodo_comparison import compare_stage_a
     comparison=compare_stage_a(record,request.get('stage_a_records',[]))
     # Recheck immutable input integrity before publishing; no terminal writes.
