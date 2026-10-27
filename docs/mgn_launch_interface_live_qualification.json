@@ -1,0 +1,324 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-27",
+  "revision": "20261027_automatic_preflight_v1",
+  "status": "PASS",
+  "implementation_commit": "569e8d533c1a3b863c2681ad5898160c546364bc",
+  "freeze_commit": "031bb3237499c7df2fd2216c0e93fcaccb5d6be0",
+  "manifest_sha256": "b289ea8a1ee1ee03d2a2b41267e0286168241dcda3b07817d864df0f1d8f286e",
+  "cpu_receipt": "docs/mgn_launch_interface_qualification.json",
+  "admission_only_driver": {
+    "path": "/tmp/mgn-launch-admission-only.py",
+    "sha256": "9295dea40f48bd60548a8c9f674d263e0239d4a280c283154156f95ddb032e5e",
+    "text": "\"\"\"Exercise real common admission; unconditionally stop before output creation.\"\"\"\nimport sys\nfrom pathlib import Path\nsys.path.insert(0,str(Path.cwd()))\nfrom scripts import train\n\nclass AdmissionDispatchReached(Exception):\n    pass\n\ndef stop_before_output(*args, **kwargs):\n    raise AdmissionDispatchReached\n\ntrain.create_experiment_dirs = stop_before_output\ntry:\n    train.main()\nexcept AdmissionDispatchReached:\n    print('ADMITTED_AND_STOPPED_BEFORE_OUTPUT_CREATION', file=sys.stderr)\nelse:\n    raise RuntimeError('Admission-only test failed to reach the protected stop boundary.')\n",
+    "sole_patch": "Replace common create_experiment_dirs with unconditional exception before creating output. All actual preflight code and guards execute.",
+    "interpreter": "/home/addirakoze/environments/Reid/bin/python",
+    "argv_template": "/tmp/mgn-launch-admission-only.py --config configs/mgn/<source>.yaml",
+    "environment": {
+      "python": "3.11.2",
+      "prefix": "/home/addirakoze/environments/Reid",
+      "torch_build": "2.7.1+cu126",
+      "torchvision_build": "0.22.1+cu126",
+      "packages": {
+        "torch": "2.7.1",
+        "torchvision": "0.22.1",
+        "numpy": "2.1.3",
+        "Pillow": "11.2.1",
+        "PyYAML": "6.0.2",
+        "tensorboard": "2.19.0",
+        "matplotlib": "3.10.3",
+        "scikit-learn": "1.7.1"
+      },
+      "controls": {
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "PYTORCH_CUDA_ALLOC_CONF": null,
+        "PYTORCH_ALLOC_CONF": null,
+        "CUBLAS_WORKSPACE_CONFIG": null,
+        "NVIDIA_TF32_OVERRIDE": null,
+        "CUDA_LAUNCH_BLOCKING": null
+      }
+    },
+    "gpu_authority": "Existing explicit user manual owner authorization; no allocation or automatic GPU selection claimed.",
+    "launch_environment": {
+      "MGN_AUTHORIZED_GPU_UUID": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+      "CUDA_VISIBLE_DEVICES": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONPATH": "."
+    },
+    "command_template": "env MGN_AUTHORIZED_GPU_UUID=GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c CUDA_VISIBLE_DEVICES=GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. /home/addirakoze/environments/Reid/bin/python -B /tmp/mgn-launch-admission-only.py --config configs/mgn/<source>.yaml"
+  },
+  "sources": {
+    "market1501": {
+      "receipt": {
+        "status": "READY_FRESH",
+        "source": "market1501",
+        "code_commit": "031bb3237499c7df2fd2216c0e93fcaccb5d6be0",
+        "manifest_sha256": "b289ea8a1ee1ee03d2a2b41267e0286168241dcda3b07817d864df0f1d8f286e",
+        "config": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/configs/mgn/market1501.yaml",
+        "config_sha256": "8bdb58cde1f29827bf8e6d35acfcab78d6eb83e6af36efef36321c5b2fddf8a6",
+        "output": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/mgn/market1501",
+        "source_classes": 751,
+        "training_images": 12936,
+        "planned_fresh_updates": 21999,
+        "continuation": null,
+        "gpu": {
+          "before": {
+            "timestamp_utc": "2026-10-27T23:28:39.570657+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "after_runtime_query": {
+            "timestamp_utc": "2026-10-27T23:28:39.663130+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "runtime": {
+            "torch": "2.7.1+cu126",
+            "cuda": "12.6",
+            "cudnn": 90501,
+            "matmul_allow_tf32": false,
+            "cudnn_allow_tf32": true
+          }
+        },
+        "training_launched": false,
+        "notice": "Read-only admission passed; the common trainer may now dispatch training."
+      },
+      "exit_code": 0,
+      "stopped_before_output_creation": true,
+      "stdout_path": "/tmp/mgn-launch-live-market1501.json",
+      "stdout_sha256": "c85ab3c510010a9e9d7996c6ec43b6cd1dc7cc26cc20b26bbad62c55ab2f78a5",
+      "stderr_path": "/tmp/mgn-launch-live-market1501.stderr",
+      "stderr_sha256": "dc15b155654caf1a9c19f65f9699beab0a2c043fe653635d1ed966d14aad0e65"
+    },
+    "duke": {
+      "receipt": {
+        "status": "READY_FRESH",
+        "source": "duke",
+        "code_commit": "031bb3237499c7df2fd2216c0e93fcaccb5d6be0",
+        "manifest_sha256": "b289ea8a1ee1ee03d2a2b41267e0286168241dcda3b07817d864df0f1d8f286e",
+        "config": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/configs/mgn/duke.yaml",
+        "config_sha256": "eddf3907418e8ade006c4b7bafa95110bac5be0a2762ee7a3f7f8685116649ee",
+        "output": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/mgn/duke",
+        "source_classes": 702,
+        "training_images": 16522,
+        "planned_fresh_updates": 27130,
+        "continuation": null,
+        "gpu": {
+          "before": {
+            "timestamp_utc": "2026-10-27T23:28:59.270410+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "after_runtime_query": {
+            "timestamp_utc": "2026-10-27T23:28:59.368599+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "runtime": {
+            "torch": "2.7.1+cu126",
+            "cuda": "12.6",
+            "cudnn": 90501,
+            "matmul_allow_tf32": false,
+            "cudnn_allow_tf32": true
+          }
+        },
+        "training_launched": false,
+        "notice": "Read-only admission passed; the common trainer may now dispatch training."
+      },
+      "exit_code": 0,
+      "stopped_before_output_creation": true,
+      "stdout_path": "/tmp/mgn-launch-live-duke.json",
+      "stdout_sha256": "3f9d17f0e376d3de4894c953dc68ca0d745ccd09ca252acc80913522e164adab",
+      "stderr_path": "/tmp/mgn-launch-live-duke.stderr",
+      "stderr_sha256": "25674e784f2ae1c9de9da46f8e5cad5016e958b3028bb4050506c9b477fca161"
+    },
+    "cuhk03": {
+      "receipt": {
+        "status": "READY_FRESH",
+        "source": "cuhk03",
+        "code_commit": "031bb3237499c7df2fd2216c0e93fcaccb5d6be0",
+        "manifest_sha256": "b289ea8a1ee1ee03d2a2b41267e0286168241dcda3b07817d864df0f1d8f286e",
+        "config": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/configs/mgn/cuhk03.yaml",
+        "config_sha256": "15c03873aa56266fd3d8215a39908ed7ab98132116e7c16b7a7e1f03ec52c115",
+        "output": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/mgn/cuhk03",
+        "source_classes": 767,
+        "training_images": 7365,
+        "planned_fresh_updates": 11156,
+        "continuation": null,
+        "gpu": {
+          "before": {
+            "timestamp_utc": "2026-10-27T23:29:16.719695+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "after_runtime_query": {
+            "timestamp_utc": "2026-10-27T23:29:16.818349+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "runtime": {
+            "torch": "2.7.1+cu126",
+            "cuda": "12.6",
+            "cudnn": 90501,
+            "matmul_allow_tf32": false,
+            "cudnn_allow_tf32": true
+          }
+        },
+        "training_launched": false,
+        "notice": "Read-only admission passed; the common trainer may now dispatch training."
+      },
+      "exit_code": 0,
+      "stopped_before_output_creation": true,
+      "stdout_path": "/tmp/mgn-launch-live-cuhk03.json",
+      "stdout_sha256": "a32c0dc20e134878576615c28a760850d0a01702aace93797e7d69fbe4a49576",
+      "stderr_path": "/tmp/mgn-launch-live-cuhk03.stderr",
+      "stderr_sha256": "c3539f043a63c133361ec034f7311d994f16e790152cb12085bcdd33905030d7"
+    },
+    "msmt17": {
+      "receipt": {
+        "status": "READY_FRESH",
+        "source": "msmt17",
+        "code_commit": "031bb3237499c7df2fd2216c0e93fcaccb5d6be0",
+        "manifest_sha256": "b289ea8a1ee1ee03d2a2b41267e0286168241dcda3b07817d864df0f1d8f286e",
+        "config": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/configs/mgn/msmt17.yaml",
+        "config_sha256": "ef4fbaf2b45daf5622a3c853cf9dc843bde7030fc79a583e117a0a86e7dafe70",
+        "output": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/mgn/msmt17",
+        "source_classes": 1041,
+        "training_images": 30248,
+        "planned_fresh_updates": 52426,
+        "continuation": null,
+        "gpu": {
+          "before": {
+            "timestamp_utc": "2026-10-27T23:29:51.972135+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "after_runtime_query": {
+            "timestamp_utc": "2026-10-27T23:29:52.066127+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "runtime": {
+            "torch": "2.7.1+cu126",
+            "cuda": "12.6",
+            "cudnn": 90501,
+            "matmul_allow_tf32": false,
+            "cudnn_allow_tf32": true
+          }
+        },
+        "training_launched": false,
+        "notice": "Read-only admission passed; the common trainer may now dispatch training."
+      },
+      "exit_code": 0,
+      "stopped_before_output_creation": true,
+      "stdout_path": "/tmp/mgn-launch-live-msmt17.json",
+      "stdout_sha256": "506e53b20003e3771d10d4293cf1cc5008b6b56c11c95b22a5f6361eaed1a3dd",
+      "stderr_path": "/tmp/mgn-launch-live-msmt17.stderr",
+      "stderr_sha256": "43c1c594507805dfd7208cdc61303a5a825b4ece98e7bea65a8ff0aba503ec02"
+    }
+  },
+  "negative_cli_checks": {
+    "recipe": {
+      "exit_code": 1,
+      "override": "optim.lr=0.1",
+      "refusal": "Effective training configuration differs from frozen admission.",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "17ca0fa8bd4cefe5b3ab4a99f839eca754cb4eee324ae45dea25a8fdaaecb5a2",
+      "stdout_path": "/tmp/mgn-launch-negative-recipe.stdout",
+      "stderr_path": "/tmp/mgn-launch-negative-recipe.stderr"
+    },
+    "resume": {
+      "exit_code": 1,
+      "override": "train.save.resume=exp/mgn/market1501/checkpoints/ckpt_last.pth",
+      "refusal": "Resume requires the original run and last epoch-boundary checkpoint.",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "2338f0d6c5ddb6260ffc6bb863ac268751b33a7f7b30acc709570230e7dde1f5",
+      "stdout_path": "/tmp/mgn-launch-negative-resume.stdout",
+      "stderr_path": "/tmp/mgn-launch-negative-resume.stderr"
+    }
+  },
+  "verification": {
+    "runtime_hashes_match": 57,
+    "qualification_receipt_hashes_match": 6,
+    "archived_files_exactly_match_prior_commit": 8,
+    "protected_files_unchanged": 48,
+    "previous_roadmap_history_preserved": true,
+    "baseline_pcb_lodo_source_and_config_unchanged": true,
+    "official_training_roots_absent": true
+  },
+  "official_training_launched": false,
+  "gpu_training_executed": false,
+  "benchmark_evaluation_executed": false,
+  "limitations": [
+    "Successful live cases stop before output creation and do not establish full training completion.",
+    "Valid continuation is covered by CPU/synthetic checkpoint tests; there is no official MGN run to resume.",
+    "Prior GPU smokes remain evidence only for their recorded implementation and unchanged scientific recipe."
+  ]
+}
