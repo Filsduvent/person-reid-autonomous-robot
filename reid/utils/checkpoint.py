@@ -1,4 +1,5 @@
 import copy
+import math
 import os.path as osp
 from collections import OrderedDict
 from collections.abc import Mapping
@@ -10,6 +11,27 @@ from reid.utils.io import ensure_dir
 
 RECONSTRUCTION_VERSION = 1
 OUTPUT_CONTRACT_VERSION = 1
+
+
+def validate_selection_state(state, *, epoch, metric=None):
+    """Validate optional historical-best metadata independently of last scores."""
+    keys = {'schema_version', 'metric', 'best_score', 'best_epoch'}
+    if (not isinstance(state, Mapping) or set(state) != keys
+            or type(state['schema_version']) is not int or state['schema_version'] != 1):
+        raise ValueError('Unsupported checkpoint selection_state.')
+    if not isinstance(state['metric'], str) or not state['metric'].strip():
+        raise ValueError('selection_state metric must be a nonempty string.')
+    if metric is not None and state['metric'] != metric:
+        raise ValueError('Checkpoint selection_state metric conflicts with requested selection metric.')
+    if type(epoch) is not int or epoch < 0:
+        raise ValueError('Checkpoint selection_state requires a nonnegative integer epoch.')
+    score, best_epoch = state['best_score'], state['best_epoch']
+    if score is None and best_epoch is None:
+        return
+    if (type(score) not in (int, float) or not math.isfinite(score)
+            or type(best_epoch) is not int or best_epoch <= 0
+            or type(epoch) is not int or best_epoch > epoch):
+        raise ValueError('Checkpoint selection_state has invalid best score/epoch.')
 
 
 def _positive_int(value, name, optional=False):
@@ -148,6 +170,7 @@ def save_checkpoint(
     scores=None,
     cfg=None,
     is_best=False,
+    selection_state=None,
 ):
     del is_best  # path selection remains the caller's responsibility.
 
@@ -160,6 +183,9 @@ def save_checkpoint(
         "scores": scores,
         "cfg": cfg,
     }
+    if selection_state is not None:
+        validate_selection_state(selection_state, epoch=int(epoch))
+        payload['selection_state'] = copy.deepcopy(selection_state)
 
     wrappers = (torch.nn.DataParallel, torch.nn.parallel.DistributedDataParallel)
     source_model = model.module if isinstance(model, wrappers) else model
@@ -185,6 +211,8 @@ def load_checkpoint(
     map_location="cpu",
 ):
     checkpoint = torch.load(path, map_location=map_location)
+    if 'selection_state' in checkpoint:
+        validate_selection_state(checkpoint['selection_state'], epoch=checkpoint.get('epoch'))
     model_state = normalized_model_state(checkpoint)
     if "reconstruction" in checkpoint:
         _validate_metadata(checkpoint["reconstruction"], checkpoint.get("cfg"))

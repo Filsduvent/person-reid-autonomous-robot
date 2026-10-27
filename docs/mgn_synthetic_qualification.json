@@ -1,0 +1,210 @@
+{
+  "schema_version": 1,
+  "phase": 11,
+  "status": "PASS",
+  "date": "2026-10-27",
+  "base_commit": "197105c",
+  "suites": [
+    {
+      "command": "timeout 900s env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:scripts:tests /home/addirakoze/environments/Reid/bin/python -B -m pytest -p no:cacheprovider -q tests/test_mgn_end_to_end.py tests/test_train_orchestration.py tests/test_training_diagnostics.py tests/test_checkpoint.py tests/test_checkpoint_reconstruction.py tests/test_optimizer_param_groups.py tests/test_train_loop_optim.py tests/test_scheduler_trace.py tests/test_model_plugin_contract.py tests/test_pcb_end_to_end.py tests/test_lodo_updates.py tests/test_lodo_checkpoint.py tests/test_lodo_cuda_recovery.py tests/test_smoke_reid_pipeline.py",
+      "passed": 381,
+      "skipped": 3,
+      "seconds": 366.4,
+      "log": "/tmp/mgn-phase11-regression-tests.log"
+    },
+    {
+      "command": "timeout 90s env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:scripts:tests /home/addirakoze/environments/Reid/bin/python -B -m pytest -p no:cacheprovider -q tests/test_train_orchestration.py tests/test_mgn_end_to_end.py::test_common_entry_point_retains_historical_best_across_lower_last_and_resume",
+      "passed": 31,
+      "seconds": 12.55,
+      "log": "/tmp/mgn-phase11-selection-tests.log"
+    },
+    {
+      "command": "timeout 60s env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:scripts:tests /home/addirakoze/environments/Reid/bin/python -B -m pytest -p no:cacheprovider -q tests/test_train_orchestration.py -k 'qualified_resume or selection_state or history or historical_best' tests/test_mgn_end_to_end.py::test_common_entry_point_retains_historical_best_across_lower_last_and_resume",
+      "passed": 26,
+      "deselected": 7,
+      "seconds": 5.96,
+      "log": "/tmp/mgn-phase11-final-selection-tests.log"
+    }
+  ],
+  "initial_focused_run": {
+    "passed": 2,
+    "seconds": 86.79,
+    "log": "/tmp/mgn-phase11-focused-tests.log",
+    "note": "Initial pass before fixing the CPU fixture initial seed to 42; final regression uses fixed seeds."
+  },
+  "source_sha256": {
+    "reid/data/build.py": "696550c9f3aa5aaab6af7959b9d3eef34a85c67b8f7d816313abb5a6d3c57e5d",
+    "reid/data/transforms.py": "cf801700a18a74a1ec2256e90ae25e34815f6308871cd5f1611f1d9286a0a237",
+    "reid/engine/evaluator.py": "5044ba91082a08d1cf0e0c0bc0731dfc3450229b7b52a902358db04aadae1310",
+    "reid/engine/train_loop.py": "a5f1df8be33313ab434a2eff7b48c87c182d22a7a76c8c1929dda5c97f153119",
+    "reid/losses/build.py": "219dc3cf24dfe9a4d4d2ef1a87f2722be18faf3b60fb11517349455c461ccfe9",
+    "reid/models/build.py": "fcac750dd6cdec62031cbad3274fbe63078a6ef0b5e647205cce6bf6f6e972d5",
+    "reid/models/mgn.py": "0706ad9fa87b6229497faae18788020596e54e0c9c6cc5bb17b8b1c53e886385",
+    "reid/models/outputs.py": "b302ace778a447314f520648374a04db78a067535382f13eb253ae56c7f41afb",
+    "reid/optim/build.py": "83af092a1156f8f02790489ae709b75232ba68d32cbb61c3d3134e75e9c2f448",
+    "reid/optim/lr_scheduler.py": "a0728ca0d95fd8b31f80605ed020318ebf52975e3d121b3f818dd422ed341490",
+    "reid/utils/checkpoint.py": "a1d8f7a89717eb9186b504dcc23e0cbbb56ea6fb9fe650fca5c9e82085da01a8",
+    "reid/utils/config.py": "5f95342a652f717afa9051fd310a446655b57b48fb0ca11f08cccf269ba9c517",
+    "reid/utils/evaluation_config.py": "1ee46372442402aba61b97f6c029ccc2b2426c229b81f76e5f08fa5c20ac61f7",
+    "reid/utils/lodo_protocol.py": "5fe40e21673dd37d4cc2dc700689116fa4cb98addbf177e0de771caba9b80b8f",
+    "scripts/train.py": "0d72db7b51318ea8d3933ef661b1a962d34e694ea396842d61dda0c05f112d5b"
+  },
+  "test_sha256": {
+    "tests/test_mgn_end_to_end.py": "9d13f317a1d7cdbd75491d2114e64ee7ea99e02aab8f678baaaf4f8cbf47479c",
+    "tests/test_train_orchestration.py": "18682e073030fd2afe09a304e14d388a45b6a4c01bc56e6c2472a1842c203b05"
+  },
+  "log_sha256": {
+    "/tmp/mgn-phase11-focused-tests.log": "3b93b0796260d511b808fe8ddaf26beae41a14f1dbfd952686c0e5333706079c",
+    "/tmp/mgn-phase11-regression-tests.log": "de2151865dfe4b0f3acc87e2ba2b88ecc1022a0f59384b9c4562cf15734149ab",
+    "/tmp/mgn-phase11-selection-tests.log": "265715f678b2c4573b36cb68f637b90912edca391b4d0c6c25a3b519282a7c49",
+    "/tmp/mgn-phase11-final-selection-tests.log": "d1b6857aa668defabf5437f3e875bedfdb463344e1ab50494fdcb2327db34cfe"
+  },
+  "synthetic": {
+    "case": "CPU synthetic MGN; not benchmark results",
+    "actual_optimizer_updates": 3,
+    "input": [
+      4,
+      3,
+      384,
+      128
+    ],
+    "synthetic_P": 2,
+    "synthetic_K": 2,
+    "source_classifier_count": 1041,
+    "pretrained": false,
+    "torch_seed": 42,
+    "data_generator_seed": 80,
+    "primary_batch64_gpu_admission": false,
+    "losses": [
+      17.328136444091797,
+      8.950113296508789,
+      8.950113296508789
+    ],
+    "shapes": [
+      {
+        "embedding": [
+          4,
+          2048
+        ],
+        "logits": [
+          8,
+          4,
+          1041
+        ],
+        "metric_features": [
+          3,
+          4,
+          256
+        ]
+      },
+      {
+        "embedding": [
+          4,
+          2048
+        ],
+        "logits": [
+          8,
+          4,
+          1041
+        ],
+        "metric_features": [
+          3,
+          4,
+          256
+        ]
+      },
+      {
+        "embedding": [
+          4,
+          2048
+        ],
+        "logits": [
+          8,
+          4,
+          1041
+        ],
+        "metric_features": [
+          3,
+          4,
+          256
+        ]
+      }
+    ],
+    "first_state": {
+      "model": "77501313d5d6ccc30e91686eb57f89c2152dd421f6b8cf8c89c9f424e76e8416",
+      "optimizer": "6809bbeb2ceab9a9713996d12a51babbd21d39939615806a68136c1b4303e8ae",
+      "scheduler": "26626c6f4fe7fccc010ae860a2af22a5f2c7d1f76121ba18caa8f4f56c78bc54"
+    },
+    "continuous_second_state": {
+      "model": "dfb3904fe4e181b93f7ced12ab9c35b00bf5622392b8a0c79490282b1053b487",
+      "optimizer": "cc110bba850456f7ce1db7f19a0a69acc8612d150260e6a1d190409734cd471f",
+      "scheduler": "4f9ab961ea3f72e06841efdfb4f7ebe1aa97ffaa8a431f53629855733fc2bf77"
+    },
+    "resumed_second_state": {
+      "model": "dfb3904fe4e181b93f7ced12ab9c35b00bf5622392b8a0c79490282b1053b487",
+      "optimizer": "cc110bba850456f7ce1db7f19a0a69acc8612d150260e6a1d190409734cd471f",
+      "scheduler": "4f9ab961ea3f72e06841efdfb4f7ebe1aa97ffaa8a431f53629855733fc2bf77"
+    },
+    "exact_controlled_state_match": true,
+    "scalar_tags": [
+      "acc/id_mean_heads",
+      "loss/center",
+      "loss/id",
+      "loss/total",
+      "loss/triplet",
+      "loss/triplet/feature_0",
+      "loss/triplet/feature_1",
+      "loss/triplet/feature_2",
+      "lr",
+      "lr/base",
+      "speed/img_per_sec",
+      "time/batch"
+    ],
+    "checkpoint_sha256": {
+      "synthetic_epoch1.pth": "0d8eccfc1b0bbcc361a808d74daf83134e6b45518710796d8a0d4ff3429868be",
+      "synthetic_epoch2.pth": "98c58d82f176a21676e4a8064456100b52419ca44d127cf234e04bfd0b18cd38"
+    },
+    "caveat": "Fixed CPU inputs only; sampler/RNG/scaler stochastic replay is not qualified."
+  },
+  "selection": {
+    "case": "Generic orchestration with injected scores; not model performance",
+    "historical_best": 0.8,
+    "latest_score": 0.7,
+    "selected_epoch": 1,
+    "last_epoch": 3,
+    "best_writes": [
+      1
+    ],
+    "optimizer_rates": [
+      0.01,
+      0.01,
+      0.001
+    ],
+    "saved_epoch_boundaries": [
+      1,
+      1,
+      1,
+      2,
+      2,
+      3,
+      3
+    ],
+    "selected_and_final_state_separate": true
+  },
+  "raw_evidence_paths": [
+    "/tmp/pytest-of-addirakoze/pytest-171/test_real_mgn_synthetic_traini0/mgn_synthetic_evidence.json",
+    "/tmp/pytest-of-addirakoze/pytest-current/test_common_entry_point_retain0/mgn_selection_evidence.json"
+  ],
+  "protected_files_unchanged": 48,
+  "resume_contract": {
+    "require_selection_state_on_resume": true,
+    "requires_preserved_best_when_selected": true,
+    "epoch_scheduler_resume_checked": true,
+    "legacy_without_history": "Existing fallback preserved; never certified as known historical maximum"
+  },
+  "limitations": [
+    "Fixed CPU sequence only; no sampler/RNG/scaler replay guarantee",
+    "No GPU admission or production preset freeze in this receipt",
+    "Production resume requires frozen matching configuration and preserved selected checkpoint; new MGN presets must enable the history requirement"
+  ]
+}

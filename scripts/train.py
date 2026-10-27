@@ -22,7 +22,7 @@ from reid.models.build import build_model
 from reid.optim.build import build_center_optimizer, build_optimizer, build_scheduler
 from reid.optim.lr_scheduler import step_completed_epoch
 from reid.utils.artifacts import save_run_artifacts
-from reid.utils.checkpoint import load_checkpoint, save_checkpoint
+from reid.utils.checkpoint import load_checkpoint, save_checkpoint, validate_selection_state, normalized_model_state
 from reid.utils.config import model_requires_num_classes, validate_model_loss_requirements
 from reid.utils.config import load_config, save_yaml, validate_reid_config
 from reid.utils.config_schema import validate_config
@@ -184,6 +184,9 @@ def setup_tensorboard(cfg, exp_dir):
 
 
 def maybe_resume_training(logger, cfg, model, optimizer, scheduler, center_optimizer, device):
+    require_selection = cfg['train']['save'].get('require_selection_state_on_resume', False)
+    if type(require_selection) is not bool:
+        raise ValueError('train.save.require_selection_state_on_resume must be boolean.')
     resume_path = str(cfg["train"]["save"].get("resume", "") or "").strip()
     if not resume_path:
         return 1, -1.0, None
@@ -202,7 +205,14 @@ def maybe_resume_training(logger, cfg, model, optimizer, scheduler, center_optim
     scores = checkpoint.get("scores")
     best_metric = -1.0
     metric_name = cfg["train"]["save"]["metric"]
-    if isinstance(scores, dict) and metric_name in scores:
+    selection = checkpoint.get('selection_state')
+    if selection is not None:
+        validate_selection_state(selection, epoch=checkpoint.get('epoch'), metric=metric_name)
+        if selection['best_score'] is not None:
+            best_metric = float(selection['best_score'])
+    elif require_selection:
+        raise ValueError('Resume requires checkpoint selection_state; historical best cannot be established.')
+    elif isinstance(scores, dict) and metric_name in scores:
         best_metric = float(scores[metric_name])
     logger.info("Resumed from epoch %d", int(checkpoint.get("epoch", 0)))
     return start_epoch, best_metric, checkpoint
@@ -220,6 +230,31 @@ def is_better_score(scores, metric_name: str, best_metric: float) -> bool:
     if metric_name not in scores:
         raise KeyError(f"Configured checkpoint metric '{metric_name}' not found in eval scores.")
     return float(scores[metric_name]) > float(best_metric)
+
+
+def validate_resume_best_checkpoint(checkpoint, best_path, metric):
+    """Qualified continuation must retain the selected weights, not just a score."""
+    state = checkpoint.get('selection_state')
+    validate_selection_state(state, epoch=checkpoint.get('epoch'), metric=metric)
+    if state['best_score'] is None:
+        return  # No evaluation/selected checkpoint has existed yet.
+    if not osp.isfile(best_path):
+        raise ValueError('Qualified resume requires the preserved selected-best checkpoint.')
+    best = torch.load(best_path, map_location='cpu', weights_only=True)
+    if not isinstance(best, dict) or not isinstance(best.get('scores'), dict):
+        raise ValueError('Selected-best checkpoint requires a checkpoint mapping and metric scores.')
+    validate_selection_state(best.get('selection_state'), epoch=best.get('epoch'), metric=metric)
+    if (best.get('epoch') != state['best_epoch']
+            or best.get('scores', {}).get(metric) != state['best_score']
+            or best.get('selection_state') != state
+            or best.get('reconstruction') != checkpoint.get('reconstruction')
+            or (best.get('cfg') or {}).get('model') != (checkpoint.get('cfg') or {}).get('model')):
+        raise ValueError('Selected-best checkpoint conflicts with resume history/model.')
+    expected, selected = normalized_model_state(checkpoint), normalized_model_state(best)
+    if (set(expected) != set(selected) or any(
+            not torch.is_tensor(selected[key]) or selected[key].shape != expected[key].shape
+            or selected[key].dtype != expected[key].dtype for key in expected)):
+        raise ValueError('Selected-best checkpoint tensor layout conflicts with resume model.')
 
 
 def save_training_plots(plots_dir, topk, loss_history, eval_history, logger):
@@ -545,7 +580,7 @@ def main():
         logger.info("Raw stdout saved to: %s", osp.join(logs_dir, "stdout.txt"))
         logger.info("Raw stderr saved to: %s", osp.join(logs_dir, "stderr.txt"))
 
-        start_epoch, best_metric, _ = maybe_resume_training(
+        start_epoch, best_metric, resume_checkpoint = maybe_resume_training(
             logger,
             cfg,
             model,
@@ -561,6 +596,20 @@ def main():
         eval_interval = int(cfg["train"]["eval_interval"])
         best_name = cfg["train"]["save"]["metric"]
         save_best = bool(cfg["train"]["save"].get("save_best", True))
+        if cfg['train']['save'].get('require_selection_state_on_resume', False):
+            if not save_best:
+                raise ValueError('Qualified selection-state resume requires save_best=true.')
+            if resume_checkpoint is not None:
+                validate_resume_best_checkpoint(resume_checkpoint, checkpoint_paths['best'], best_name)
+        previous_selection = (resume_checkpoint or {}).get('selection_state')
+        selection_state = dict(schema_version=1, metric=best_name,
+                               best_score=previous_selection['best_score'] if previous_selection else None,
+                               best_epoch=previous_selection['best_epoch'] if previous_selection else None)
+        # Preserve historical fallback behavior without certifying an unknown
+        # historical maximum. Qualified recipes require metadata on resume.
+        if previous_selection is None and resume_checkpoint is not None:
+            selection_state = None
+        del resume_checkpoint  # Do not retain a second set of loaded model tensors during training.
         save_last = bool(cfg["train"]["save"].get("save_last", True))
         loss_history = []
         eval_history = []
@@ -599,6 +648,7 @@ def main():
                     epoch=ep,
                     scores=None,
                     cfg=cfg,
+                    selection_state=selection_state if save_best else None,
                 )
 
             latest_scores = None
@@ -628,6 +678,8 @@ def main():
                 if save_best:
                     if is_better_score(scores, best_name, best_metric):
                         best_metric = float(scores[best_name])
+                        if selection_state is not None:
+                            selection_state.update(best_score=best_metric, best_epoch=ep)
                         best_path = checkpoint_paths["best"]
                         save_checkpoint(
                             path=best_path,
@@ -639,6 +691,7 @@ def main():
                             scores=scores,
                             cfg=cfg,
                             is_best=True,
+                            selection_state=selection_state,
                         )
                         logger.info("[CKPT] New best %s=%.4f saved: %s", best_name, best_metric, best_path)
 
@@ -654,6 +707,7 @@ def main():
                         epoch=ep,
                         scores=latest_scores,
                         cfg=cfg,
+                        selection_state=selection_state if save_best else None,
                     )
 
         if final_scores is not None:

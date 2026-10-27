@@ -231,3 +231,114 @@ def test_maybe_resume_training_restores_epoch_metric_and_full_state(tmp_path):
     assert optimizer2.state_dict() == optimizer.state_dict()
     assert scheduler2.state_dict() == scheduler.state_dict()
     assert center_optimizer2.state_dict() == center_optimizer.state_dict()
+
+
+@pytest.mark.parametrize('latest', [None, {'mAP': .3}, {'mAP': .8}])
+def test_resume_retains_historical_best_independently_of_latest_scores(tmp_path, latest):
+    model = torch.nn.Linear(2, 2)
+    path = tmp_path/'history.pth'
+    state = dict(schema_version=1, metric='mAP', best_score=.8, best_epoch=1)
+    save_checkpoint(path, model, epoch=3, scores=latest, selection_state=state)
+    cfg = {'train': {'save': {'resume': str(path), 'metric': 'mAP', 'require_selection_state_on_resume': True}}}
+    epoch, best, payload = maybe_resume_training(logging.getLogger('history'), cfg, model, None, None, None, 'cpu')
+    assert epoch == 4 and best == .8
+    assert payload['selection_state'] == state
+
+
+def test_qualified_resume_requires_explicit_history_and_legacy_fallback_is_preserved(tmp_path):
+    model = torch.nn.Linear(2, 2)
+    path = tmp_path/'legacy.pth'
+    save_checkpoint(path, model, epoch=3, scores={'mAP': .3})
+    cfg = {'train': {'save': {'resume': str(path), 'metric': 'mAP', 'require_selection_state_on_resume': True}}}
+    with pytest.raises(ValueError, match='selection_state'):
+        maybe_resume_training(logging.getLogger('history'), cfg, model, None, None, None, 'cpu')
+    cfg['train']['save']['require_selection_state_on_resume'] = False
+    assert maybe_resume_training(logging.getLogger('history'), cfg, model, None, None, None, 'cpu')[:2] == (4, .3)
+
+
+@pytest.mark.parametrize('change', [{'schema_version': True}, {'schema_version': 2}, {'metric': ''},
+    {'best_score': float('nan')}, {'best_score': True}, {'best_epoch': 0}, {'best_epoch': 4},
+    {'best_epoch': True}, {'best_score': None}, {'unexpected': True}])
+def test_selection_state_rejects_ambiguous_history(change):
+    from reid.utils.checkpoint import validate_selection_state
+    state = dict(schema_version=1, metric='mAP', best_score=.8, best_epoch=1)
+    state.update(change)
+    with pytest.raises(ValueError, match='selection_state'):
+        validate_selection_state(state, epoch=3)
+
+
+def test_selection_state_empty_history_and_metric_identity():
+    from reid.utils.checkpoint import validate_selection_state
+    state = dict(schema_version=1, metric='mAP', best_score=None, best_epoch=None)
+    validate_selection_state(state, epoch=0, metric='mAP')
+    with pytest.raises(ValueError, match='metric'):
+        validate_selection_state(state, epoch=0, metric='Rank1')
+    with pytest.raises(ValueError, match='epoch'):
+        validate_selection_state(state, epoch=-1)
+
+
+def test_corrupt_selection_state_is_rejected_before_model_mutation(tmp_path):
+    from reid.utils.checkpoint import load_checkpoint
+    source, target = torch.nn.Linear(2, 2), torch.nn.Linear(2, 2)
+    before = {key: value.clone() for key, value in target.state_dict().items()}
+    payload = save_checkpoint(tmp_path/'valid.pth', source, epoch=3,
+        selection_state=dict(schema_version=1, metric='mAP', best_score=.8, best_epoch=1))
+    payload['model'] = {key: torch.full_like(value, 27) for key, value in payload['model'].items()}
+    payload['selection_state']['best_epoch'] = 99
+    path = tmp_path/'corrupt.pth'
+    torch.save(payload, path)
+    with pytest.raises(ValueError, match='selection_state'):
+        load_checkpoint(path, target)
+    assert all(torch.equal(value, before[key]) for key, value in target.state_dict().items())
+
+
+def test_resume_history_requirement_flag_is_boolean():
+    cfg = {'train': {'save': {'resume': '', 'metric': 'mAP', 'require_selection_state_on_resume': 'false'}}}
+    with pytest.raises(ValueError, match='boolean'):
+        maybe_resume_training(logging.getLogger('history'), cfg, None, None, None, None, 'cpu')
+
+
+def test_qualified_resume_requires_preserved_selected_weights(tmp_path):
+    from scripts.train import validate_resume_best_checkpoint
+    model = torch.nn.Linear(2, 2)
+    state = dict(schema_version=1, metric='mAP', best_score=.8, best_epoch=1)
+    cfg = {'model': {'name': 'synthetic_only'}}
+    last = save_checkpoint(tmp_path/'last.pth', model, epoch=3, cfg=cfg,
+                           scores={'mAP': .3}, selection_state=state)
+    best_path = tmp_path/'best.pth'
+    with pytest.raises(ValueError, match='preserved selected-best'):
+        validate_resume_best_checkpoint(last, best_path, 'mAP')
+    save_checkpoint(best_path, model, epoch=1, cfg=cfg, scores={'mAP': .8}, selection_state=state)
+    validate_resume_best_checkpoint(last, best_path, 'mAP')
+    empty = dict(last, selection_state=dict(schema_version=1, metric='mAP', best_score=None, best_epoch=None))
+    validate_resume_best_checkpoint(empty, tmp_path/'never_selected.pth', 'mAP')
+
+
+@pytest.mark.parametrize('damage', ['epoch', 'score', 'model', 'metadata', 'shape'])
+def test_qualified_resume_rejects_conflicting_selected_checkpoint(tmp_path, damage):
+    from scripts.train import validate_resume_best_checkpoint
+    model = torch.nn.Linear(2, 2)
+    state = dict(schema_version=1, metric='mAP', best_score=.8, best_epoch=1)
+    cfg = {'model': {'name': 'synthetic_only'}}
+    last = save_checkpoint(tmp_path/'last.pth', model, epoch=3, cfg=cfg,
+                           scores={'mAP': .3}, selection_state=state)
+    path = tmp_path/'best.pth'
+    best = save_checkpoint(path, model, epoch=1, cfg=cfg, scores={'mAP': .8}, selection_state=state)
+    if damage == 'epoch': best['epoch'] = 2
+    elif damage == 'score': best['scores']['mAP'] = .7
+    elif damage == 'model': best['cfg'] = {'model': {'name': 'other'}}
+    elif damage == 'metadata': best['reconstruction'] = {'num_classes': 999}
+    else: best['model']['weight'] = torch.zeros(1, 1)
+    torch.save(best, path)
+    with pytest.raises(ValueError, match='Selected-best'):
+        validate_resume_best_checkpoint(last, path, 'mAP')
+
+
+@pytest.mark.parametrize('content', [torch.zeros(1), {'scores': None}])
+def test_qualified_resume_rejects_malformed_selected_payload(tmp_path, content):
+    from scripts.train import validate_resume_best_checkpoint
+    path = tmp_path/'bad-best.pth'
+    torch.save(content, path)
+    checkpoint = {'epoch': 3, 'selection_state': dict(schema_version=1, metric='mAP', best_score=.8, best_epoch=1)}
+    with pytest.raises(ValueError, match='Selected-best'):
+        validate_resume_best_checkpoint(checkpoint, path, 'mAP')
