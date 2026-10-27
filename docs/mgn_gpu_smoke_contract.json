@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "phase": 12,
+  "status": "CPU_PASS",
+  "gpu_executed": false,
+  "code_hash": "f433a5f5e0e6ff3825339725aaeccb5ceae72346ea3f839ba7d631cb42c0e9fa",
+  "test_hash": "acf3697808e6a7e55da14443bbc00891e1bb2db67f598ba2c7c8c7a05dcd406f",
+  "command": "timeout 90s env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:scripts:tests /home/addirakoze/environments/Reid/bin/python -B -m pytest -p no:cacheprovider -q tests/test_mgn_gpu_smoke_contract.py tests/test_mgn_config.py tests/test_loss_interface.py",
+  "passed": 73,
+  "seconds": 6.22,
+  "log": "/tmp/mgn-phase12-final-cpu-tests.log",
+  "log_sha256": "3e839d38928dacb561ba63a44521faf94dd5a5f42615a8873b5c5372a0b4d273",
+  "previous_run": {
+    "passed": 69,
+    "seconds": 6.44,
+    "log": "/tmp/mgn-phase12-cpu-tests.log"
+  },
+  "bounds": {
+    "optimizer_step_calls_per_attempt": 3,
+    "worker_seconds": 600,
+    "maximum_attempts_per_case": 3
+  },
+  "cases": [
+    "manual authority required before resources/output",
+    "single UUID worker visibility",
+    "immutable fresh namespace and retry history",
+    "identical frozen scientific inputs",
+    "source and CPU evidence binding",
+    "hard timeout and interrupt kills only owned worker group",
+    "fault-injected OOM preserves stage/counts/memory/error",
+    "PASS requires three complete updates"
+  ],
+  "note": "CPU harness qualification only; no GPU feasibility result yet"
+}

@@ -193,7 +193,7 @@
   },
   "raw_evidence_paths": [
     "/tmp/pytest-of-addirakoze/pytest-171/test_real_mgn_synthetic_traini0/mgn_synthetic_evidence.json",
-    "/tmp/pytest-of-addirakoze/pytest-current/test_common_entry_point_retain0/mgn_selection_evidence.json"
+    "/tmp/pytest-of-addirakoze/pytest-173/test_common_entry_point_retain0/mgn_selection_evidence.json"
   ],
   "protected_files_unchanged": 48,
   "resume_contract": {
