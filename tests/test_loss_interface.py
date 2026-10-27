@@ -165,3 +165,100 @@ def test_loss_builder_rejects_model_specific_metric_feature_values():
 
     with pytest.raises(ValueError, match="Unsupported metric feature"):
         build_criterion(cfg, num_classes=3, feat_dim=8)
+
+
+@pytest.mark.parametrize('count', [1, 3])
+@pytest.mark.parametrize('aggregation', ['sum', 'mean'])
+def test_model_metric_loss_matches_independent_scalar_and_gradient_oracle(count, aggregation):
+    import torch.nn.functional as F
+    torch.manual_seed(14)
+    cfg = _cfg(center=False)
+    cfg['loss']['triplet'].update(margin=1.2, weight=2.3, feature_source='model', feature_aggregation=aggregation)
+    cfg['loss']['id'].update(weight=0.7, label_smoothing=0.0, head_aggregation='mean')
+    labels = torch.tensor([0, 0, 1, 1])
+    features = [torch.randn(4, d, requires_grad=True) for d in (3, 5, 7)[:count]]
+    heads = [torch.randn(4, 3, requires_grad=True) for _ in range(8)]
+    criterion = build_criterion(cfg, num_classes=3, feat_dim=None)
+    loss, logs = criterion({'metric_features': features, 'logits': heads}, labels)
+    copies = [f.detach().clone().requires_grad_() for f in features]
+    head_copies = [h.detach().clone().requires_grad_() for h in heads]
+    triplets = []
+    for feature in copies:
+        rows = []
+        for i in range(4):
+            distances = [(feature[i]-feature[j]).square().sum().clamp_min(1e-12).sqrt() for j in range(4)]
+            positive = torch.stack([d for j, d in enumerate(distances) if labels[i] == labels[j]]).max()
+            negative = torch.stack([d for j, d in enumerate(distances) if labels[i] != labels[j]]).min()
+            rows.append((positive-negative+1.2).clamp_min(0))
+        triplets.append(torch.stack(rows).mean())
+    metric = sum(triplets) / (count if aggregation == 'mean' else 1)
+    ce = sum(F.cross_entropy(h, labels) for h in head_copies) / 8
+    expected = 2.3*metric + 0.7*ce
+    torch.testing.assert_close(loss, expected, atol=2e-6, rtol=2e-6)
+    actual_grads = torch.autograd.grad(loss, features+heads)
+    expected_grads = torch.autograd.grad(expected, copies+head_copies)
+    for actual, wanted in zip(actual_grads, expected_grads):
+        torch.testing.assert_close(actual, wanted, atol=2e-6, rtol=2e-6)
+    assert logs['loss/triplet'] == pytest.approx(metric.item(), abs=2e-6)
+    assert logs['loss/id'] == pytest.approx(ce.item(), abs=2e-6)
+    for i, triplet in enumerate(triplets):
+        assert logs[f'loss/triplet/feature_{i}'] == pytest.approx(triplet.item(), abs=2e-6)
+
+
+@pytest.mark.parametrize('value', [None, [], ()])
+def test_model_metric_enabled_requires_features_without_legacy_fallback(value):
+    cfg = _cfg(id_loss=False, center=False)
+    cfg['loss']['triplet']['feature_source'] = 'model'
+    criterion = build_criterion(cfg, num_classes=None, feat_dim=None)
+    with pytest.raises(ValueError, match='metric_features'):
+        criterion({'metric_features': value, 'feat_raw': torch.randn(4, 8)}, torch.tensor([0, 0, 1, 1]))
+
+
+def test_model_metric_center_still_uses_selected_legacy_tensor():
+    cfg = _cfg(id_loss=False)
+    cfg['loss']['triplet']['feature_source'] = 'model'
+    criterion = build_criterion(cfg, num_classes=3, feat_dim=8)
+    recorder = _RecordLoss()
+    criterion.center_loss = recorder
+    output = _outputs()
+    output['metric_features'] = [torch.randn(4, 3, requires_grad=True)]
+    criterion(output, torch.tensor([0, 0, 1, 1]))
+    torch.testing.assert_close(recorder.last_x, output['feat_raw'])
+    output['feat_raw'] = None
+    with pytest.raises(ValueError, match='feat_raw'):
+        criterion(output, torch.tensor([0, 0, 1, 1]))
+
+
+def test_disabled_model_metric_allows_zero_and_legacy_logs_remain_exact():
+    cfg = _cfg(triplet=False, center=False)
+    cfg['loss']['triplet']['feature_source'] = 'model'
+    _, logs = build_criterion(cfg, 3, None)({'logits': torch.randn(4, 3), 'metric_features': []}, torch.tensor([0, 0, 1, 1]))
+    assert set(logs) == {'loss/total', 'loss/id', 'loss/triplet', 'loss/center'}
+
+
+@pytest.mark.parametrize('key,value', [('feature_source', 'bad'), ('feature_aggregation', 'bad')])
+def test_triplet_contract_choices_rejected(key, value):
+    cfg = _cfg(center=False)
+    cfg['loss']['triplet'][key] = value
+    with pytest.raises(ValueError, match=key):
+        build_criterion(cfg, 3, 8)
+
+
+def test_model_metric_labels_device_and_batch_validation():
+    cfg = _cfg(id_loss=False, center=False)
+    cfg['loss']['triplet']['feature_source'] = 'model'
+    criterion = build_criterion(cfg, None, None)
+    with pytest.raises(ValueError, match='device'):
+        criterion({'metric_features': torch.empty(4, 3, device='meta')}, torch.tensor([0, 0, 1, 1]))
+    with pytest.raises(ValueError, match='batch'):
+        criterion({'metric_features': torch.randn(3, 3)}, torch.tensor([0, 0, 1, 1]))
+
+
+@pytest.mark.parametrize('key', ['feature_source', 'feature_aggregation'])
+def test_config_rejects_invalid_triplet_contract(key):
+    from reid.utils.config import validate_reid_config
+    cfg = _cfg(center=False)
+    cfg['model']['head']['classifier'] = True
+    cfg['loss']['triplet'][key] = 'invalid'
+    with pytest.raises(ValueError, match=key):
+        validate_reid_config(cfg)

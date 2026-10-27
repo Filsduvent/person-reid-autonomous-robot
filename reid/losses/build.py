@@ -4,7 +4,7 @@ import torch.nn as nn
 from reid.losses.center import CenterLoss
 from reid.losses.id import build_id_loss
 from reid.losses.triplet import BatchHardTripletLoss
-from reid.models.outputs import validate_logits
+from reid.models.outputs import validate_logits, metric_feature_tensors
 
 
 class LossBundle(nn.Module):
@@ -18,6 +18,8 @@ class LossBundle(nn.Module):
         w_center: float = 1.0,
         metric_feat_key: str = "feat_raw",
         head_aggregation: str = "sum",
+        feature_source: str = "legacy",
+        feature_aggregation: str = "sum",
     ):
         super().__init__()
         self.triplet = triplet
@@ -31,6 +33,12 @@ class LossBundle(nn.Module):
         if head_aggregation not in ("sum", "mean"):
             raise ValueError("loss.id.head_aggregation must be 'sum' or 'mean'.")
         self.head_aggregation = head_aggregation
+        if feature_source not in ("legacy", "model"):
+            raise ValueError("loss.triplet.feature_source must be 'legacy' or 'model'.")
+        if feature_aggregation not in ("sum", "mean"):
+            raise ValueError("loss.triplet.feature_aggregation must be 'sum' or 'mean'.")
+        self.feature_source = feature_source
+        self.feature_aggregation = feature_aggregation
 
     def forward(self, outputs, labels: torch.Tensor):
         if not isinstance(outputs, dict):
@@ -47,13 +55,28 @@ class LossBundle(nn.Module):
         }
 
         metric_feat = outputs.get(self.metric_feat_key)
-        if (self.triplet is not None or self.center_loss is not None) and metric_feat is None:
+        if (self.center_loss is not None or (self.triplet is not None and self.feature_source == "legacy")) and metric_feat is None:
             raise ValueError(
                 f"Metric loss enabled but model output '{self.metric_feat_key}' is missing."
             )
 
         if self.triplet is not None:
-            lt = self.triplet(metric_feat, labels)
+            if self.feature_source == "legacy":
+                lt = self.triplet(metric_feat, labels)
+            else:
+                if labels.ndim != 1:
+                    raise ValueError("Metric labels must have shape [B].")
+                features = metric_feature_tensors(outputs.get("metric_features"), batch_size=len(labels))
+                if not features:
+                    raise ValueError("Triplet enabled but model metric_features is empty or missing.")
+                if features[0].device != labels.device:
+                    raise ValueError("metric_features and labels must have matching device.")
+                losses = [self.triplet(feature, labels) for feature in features]
+                lt = sum(losses)
+                if self.feature_aggregation == "mean":
+                    lt = lt / len(losses)
+                for index, value in enumerate(losses):
+                    logs[f"loss/triplet/feature_{index}"] = float(value.detach().cpu())
             total = total + self.w_triplet * lt
             logs["loss/triplet"] = float(lt.detach().cpu())
 
@@ -144,4 +167,6 @@ def build_criterion(cfg, num_classes: int | None, feat_dim: int | None):
         w_center=w_center,
         metric_feat_key=metric_feat_key,
         head_aggregation=lcfg.get("id", {}).get("head_aggregation", "sum"),
+        feature_source=lcfg.get("triplet", {}).get("feature_source", "legacy"),
+        feature_aggregation=lcfg.get("triplet", {}).get("feature_aggregation", "sum"),
     )

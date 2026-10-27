@@ -73,8 +73,8 @@ normalizes embeddings. The evaluator consumes only `outputs["emb"]`.
 
 `validate_model_loss_requirements` resolves optional metric width in train/smoke
 orchestration. Center loss requires a positive integer `feat_dim` at construction.
-Triplet consumes a runtime metric tensor rather than a declared width. Enabled
-Triplet/Center consumers reject missing selected `feat_raw`/`feat_bn`; they never
+Triplet consumes a runtime metric tensor rather than a declared width. Legacy Triplet and
+Center consumers reject missing selected `feat_raw`/`feat_bn`; they never
 silently disable themselves or fall back to `emb`. Configuration validation
 rejects known architecture/loss capability conflicts before execution.
 
@@ -83,12 +83,16 @@ omit a baseline-specific `model.head` when its architecture does not use one.
 The baseline keeps its single tensor logits, metric dimensions, feature choices,
 normalization and numerical behavior.
 
-**Current implementation boundary:** multi-head logits can be represented and
-validated, but `LossBundle` still computes ID loss for a single tensor. Multi-head
-CE aggregation and multi-head training statistics require subsequent, separately
-validated extensions. A full multi-head training/smoke step is not yet supported.
-Do not confuse successful construction/evaluation/reconstruction with training
-integration. The generic training call remains `loss, logs = criterion(outputs, labels)`.
+CE evaluates each head independently; `loss.id.head_aggregation` selects sum
+(default, including PCB) or mean. `loss.triplet.feature_source` selects legacy
+(default raw/BN behavior) or model (`metric_features` only, with no fallback).
+Model-source Triplet evaluates each feature independently, with sum (default)
+or mean `feature_aggregation`. Enabled Triplet requires at least one feature.
+Center continues to require the selected legacy tensor and positive `feat_dim`.
+Family diagnostics are unweighted aggregates; total applies each family weight
+once. Model-source Triplet adds `loss/triplet/feature_N` scalar diagnostics.
+Legacy configurations retain their original four loss diagnostic keys.
+The generic call remains `loss, logs = criterion(outputs, labels)`.
 
 ## Builder and configuration
 

@@ -217,6 +217,9 @@ def validate_reid_config(cfg: Dict[str, Any], num_classes: int | None = None, *,
         metric_feat = _expect_choice("model.head.metric_feat", head_cfg.get("metric_feat", "bn"), {"raw", "bn"})
 
     id_cfg = loss_cfg.get("id", {})
+    triplet_cfg = loss_cfg.get("triplet", {})
+    _expect_choice("loss.triplet.feature_source", triplet_cfg.get("feature_source", "legacy"), {"legacy", "model"})
+    _expect_choice("loss.triplet.feature_aggregation", triplet_cfg.get("feature_aggregation", "sum"), {"sum", "mean"})
     aggregation = id_cfg.get("head_aggregation", "sum")
     if aggregation not in ("sum", "mean"):
         raise ValueError("loss.id.head_aggregation must be 'sum' or 'mean'.")
