@@ -458,6 +458,462 @@
         "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "stdout.log": "ee1e9acd52e9f6adbab980faaa739f849454196cf986a049b0dbbd4eda187ce3"
       }
+    },
+    "duke": {
+      "case": "phase14_real_duke_fp32",
+      "gpu_uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+      "attempt": 1,
+      "precision": "FP32",
+      "configuration": {
+        "experiment": {
+          "name": "mgn_duke",
+          "output_dir": "exp/mgn_smoke/source_contract/duke",
+          "notes": "MGN v3/project FP32 recipe. Periodic source test mAP selects best; no independent validation split."
+        },
+        "system": {
+          "device": "cuda",
+          "gpu_id": 0,
+          "amp": false,
+          "log_interval": 20
+        },
+        "repro": {
+          "seed": 42,
+          "deterministic": false,
+          "benchmark": true
+        },
+        "logging": {
+          "to_file": true,
+          "tensorboard": true,
+          "wandb": {
+            "enabled": false,
+            "project": "reid",
+            "entity": null,
+            "tags": [
+              "mgn"
+            ]
+          }
+        },
+        "data": {
+          "root": "/home/addirakoze/nobackup/Projects/Dataset",
+          "num_workers": 4,
+          "pin_memory": true,
+          "train": {
+            "dataset": {
+              "name": "duke",
+              "split": "trainval",
+              "format": "processed"
+            },
+            "images": {
+              "size": [
+                384,
+                128
+              ],
+              "batch_dims": "NCHW",
+              "interpolation": "bicubic"
+            },
+            "aug": {
+              "mean": [
+                0.485,
+                0.456,
+                0.406
+              ],
+              "std": [
+                0.229,
+                0.224,
+                0.225
+              ],
+              "mirror": "random",
+              "padding": {
+                "enabled": false
+              },
+              "random_crop": {
+                "enabled": false
+              },
+              "random_erasing": {
+                "enabled": false
+              }
+            },
+            "loader": {
+              "shuffle": true,
+              "final_batch": true
+            },
+            "batch": {
+              "sampler": "pk",
+              "P": 16,
+              "K": 4,
+              "batch_size": 64
+            }
+          },
+          "test": {
+            "dataset": {
+              "name": "duke",
+              "split": "test",
+              "format": "processed"
+            },
+            "images": {
+              "size": [
+                384,
+                128
+              ],
+              "batch_dims": "NCHW",
+              "interpolation": "bicubic"
+            },
+            "aug": {
+              "mean": [
+                0.485,
+                0.456,
+                0.406
+              ],
+              "std": [
+                0.229,
+                0.224,
+                0.225
+              ],
+              "mirror": "none"
+            },
+            "loader": {
+              "shuffle": false,
+              "final_batch": true
+            },
+            "batch": {
+              "size": 32
+            }
+          }
+        },
+        "model": {
+          "name": "mgn",
+          "variant": "paper_v3_global2048_independent_v1",
+          "pretrained": true,
+          "weights_path": "/home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth",
+          "head": {
+            "classifier": true
+          },
+          "initialization": {
+            "artifact_id": "resnet50-19c8e357",
+            "sha256": "19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097",
+            "head_init_id": "reference_a_384e820_bias_free_v1"
+          }
+        },
+        "loss": {
+          "id": {
+            "enabled": true,
+            "weight": 1.0,
+            "label_smoothing": 0.0,
+            "head_aggregation": "mean"
+          },
+          "triplet": {
+            "enabled": true,
+            "weight": 1.0,
+            "margin": 1.2,
+            "mining": "batch_hard",
+            "feature_source": "model",
+            "feature_aggregation": "mean"
+          },
+          "center": {
+            "enabled": false
+          }
+        },
+        "optim": {
+          "name": "sgd",
+          "lr": 0.01,
+          "momentum": 0.9,
+          "nesterov": false,
+          "weight_decay": 0.0005,
+          "bias_lr_factor": 1.0,
+          "weight_decay_bias": 0.0005
+        },
+        "sched": {
+          "name": "epoch_multistep",
+          "milestones": [
+            60,
+            90
+          ],
+          "gamma": 0.1
+        },
+        "train": {
+          "epochs": 120,
+          "eval_interval": 10,
+          "save": {
+            "metric": "mAP",
+            "save_best": true,
+            "save_last": true,
+            "resume": "",
+            "require_selection_state_on_resume": true
+          }
+        },
+        "eval": {
+          "weight": "",
+          "normalize_feat": true,
+          "distance": "euclidean",
+          "topk": [
+            1,
+            5,
+            10
+          ],
+          "rerank": {
+            "enabled": false,
+            "k1": 20,
+            "k2": 6,
+            "lambda_value": 0.3
+          },
+          "export": {
+            "format": [
+              "json"
+            ]
+          },
+          "flip_aggregation": "mean"
+        }
+      },
+      "configuration_sha256": "16094cd641ad4b0cee2908a70eb6bf48642dd7a4b4e463d480dba92bc461ad9f",
+      "weights_sha256": "19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097",
+      "code_hash": "7675c71a5df5fa6e76dde6d336c3698f431fc70d41fb50611b1df0fe9fd51591",
+      "code_commit": "27e41f6dd6844193ca0f8733477c288f47bb107d",
+      "authorization_note": "Current user manual owner authorization 2026-10-27 and activated autonomous Phase14 source-case scope; no scheduler allocation claimed.",
+      "gpu_before": {
+        "timestamp_utc": "2026-10-27T22:04:20.657239+00:00",
+        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "physical_index": 0,
+        "name": "NVIDIA TITAN Xp",
+        "driver": "570.211.01",
+        "total_mib": 12288,
+        "free_mib": 12179,
+        "utilization_percent": 0,
+        "compute_mode": "Default",
+        "mig_mode": "[N/A]",
+        "processes": []
+      },
+      "gpu_after": {
+        "timestamp_utc": "2026-10-27T22:04:53.456986+00:00",
+        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "physical_index": 0,
+        "name": "NVIDIA TITAN Xp",
+        "driver": "570.211.01",
+        "total_mib": 12288,
+        "free_mib": 12179,
+        "utilization_percent": 74,
+        "compute_mode": "Default",
+        "mig_mode": "[N/A]",
+        "processes": []
+      },
+      "status": "PASS",
+      "source_provenance": {
+        "source": "duke",
+        "descriptor": {
+          "name": "duke",
+          "split": "trainval",
+          "format": "processed"
+        },
+        "image_directory": "/mnt/hd-data/addirakoze/Projects/Dataset/duke/images",
+        "images": 16522,
+        "num_classes": 702,
+        "records_sha256": "01c0e9610ea0e20fe070200446c947e3f94c85b038f1db69fdb485f9710d981d",
+        "identity_map_sha256": "e123245328f4a8f418274b8e8170ee416b4ff6f13a4bf839fa3902d22c5c8fd4",
+        "file_inventory_sha256": "0be61acb6fb7187323a40a568b19e306ead2a54a8782b5449a418ea0bf3a8190",
+        "metadata_sha256": {
+          "/mnt/hd-data/addirakoze/Projects/Dataset/duke/partitions.pkl": "25929417e0a8780548924d4f58f4f644ee18098e957df41a571650eb05e6b638"
+        },
+        "image_content_hash_policy": "Only actually consumed smoke images are byte-hashed; full corpus is not byte-hashed.",
+        "cuhk03_semantic_protocol_verification": null,
+        "identity_sha256": "dda7bc8c6d838ac2577d8edac606983460e510722f714913f015cde42fab7a20"
+      },
+      "runtime": {
+        "torch": "2.7.1+cu126",
+        "cuda": "12.6",
+        "cudnn": 90501,
+        "gpu_name": "NVIDIA TITAN Xp",
+        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "visible": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "precision": "FP32",
+        "cudnn_benchmark": true,
+        "cudnn_deterministic": false,
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": true,
+        "torch_architectures": [
+          "sm_50",
+          "sm_60",
+          "sm_70",
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90"
+        ],
+        "environment_controls": {
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "PYTORCH_CUDA_ALLOC_CONF": null,
+          "PYTORCH_ALLOC_CONF": null,
+          "CUBLAS_WORKSPACE_CONFIG": null,
+          "NVIDIA_TF32_OVERRIDE": null,
+          "CUDA_LAUNCH_BLOCKING": null
+        }
+      },
+      "loader": {
+        "num_workers": 4,
+        "pin_memory": true,
+        "prefetch_factor": 2,
+        "initial_epoch_batches": 226
+      },
+      "loader_observation": {
+        "scheduled_batches": 11,
+        "scheduled_images": 704,
+        "consumed_batches": 3,
+        "consumed_images": 192,
+        "unconsumed_scheduled_batches": 8,
+        "unconsumed_scheduled_images": 512
+      },
+      "steps": [
+        {
+          "step": 1,
+          "loss": {
+            "loss/total": 18.16588592529297,
+            "loss/triplet": 3.9465575218200684,
+            "loss/id": 14.219327926635742,
+            "loss/center": 0.0,
+            "loss/triplet/feature_0": 3.6281321048736572,
+            "loss/triplet/feature_1": 4.105770111083984,
+            "loss/triplet/feature_2": 4.105770111083984
+          },
+          "embedding_shape": [
+            64,
+            2048
+          ],
+          "logits_shape": [
+            8,
+            64,
+            702
+          ],
+          "metric_shape": [
+            3,
+            64,
+            256
+          ],
+          "peak_allocated_bytes": 11878326272,
+          "peak_reserved_bytes": 12144607232,
+          "free_bytes": 11229003776,
+          "total_bytes": 12774801408,
+          "finite_gradients": true,
+          "finite_model": true,
+          "finite_momentum": true,
+          "parameter_changed": true,
+          "elapsed_seconds": 28.50556991994381
+        },
+        {
+          "step": 2,
+          "loss": {
+            "loss/total": 16.980815887451172,
+            "loss/triplet": 4.064269065856934,
+            "loss/id": 12.916545867919922,
+            "loss/center": 0.0,
+            "loss/triplet/feature_0": 3.9303293228149414,
+            "loss/triplet/feature_1": 4.145930290222168,
+            "loss/triplet/feature_2": 4.116547107696533
+          },
+          "embedding_shape": [
+            64,
+            2048
+          ],
+          "logits_shape": [
+            8,
+            64,
+            702
+          ],
+          "metric_shape": [
+            3,
+            64,
+            256
+          ],
+          "peak_allocated_bytes": 10105681920,
+          "peak_reserved_bytes": 11079254016,
+          "free_bytes": 1496121344,
+          "total_bytes": 12774801408,
+          "finite_gradients": true,
+          "finite_model": true,
+          "finite_momentum": true,
+          "parameter_changed": true,
+          "elapsed_seconds": 29.886209273245186
+        },
+        {
+          "step": 3,
+          "loss": {
+            "loss/total": 14.975485801696777,
+            "loss/triplet": 3.392146110534668,
+            "loss/id": 11.58333969116211,
+            "loss/center": 0.0,
+            "loss/triplet/feature_0": 3.4870548248291016,
+            "loss/triplet/feature_1": 3.3507134914398193,
+            "loss/triplet/feature_2": 3.338669776916504
+          },
+          "embedding_shape": [
+            64,
+            2048
+          ],
+          "logits_shape": [
+            8,
+            64,
+            702
+          ],
+          "metric_shape": [
+            3,
+            64,
+            256
+          ],
+          "peak_allocated_bytes": 10106222592,
+          "peak_reserved_bytes": 11079254016,
+          "free_bytes": 1496121344,
+          "total_bytes": 12774801408,
+          "finite_gradients": true,
+          "finite_model": true,
+          "finite_momentum": true,
+          "parameter_changed": true,
+          "elapsed_seconds": 31.236843356862664
+        }
+      ],
+      "source_batches": [
+        {
+          "identities": 16,
+          "images_per_identity": 4,
+          "input_sha256": "e0fa320bee8e6f076b3939d73d95a37ca63204d71d4f561c37900bf4af025c05",
+          "first_original_image_mode": "RGB",
+          "pixel_oracle": "original",
+          "min": -2.1179039478302,
+          "max": 2.640000104904175,
+          "indices_sha256": "b1661313728c369d90e8adcf01fbafda8719cd796612daf28d5351eed108e5b6",
+          "labels_sha256": "53ad9ab7c1bbbd76eb6aa752999d835420a650cf4cbc605502e4ea2f0ca95dd4",
+          "used_image_bytes_sha256": "4f36effe4d604327f81c096c0e56e0915b057cf8e938292ac9bcae4cbac27680"
+        },
+        {
+          "identities": 16,
+          "images_per_identity": 4,
+          "input_sha256": "2805fd6fb48861cf6f144b6cd23507d44d970b4b30bc58a082d47cd7fcc6a54a",
+          "first_original_image_mode": "RGB",
+          "pixel_oracle": "original",
+          "min": -2.1179039478302,
+          "max": 2.640000104904175,
+          "indices_sha256": "3d92d7ada9f3a1c7ea1ecbac3ba1b67cb642c2288402cbf8df803a9a2f1f248f",
+          "labels_sha256": "a011a9851fa771fae741f21ce05348bf8e2cf76b11b6f682940c91e0562ec7e2",
+          "used_image_bytes_sha256": "b94dfc9b18624ec4c5ca331f49be1a08d6df669c507279e2fb2eac218021d1f2"
+        },
+        {
+          "identities": 16,
+          "images_per_identity": 4,
+          "input_sha256": "d132499b96ee1402fa4dda07e518d55a4a528ca94b1fdfbc9545fbc91f4bd2ea",
+          "first_original_image_mode": "RGB",
+          "pixel_oracle": "horizontal_flip",
+          "min": -2.1179039478302,
+          "max": 2.640000104904175,
+          "indices_sha256": "e920c7a7ef25817a730dcc61d89a2d3c0b0c0daa731c5233f513b6216e7bf090",
+          "labels_sha256": "405740c918242a30b5f35f0a9a9a24393d45a79b99251ac89fba32d8f2fb67ff",
+          "used_image_bytes_sha256": "da9e44e2364468f1274070ea78e9756782904868e6e782efa365c47eba58e805"
+        }
+      ],
+      "raw_receipt_root": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/mgn_smoke/phase14_real_duke_fp32_GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c_attempt1/fp32",
+      "raw_file_sha256": {
+        "manifest.json": "69c770c8751d6ad5c8d76b128039eda4b275a7e7dad8f2dae126982f928a1e2f",
+        "summary.json": "658bacbc64c1d3de8494d643ece67fb8bf85683cb12f2e4eb427e038c2be7662",
+        "worker_receipt.json": "3c6a91bc0f7d26fc106593eabd263cbec9c89266862be1b04ac0c3aaad7fd1bc",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout.log": "1561cb4d345a1380520ed401668242a537d4854a27957b38bf3efd825ddf2fdd"
+      }
     }
   }
 }
