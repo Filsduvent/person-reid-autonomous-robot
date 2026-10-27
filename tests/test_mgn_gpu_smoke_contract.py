@@ -182,3 +182,15 @@ def test_supervisor_interruption_cannot_leave_an_owned_worker_running(tmp_path,m
     with pytest.raises(KeyboardInterrupt):
         smoke.supervise(['worker'],{},tmp_path,popen=lambda *a,**k:Child())
     assert killed==[(12345,signal.SIGKILL)]
+
+
+def test_cpu_guard_receipt_binds_source_recipe_not_only_python_bytes(tmp_path,monkeypatch):
+    monkeypatch.setattr(smoke,'ROOT',tmp_path)
+    monkeypatch.setattr(smoke,'configuration',lambda source=None:{'source':source})
+    (tmp_path/'docs').mkdir()
+    (tmp_path/'docs/mgn_cpu_qualification.json').write_text(json.dumps(dict(status='PASS')))
+    (tmp_path/'docs/mgn_synthetic_qualification.json').write_text(json.dumps(dict(status='PASS',source_sha256={})))
+    guard=tmp_path/'docs/mgn_gpu_smoke_contract.json'
+    guard.write_text(json.dumps(dict(status='CPU_PASS',code_hash=smoke.file_hash(smoke.__file__),
+        source_configuration_sha256={'market1501':'wrong'})))
+    with pytest.raises(ValueError,match='source configuration changed'):smoke.cpu_evidence()
