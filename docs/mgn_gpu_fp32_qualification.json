@@ -1,0 +1,397 @@
+{
+  "schema_version": 1,
+  "case": "phase12_synthetic_fp32",
+  "gpu_uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+  "attempt": 1,
+  "precision": "FP32",
+  "max_optimizer_calls": 3,
+  "worker_timeout_seconds": 600,
+  "authorization_note": "Fresh user manual owner authorization on 2026-10-27: the GPU is for me so Use it; recorded in docs/mgn_integration_plan.md. No scheduler allocation claimed.",
+  "gpu_before": {
+    "timestamp_utc": "2026-10-27T21:47:02.199208+00:00",
+    "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+    "physical_index": 0,
+    "name": "NVIDIA TITAN Xp",
+    "driver": "570.211.01",
+    "total_mib": 12288,
+    "free_mib": 12179,
+    "utilization_percent": 0,
+    "compute_mode": "Default",
+    "mig_mode": "[N/A]",
+    "processes": []
+  },
+  "configuration": {
+    "model": {
+      "name": "mgn",
+      "variant": "paper_v3_global2048_independent_v1",
+      "pretrained": true,
+      "weights_path": "/home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth",
+      "head": {
+        "classifier": true
+      },
+      "initialization": {
+        "artifact_id": "resnet50-19c8e357",
+        "sha256": "19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097",
+        "head_init_id": "reference_a_384e820_bias_free_v1"
+      }
+    },
+    "loss": {
+      "id": {
+        "enabled": true,
+        "weight": 1.0,
+        "label_smoothing": 0.0,
+        "head_aggregation": "mean"
+      },
+      "triplet": {
+        "enabled": true,
+        "weight": 1.0,
+        "margin": 1.2,
+        "mining": "batch_hard",
+        "feature_source": "model",
+        "feature_aggregation": "mean"
+      },
+      "center": {
+        "enabled": false
+      }
+    },
+    "optim": {
+      "name": "sgd",
+      "lr": 0.01,
+      "momentum": 0.9,
+      "nesterov": false,
+      "weight_decay": 0.0005,
+      "bias_lr_factor": 1.0,
+      "weight_decay_bias": 0.0005
+    },
+    "sched": {
+      "name": "epoch_multistep",
+      "milestones": [
+        60,
+        90
+      ],
+      "gamma": 0.1
+    },
+    "train": {
+      "epochs": 120,
+      "eval_interval": 10,
+      "save": {
+        "metric": "mAP",
+        "save_best": true,
+        "save_last": true,
+        "resume": "",
+        "require_selection_state_on_resume": true
+      }
+    },
+    "system": {
+      "device": "cuda",
+      "gpu_id": 0,
+      "amp": false
+    },
+    "repro": {
+      "seed": 42,
+      "deterministic": false,
+      "benchmark": true
+    },
+    "synthetic": {
+      "shape": [
+        64,
+        3,
+        384,
+        128
+      ],
+      "P": 16,
+      "K": 4,
+      "num_classes": 1041,
+      "generation": "uniform RGB followed by fixed ImageNet normalization",
+      "mean": [
+        0.485,
+        0.456,
+        0.406
+      ],
+      "std": [
+        0.229,
+        0.224,
+        0.225
+      ]
+    }
+  },
+  "configuration_sha256": "185f94c6de0624094471bd6d6ff862eb855539901f210efdbe23d5ef5568ddb7",
+  "weights_sha256": "19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097",
+  "weights_bytes": 102502400,
+  "code_hash": "f433a5f5e0e6ff3825339725aaeccb5ceae72346ea3f839ba7d631cb42c0e9fa",
+  "code_commit": "6874aaea838514beeecac132b3ba7e6c084317e3",
+  "cpu_evidence": [
+    {
+      "path": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/docs/mgn_cpu_qualification.json",
+      "sha256": "a322f8457c87937807a996d37ab6bfdc6ff26df5586796dd3b68d9428fc44ae6"
+    },
+    {
+      "path": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/docs/mgn_synthetic_qualification.json",
+      "sha256": "056cdf45dac5b52a3647758f5d641af573c154d3efb210b83a15ff513b0e0ddd"
+    },
+    {
+      "path": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/docs/mgn_gpu_smoke_contract.json",
+      "sha256": "79f47ce4fa979fd3ac67f495cfd7c3192d995aafd5f7f16230129200927ff618"
+    }
+  ],
+  "correction": null,
+  "started_utc": "2026-10-27T21:47:02.203270+00:00",
+  "status": "PASS",
+  "worker_returncode": 0,
+  "timed_out": false,
+  "worker": {
+    "status": "PASS",
+    "stage": "complete",
+    "attempted_batches": 3,
+    "optimizer_step_calls": 3,
+    "completed_steps": 3,
+    "skipped_steps": 0,
+    "steps": [
+      {
+        "step": 1,
+        "loss": {
+          "loss/total": 16.155189514160156,
+          "loss/triplet": 3.7785162925720215,
+          "loss/id": 12.376673698425293,
+          "loss/center": 0.0,
+          "loss/triplet/feature_0": 3.683065414428711,
+          "loss/triplet/feature_1": 3.8262412548065186,
+          "loss/triplet/feature_2": 3.8262412548065186
+        },
+        "embedding_shape": [
+          64,
+          2048
+        ],
+        "logits_shape": [
+          8,
+          64,
+          1041
+        ],
+        "metric_shape": [
+          3,
+          64,
+          256
+        ],
+        "peak_allocated_bytes": 11901345792,
+        "peak_reserved_bytes": 12155092992,
+        "free_bytes": 11243683840,
+        "total_bytes": 12774801408,
+        "finite_gradients": true,
+        "finite_model": true,
+        "finite_momentum": true,
+        "parameter_changed": true,
+        "elapsed_seconds": 28.15284889470786
+      },
+      {
+        "step": 2,
+        "loss": {
+          "loss/total": 14.362469673156738,
+          "loss/triplet": 3.578227996826172,
+          "loss/id": 10.784241676330566,
+          "loss/center": 0.0,
+          "loss/triplet/feature_0": 3.630030870437622,
+          "loss/triplet/feature_1": 3.544475555419922,
+          "loss/triplet/feature_2": 3.5601773262023926
+        },
+        "embedding_shape": [
+          64,
+          2048
+        ],
+        "logits_shape": [
+          8,
+          64,
+          1041
+        ],
+        "metric_shape": [
+          3,
+          64,
+          256
+        ],
+        "peak_allocated_bytes": 10143389696,
+        "peak_reserved_bytes": 11106516992,
+        "free_bytes": 1468858368,
+        "total_bytes": 12774801408,
+        "finite_gradients": true,
+        "finite_model": true,
+        "finite_momentum": true,
+        "parameter_changed": true,
+        "elapsed_seconds": 29.249516848940402
+      },
+      {
+        "step": 3,
+        "loss": {
+          "loss/total": 12.852927207946777,
+          "loss/triplet": 3.522484540939331,
+          "loss/id": 9.330442428588867,
+          "loss/center": 0.0,
+          "loss/triplet/feature_0": 3.6172690391540527,
+          "loss/triplet/feature_1": 3.4342851638793945,
+          "loss/triplet/feature_2": 3.515899658203125
+        },
+        "embedding_shape": [
+          64,
+          2048
+        ],
+        "logits_shape": [
+          8,
+          64,
+          1041
+        ],
+        "metric_shape": [
+          3,
+          64,
+          256
+        ],
+        "peak_allocated_bytes": 10143774720,
+        "peak_reserved_bytes": 11106516992,
+        "free_bytes": 1468858368,
+        "total_bytes": 12774801408,
+        "finite_gradients": true,
+        "finite_model": true,
+        "finite_momentum": true,
+        "parameter_changed": true,
+        "elapsed_seconds": 30.28633147198707
+      }
+    ],
+    "events": [
+      {
+        "stage": "admission",
+        "elapsed_seconds": 1.9329600036144257e-06
+      },
+      {
+        "stage": "model_initialization",
+        "elapsed_seconds": 3.3418739321641624
+      },
+      {
+        "stage": "step_1/input",
+        "elapsed_seconds": 8.616048108786345
+      },
+      {
+        "stage": "step_1/forward",
+        "elapsed_seconds": 8.76180462911725
+      },
+      {
+        "stage": "step_1/loss",
+        "elapsed_seconds": 12.693242394831032
+      },
+      {
+        "stage": "step_1/backward",
+        "elapsed_seconds": 13.868049160111696
+      },
+      {
+        "stage": "step_1/optimizer",
+        "elapsed_seconds": 27.807394391857088
+      },
+      {
+        "stage": "step_1/complete",
+        "elapsed_seconds": 28.15348991099745
+      },
+      {
+        "stage": "step_2/input",
+        "elapsed_seconds": 28.219765732064843
+      },
+      {
+        "stage": "step_2/forward",
+        "elapsed_seconds": 28.223928996827453
+      },
+      {
+        "stage": "step_2/loss",
+        "elapsed_seconds": 28.326205698773265
+      },
+      {
+        "stage": "step_2/backward",
+        "elapsed_seconds": 28.452831872738898
+      },
+      {
+        "stage": "step_2/optimizer",
+        "elapsed_seconds": 28.98017149278894
+      },
+      {
+        "stage": "step_2/complete",
+        "elapsed_seconds": 29.25001375004649
+      },
+      {
+        "stage": "step_3/input",
+        "elapsed_seconds": 29.311313424725085
+      },
+      {
+        "stage": "step_3/forward",
+        "elapsed_seconds": 29.31449134182185
+      },
+      {
+        "stage": "step_3/loss",
+        "elapsed_seconds": 29.35896771494299
+      },
+      {
+        "stage": "step_3/backward",
+        "elapsed_seconds": 29.53994893981144
+      },
+      {
+        "stage": "step_3/optimizer",
+        "elapsed_seconds": 30.06323768105358
+      },
+      {
+        "stage": "step_3/complete",
+        "elapsed_seconds": 30.286868991795927
+      },
+      {
+        "stage": "complete",
+        "elapsed_seconds": 30.287784808780998
+      }
+    ],
+    "runtime": {
+      "torch": "2.7.1+cu126",
+      "cuda": "12.6",
+      "cudnn": 90501,
+      "gpu_name": "NVIDIA TITAN Xp",
+      "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+      "visible": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+      "precision": "FP32",
+      "cudnn_benchmark": true,
+      "cudnn_deterministic": false,
+      "matmul_allow_tf32": false,
+      "cudnn_allow_tf32": true,
+      "torch_architectures": [
+        "sm_50",
+        "sm_60",
+        "sm_70",
+        "sm_75",
+        "sm_80",
+        "sm_86",
+        "sm_90"
+      ]
+    },
+    "latest_loss": {
+      "loss/total": 12.852927207946777,
+      "loss/triplet": 3.522484540939331,
+      "loss/id": 9.330442428588867,
+      "loss/center": 0.0,
+      "loss/triplet/feature_0": 3.6172690391540527,
+      "loss/triplet/feature_1": 3.4342851638793945,
+      "loss/triplet/feature_2": 3.515899658203125
+    }
+  },
+  "finished_utc": "2026-10-27T21:47:33.753740+00:00",
+  "gpu_after": {
+    "timestamp_utc": "2026-10-27T21:47:33.818923+00:00",
+    "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+    "physical_index": 0,
+    "name": "NVIDIA TITAN Xp",
+    "driver": "570.211.01",
+    "total_mib": 12288,
+    "free_mib": 12179,
+    "utilization_percent": 0,
+    "compute_mode": "Default",
+    "mig_mode": "[N/A]",
+    "processes": []
+  },
+  "raw_receipt_root": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/mgn_smoke/phase12_synthetic_fp32_GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c_attempt1/fp32",
+  "raw_file_sha256": {
+    "manifest.json": "8ff8bf729bf81a49bc72cc4acbd43eff2349619a421057ad56b240b0d0dc798e",
+    "summary.json": "8479605f6132f4a45c6217ff0d73fe32c0ff6710bc3f77f77bd0093d42c73003",
+    "worker_receipt.json": "b5043fb3076162a307c5f9ef5bb7843836e46d4f8a12f63cf7f54a99c2fed90e",
+    "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "qualification_scope": "Three synthetic FP32 updates only; not long-running training or benchmark accuracy."
+}
