@@ -176,7 +176,7 @@ def train_one_epoch(
                 if step_aux_optimizer:
                     scaler.step(aux_optimizer)
                 scaler.update()
-                if scheduler is not None:
+                if scheduler is not None and getattr(scheduler, 'step_interval', 'batch') == 'batch':
                     scheduler.step()
 
                 running_total += float(loss.detach().cpu())

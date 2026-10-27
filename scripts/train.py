@@ -20,6 +20,7 @@ from reid.engine.train_loop import train_one_epoch
 from reid.losses.build import build_criterion
 from reid.models.build import build_model
 from reid.optim.build import build_center_optimizer, build_optimizer, build_scheduler
+from reid.optim.lr_scheduler import step_completed_epoch
 from reid.utils.artifacts import save_run_artifacts
 from reid.utils.checkpoint import load_checkpoint, save_checkpoint
 from reid.utils.config import model_requires_num_classes, validate_model_loss_requirements
@@ -196,6 +197,8 @@ def maybe_resume_training(logger, cfg, model, optimizer, scheduler, center_optim
         map_location=device,
     )
     start_epoch = int(checkpoint.get("epoch", 0)) + 1
+    if scheduler is not None and getattr(scheduler, 'step_interval', 'batch') == 'epoch':
+        scheduler.validate_completed_epoch(checkpoint.get('epoch'))
     scores = checkpoint.get("scores")
     best_metric = -1.0
     metric_name = cfg["train"]["save"]["metric"]
@@ -579,6 +582,7 @@ def main():
                 epoch=ep,
                 logger=logger,
             )
+            step_completed_epoch(scheduler, ep)
             loss_history.append({"epoch": ep, "avg_loss": float(avg_loss)})
             logger.info("[Epoch %d] avg_loss=%.4f", ep, avg_loss)
 

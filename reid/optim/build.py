@@ -3,7 +3,7 @@
 import torch
 from torch.optim.lr_scheduler import MultiStepLR
 
-from reid.optim.lr_scheduler import WarmupMultiStepLR, SuccessfulUpdateLR
+from reid.optim.lr_scheduler import WarmupMultiStepLR, SuccessfulUpdateLR, EpochMultiStepLR
 from reid.utils.lodo_protocol import has_lodo_protocol, require_explicit_lodo, validate_lodo_config
 from reid.utils.config import validate_optimizer_param_groups
 
@@ -114,6 +114,11 @@ def build_scheduler(cfg, optimizer, steps_per_epoch=None):
 
     milestones = sched_cfg.get("milestones", [])
     gamma = float(sched_cfg.get("gamma", 0.1))
+
+    if name == "epoch_multistep":
+        if set(sched_cfg) - {"name", "milestones", "gamma"}:
+            raise ValueError("epoch_multistep supports only name, milestones and gamma; no warmup or cadence overrides.")
+        return EpochMultiStepLR(optimizer, milestones, gamma=sched_cfg.get('gamma', 0.1))
 
     if name == "warmup_multistep":
         if steps_per_epoch is None or int(steps_per_epoch) <= 0:

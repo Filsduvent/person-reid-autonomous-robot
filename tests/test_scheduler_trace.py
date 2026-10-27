@@ -217,3 +217,128 @@ def test_real_pcb_groups_complete_trace_without_forward(monkeypatch, steps):
     assert_full_trace(optimizer, used, stored, steps)
     assert all(param.grad is None for param in model.parameters())
     assert not optimizer.state  # No momentum buffers or weight updates without gradients.
+
+
+def epoch_setup():
+    cfg = config()
+    cfg['optim'].update(lr=.01, param_groups=[])
+    cfg['sched'] = dict(name='epoch_multistep', milestones=[60, 90], gamma=.1)
+    return setup(999, cfg=cfg)
+
+
+def test_epoch_scheduler_variable_lengths_all_120_boundaries():
+    from reid.optim.lr_scheduler import step_completed_epoch
+    _, optimizer, scheduler = epoch_setup()
+    updates = 0
+    for epoch in range(1, 121):
+        wanted = .01 if epoch <= 60 else .001 if epoch <= 90 else .0001
+        for _ in range((epoch % 4) + 1):
+            assert rates(optimizer) == pytest.approx([wanted]*len(optimizer.param_groups), rel=1e-14)
+            optimizer.step()
+            updates += 1
+        assert scheduler.completed_epochs == epoch-1
+        step_completed_epoch(scheduler, epoch)
+        assert scheduler.completed_epochs == epoch
+    assert updates == 300  # Explicitly distinct from the 120 completed epochs.
+
+
+@pytest.mark.parametrize('epoch', [59, 60, 61, 89, 90, 91])
+def test_epoch_scheduler_checkpoint_resume_no_double_step(epoch, tmp_path):
+    from reid.optim.lr_scheduler import step_completed_epoch
+    model, optimizer, scheduler = epoch_setup()
+    for ep in range(1, epoch+1):
+        optimizer.step()
+        step_completed_epoch(scheduler, ep)
+    path = tmp_path/'boundary.pth'
+    save_checkpoint(path, model, optimizer=optimizer, scheduler=scheduler, epoch=epoch)
+    fresh, restored_opt, restored_sched = epoch_setup()
+    payload = load_checkpoint(path, fresh, restored_opt, restored_sched)
+    restored_sched.validate_completed_epoch(payload['epoch'])
+    assert restored_sched.state_dict() == scheduler.state_dict()
+    assert rates(restored_opt) == rates(optimizer)
+    step_completed_epoch(restored_sched, epoch+1)
+    step_completed_epoch(scheduler, epoch+1)
+    assert restored_sched.state_dict() == scheduler.state_dict()
+    assert rates(restored_opt) == rates(optimizer)
+    with pytest.raises(ValueError, match='disagree'):
+        restored_sched.validate_completed_epoch(epoch)
+
+
+@pytest.mark.parametrize('key,value', [('schema_version', 2), ('step_interval', 'batch'),
+    ('unit', 'updates'), ('completed_epochs', -1), ('completed_epochs', True),
+    ('milestones', (40,)), ('gamma', .2), ('base_lrs', (.2,))])
+def test_epoch_scheduler_rejects_incompatible_state(key, value):
+    _, _, scheduler = epoch_setup()
+    state = scheduler.state_dict()
+    state[key] = value
+    with pytest.raises(ValueError):
+        scheduler.load_state_dict(state)
+    assert scheduler.completed_epochs == 0
+
+
+def test_epoch_scheduler_rejects_optimizer_lr_and_group_disagreement():
+    _, optimizer, scheduler = epoch_setup()
+    state = scheduler.state_dict()
+    optimizer.param_groups[0]['lr'] *= .1
+    with pytest.raises(ValueError, match='optimizer LR'):
+        scheduler.load_state_dict(state)
+    optimizer.param_groups.pop()
+    with pytest.raises(ValueError, match='optimizer LR'):
+        scheduler.load_state_dict(state)
+
+
+@pytest.mark.parametrize('overrides', [dict(warmup_iters=0), dict(unit='epochs'),
+    dict(step_interval='batch'), dict(milestones=[90, 60]), dict(milestones=[60, 60]),
+    dict(milestones=[True]), dict(gamma=float('nan')), dict(gamma=0)])
+def test_epoch_scheduler_rejects_contradictory_config(overrides):
+    cfg = config()
+    cfg['sched'] = dict(name='epoch_multistep', milestones=[60, 90], gamma=.1, **{})
+    cfg['sched'].update(overrides)
+    with pytest.raises(ValueError):
+        setup(4, cfg=cfg)
+
+
+def test_epoch_scheduler_common_loop_never_advances_on_batches_or_failure():
+    from reid.losses.build import build_criterion
+    from reid.optim.lr_scheduler import step_completed_epoch
+    model, optimizer, scheduler = epoch_setup()
+    criterion = build_criterion({'model': {'head': {}}, 'loss': {'id': {'enabled': True, 'weight': 1}}}, 2, None)
+    batches = [(torch.randn(2, 2), torch.tensor([0, 1]))] * 3
+    train_one_epoch(model, batches, criterion, optimizer, None, torch.device('cpu'), False, 100, scheduler=scheduler)
+    assert scheduler.completed_epochs == 0
+    step_completed_epoch(scheduler, 1)
+    assert scheduler.completed_epochs == 1
+    def failed(outputs, labels):
+        raise RuntimeError('incomplete synthetic epoch')
+    with pytest.raises(RuntimeError, match='incomplete'):
+        train_one_epoch(model, batches, failed, optimizer, None, torch.device('cpu'), False, 100, scheduler=scheduler)
+    assert scheduler.completed_epochs == 1
+
+
+def test_epoch_resume_checks_saved_epoch_before_training(tmp_path):
+    import logging
+    from scripts.train import maybe_resume_training
+    model, optimizer, scheduler = epoch_setup()
+    scheduler.step()
+    path = tmp_path/'inconsistent.pth'
+    save_checkpoint(path, model, optimizer=optimizer, scheduler=scheduler, epoch=2)
+    cfg = {'train': {'save': {'resume': str(path), 'metric': 'mAP'}}}
+    fresh, new_optimizer, new_scheduler = epoch_setup()
+    with pytest.raises(ValueError, match='disagree'):
+        maybe_resume_training(logging.getLogger('test'), cfg, fresh, new_optimizer, new_scheduler, None, 'cpu')
+
+
+def test_epoch_scheduler_rejects_same_rates_different_group_layout():
+    _, _, scheduler = epoch_setup()
+    state = scheduler.state_dict()
+    state['group_layout'] = tuple(reversed(state['group_layout']))
+    with pytest.raises(ValueError, match='group_layout'):
+        scheduler.load_state_dict(state)
+
+
+def test_epoch_scheduler_rejects_boolean_schema_version():
+    _, _, scheduler = epoch_setup()
+    state = scheduler.state_dict()
+    state['schema_version'] = True
+    with pytest.raises(ValueError, match='schema_version'):
+        scheduler.load_state_dict(state)
