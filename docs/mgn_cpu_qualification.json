@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "phase": 10,
+  "status": "PASS",
+  "date": "2026-10-27",
+  "tested_base_commit": "518c5e1",
+  "source_changes_after_base": [
+    "reid/optim/lr_scheduler.py: validate actual restored/live optimizer group layout"
+  ],
+  "test_changes_after_base": [
+    "tests/test_model_plugin_protocol_doc.py",
+    "tests/test_scheduler_trace.py"
+  ],
+  "environment": {
+    "python": "3.11.2 (main, May 12 2026, 05:17:27) [GCC 12.2.0]",
+    "executable": "/home/addirakoze/environments/Reid/bin/python",
+    "platform": "Linux-6.1.0-50-amd64-x86_64-with-glibc2.36",
+    "torch": "2.7.1+cu126",
+    "torchvision": "0.22.1+cu126",
+    "numpy": "2.1.3",
+    "cpu_threads": 1,
+    "cuda_visibility": "hidden; CPU tests only"
+  },
+  "suites": [
+    {
+      "command": "timeout 900s env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:scripts:tests /home/addirakoze/environments/Reid/bin/python -B -m pytest -p no:cacheprovider -q tests/test_mgn_model.py tests/test_mgn_config.py tests/test_model_interface.py tests/test_model_forward.py tests/test_model_plugin_contract.py tests/test_model_plugin_protocol_doc.py tests/test_loss_interface.py tests/test_reid_loss_modes.py tests/test_multi_head_id_loss.py tests/test_training_diagnostics.py tests/test_optim_build.py tests/test_optimizer_param_groups.py tests/test_scheduler_trace.py tests/test_train_loop_optim.py tests/test_train_orchestration.py tests/test_checkpoint.py tests/test_checkpoint_reconstruction.py tests/test_config_schema.py tests/test_pcb_model.py tests/test_pcb_presets.py tests/test_pcb_end_to_end.py tests/test_resnet50_strong_baseline.py tests/test_data_transforms.py tests/test_dataset_protocol.py tests/test_sampler.py tests/test_collate.py tests/test_market1501_dataset.py tests/test_duke_dataset.py tests/test_cuhk03_dataset.py tests/test_msmt17_dataset.py tests/test_multi_source_dataset.py tests/test_evaluation_harness.py tests/test_rerank.py tests/test_cross_domain_config.py tests/test_lodo_config.py tests/test_lodo_updates.py tests/test_lodo_checkpoint.py tests/test_lodo_evaluation.py tests/test_lodo_gpu_evaluation.py tests/test_artifact_format.py tests/test_reproducibility_artifacts.py",
+      "passed": 1231,
+      "skipped": 4,
+      "seconds": 526.67,
+      "log": "/tmp/mgn-phase10-tests.log"
+    },
+    {
+      "command": "timeout 60s env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:scripts:tests /home/addirakoze/environments/Reid/bin/python -B -m pytest -p no:cacheprovider -q tests/test_scheduler_trace.py",
+      "passed": 53,
+      "skipped": 0,
+      "seconds": 20.88,
+      "log": "/tmp/mgn-phase10-scheduler-tests.log"
+    }
+  ],
+  "skip_reason": "Existing CUDA-only baseline/loop cases; no GPU execution",
+  "source_sha256": {
+    "reid/data/build.py": "696550c9f3aa5aaab6af7959b9d3eef34a85c67b8f7d816313abb5a6d3c57e5d",
+    "reid/data/transforms.py": "cf801700a18a74a1ec2256e90ae25e34815f6308871cd5f1611f1d9286a0a237",
+    "reid/engine/evaluator.py": "5044ba91082a08d1cf0e0c0bc0731dfc3450229b7b52a902358db04aadae1310",
+    "reid/engine/train_loop.py": "a5f1df8be33313ab434a2eff7b48c87c182d22a7a76c8c1929dda5c97f153119",
+    "reid/losses/build.py": "219dc3cf24dfe9a4d4d2ef1a87f2722be18faf3b60fb11517349455c461ccfe9",
+    "reid/models/build.py": "fcac750dd6cdec62031cbad3274fbe63078a6ef0b5e647205cce6bf6f6e972d5",
+    "reid/models/mgn.py": "0706ad9fa87b6229497faae18788020596e54e0c9c6cc5bb17b8b1c53e886385",
+    "reid/models/outputs.py": "b302ace778a447314f520648374a04db78a067535382f13eb253ae56c7f41afb",
+    "reid/optim/build.py": "83af092a1156f8f02790489ae709b75232ba68d32cbb61c3d3134e75e9c2f448",
+    "reid/optim/lr_scheduler.py": "a0728ca0d95fd8b31f80605ed020318ebf52975e3d121b3f818dd422ed341490",
+    "reid/utils/config.py": "5f95342a652f717afa9051fd310a446655b57b48fb0ca11f08cccf269ba9c517",
+    "reid/utils/evaluation_config.py": "1ee46372442402aba61b97f6c029ccc2b2426c229b81f76e5f08fa5c20ac61f7",
+    "reid/utils/lodo_protocol.py": "5fe40e21673dd37d4cc2dc700689116fa4cb98addbf177e0de771caba9b80b8f",
+    "scripts/train.py": "c06b7c318bb48cb59580e83592536dfdaf9cbfe326593e3106c277bfc3b0d4ba"
+  },
+  "test_sha256": {
+    "tests/test_mgn_model.py": "b58a15e7b6ecf0502d56f88bc167056b116af14bbe92bfefb4f1ac28cd71488b",
+    "tests/test_mgn_config.py": "82dd4f7ea05239fcafb2eb11c30672fcde9f3f9a54de61ed1f4ab70b2a4371c5",
+    "tests/test_model_interface.py": "132aee7bf86d0d2fefdba32d8ecdafae387346d7a7dc374a19525b10c64809ae",
+    "tests/test_model_forward.py": "e73d4b0faf7b7bacc05237871bbdae1c652a38dc7fbc8cafe977668897effec9",
+    "tests/test_model_plugin_contract.py": "b072bd6f6711fb2b98f470804671cef17411222956233c37622fd6db7ee7845a",
+    "tests/test_model_plugin_protocol_doc.py": "7f02d5558249f5ee12174c04da555c684eeca50699087b2fa487427ada3b4b80",
+    "tests/test_loss_interface.py": "7b7194f29f39c7d89216a96af295412a3a1d6a7fbb714d8ac98320e8bfd6d137",
+    "tests/test_reid_loss_modes.py": "ebd532663baf36687bdec613932561f5130b393aae74753d3e7513f9cd654717",
+    "tests/test_multi_head_id_loss.py": "d29b2fbb6d3cd3fe429aa9539e666a85852f1fa30e055730ad4b41f9d09a9bc2",
+    "tests/test_training_diagnostics.py": "3ec309753544a093821d39d9a052af6ca61864ac9245724a0b6b9f4f295d8f5f",
+    "tests/test_optim_build.py": "67d6da5a3dea3b7194b54c24af17e95c79b69c99d10eb1ab3ab29b7adea880e2",
+    "tests/test_optimizer_param_groups.py": "41cb183f370d32141195d53a370e9fa2a63fa52002313ade696666c521c95e67",
+    "tests/test_scheduler_trace.py": "74f18bde66a3a44a115d59051f35c58f16672d830c5ca79967d913248c1ff206",
+    "tests/test_train_loop_optim.py": "729aeddfa68ab1f59e443547d1bd0025f7f6336fd24d35c44e689cbcb5baa83f",
+    "tests/test_train_orchestration.py": "930c7f56af3e8f5b55d9404705dc27e06cf37ef31898107413a578db7576b554",
+    "tests/test_checkpoint.py": "b821d461735b4726268ea9f46c1f89e26b996a5dd7b7e7bee5fb83c0d8b3bf26",
+    "tests/test_checkpoint_reconstruction.py": "f9d37502a2d5afa5b211e3871fab9d03e6ec6c6746762c7a89b5d1c8972a4adf",
+    "tests/test_config_schema.py": "38c8aac00c83133bffab2550ad42d685ff4d42405566275f7769850f6eb88fde",
+    "tests/test_pcb_model.py": "f606e622ec823580e8f61bf3c6148a225506b2f2f97a6ada7c6d8dfcfb997fcb",
+    "tests/test_pcb_presets.py": "ad03ec741d6f373a354cd9e134efb7fd1a1946f81208b0dce34aed757ac312f2",
+    "tests/test_pcb_end_to_end.py": "8f4504d655980f0e6d7126544af4ae652b6743cc8584a54608090a49405dcd52",
+    "tests/test_resnet50_strong_baseline.py": "19c98ec45789540c39f5695c8bf572f7b9493107197867a0d1959b3921b30b89",
+    "tests/test_data_transforms.py": "75a11604b99d93afd248a2275e671487964ab4f29d16d30742ef4d4e16be8e88",
+    "tests/test_dataset_protocol.py": "b1407d008ae383b4cba3b9a772937eb898c0e00882a293756236397013f5cdd5",
+    "tests/test_sampler.py": "8e7551188da280fce3144d07220d80a19e35a28861bb622cdd24869b769107b8",
+    "tests/test_collate.py": "a71110f6f2f83eefbb1b11d46db41c00b4f9f1b6cc48ea1a2c33a80816acdb23",
+    "tests/test_market1501_dataset.py": "a86c0996ce0bc3eb45b4899b55c611f2310959b4af2e0e1de83d900b503fa2eb",
+    "tests/test_duke_dataset.py": "d99c4d91d794e283663f23f3abaf69fc248a8412a11701546eb6e0099bbc9e1a",
+    "tests/test_cuhk03_dataset.py": "de5e6e6225283bd5bf1e9891b21659aca26323149bb9dd1cefdd84ca7daea0c6",
+    "tests/test_msmt17_dataset.py": "a5b04997ee6285252301d55e1c0dcd53bde4bb4dff79721634115d56e56b3ecd",
+    "tests/test_multi_source_dataset.py": "8266b5149b5eac616440bbf67f4be6ec16cfb02b538e8804daa509bd7a51586d",
+    "tests/test_evaluation_harness.py": "16367d35c634f7737f4714b2fbc09990ac8faf584c1b7d53a38327c5263b7192",
+    "tests/test_rerank.py": "6699cebf2f8d83480c9cb704e57665d52e9cc69a3e471e927f188b020d6eb937",
+    "tests/test_cross_domain_config.py": "8126c853cad72f6eef5cf8c21e4c4baa64d0f91fff8f38ae100954530302e072",
+    "tests/test_lodo_config.py": "e67e3e25b4d0bb8e8fce65066d3a2fcf75b3d77e16603cf9d47f86ba40f46360",
+    "tests/test_lodo_updates.py": "02423cb55998f726df6f87d5fe3bc5bf931b61906d102a2525824d2d9c97a7b5",
+    "tests/test_lodo_checkpoint.py": "19f389a291f4485b7a174393284866207b3b4a5d2a5f6fdc26fd519506d0cccc",
+    "tests/test_lodo_evaluation.py": "78cd89c6515ec976fef65fccf6dae3fa2848f65c62770766d7b48f8224cb0793",
+    "tests/test_lodo_gpu_evaluation.py": "bd880214085807d6260de78b4259405525b7f689a459a16e106b12639c80d38b",
+    "tests/test_artifact_format.py": "2251cdb97e18fac1fe14e811d69ab8da36ea69de0908b836b1233e4307caa9e9",
+    "tests/test_reproducibility_artifacts.py": "319cde625f4b81cfa01b5feeffd3a00711fbe407fe163880dffbc7bd8a22ae02"
+  },
+  "log_sha256": {
+    "/tmp/mgn-phase10-tests.log": "56930059de9e27056e04028ccf642143a8c3684b1bfa995af0a30bcae0c11b9e",
+    "/tmp/mgn-phase10-scheduler-tests.log": "f88fe7ab1d81b4b3981be188867a3610a6c22e2d18bd37f4f44c1ef0ced3f42e"
+  },
+  "protected_preexisting_files": {
+    "count": 48,
+    "unchanged": true,
+    "snapshot_sha256": "38f7efd6b010573cddafe9d6ee34157c1b43fc35b31cec123381650a9e28e3c7"
+  },
+  "historical_lodo_identity_fixtures": {
+    "resnet50/LODO-1": "a681c90890ebf0006f8709d67ff8c0d246d1f66a2365db53060287f87e69db1b",
+    "resnet50/LODO-2": "35100c2ff4e74d501393fc55b951318be0767947bb55b211f2dac86958874762",
+    "resnet50/LODO-3": "fbeede6c9b35ebcc49d61f49de00fe6bb8eb54b6d0822d3d829c398fa51091a1",
+    "resnet50/LODO-4": "56f38a33fbddf77fb5e326d699f3c26516f7a3cdaaad0ceef628c0b246de6010",
+    "pcb/LODO-1": "419b74cbe1217848a78df18959f83d543a79895155356a6e9d0b9df9edcd1f23",
+    "pcb/LODO-2": "88dae2a85e1d9e572de0456fc122f2cdaf5cbd480898fa6a810a92b4dfc5ae96",
+    "pcb/LODO-3": "b2b33be146001c1d0306fe6892620803e50559416f4d940cda392614f8f810b7",
+    "pcb/LODO-4": "c44ae77ecf8807b70457a7a930b454788a977700a89a9b874bc2c27302966d6b"
+  },
+  "limitations": [
+    "CPU synthetic/component evidence only; no benchmark performance claims",
+    "GPU FP32 batch-64 admission not run",
+    "Historical-best resume integration remains the Phase 11 gate",
+    "No production presets or official training handoff yet",
+    "Ordinary checkpoint continuation is not stochastic replay"
+  ]
+}
