@@ -204,6 +204,14 @@ def validate_reid_config(cfg: Dict[str, Any], num_classes: int | None = None, *,
         validate_lodo_config(cfg, project_root=project_root)
     validate_optimizer_param_groups(cfg.get("optim", {}))
     model_cfg = cfg.get("model", {})
+    if model_cfg.get('name') == 'mgn':
+        from reid.models.mgn import validate_mgn_model_config
+        validate_mgn_model_config(model_cfg)
+        if cfg.get('loss', {}).get('center', {}).get('enabled', False):
+            raise ValueError('MGN provides no legacy metric feature for Center loss.')
+        triplet = cfg.get('loss', {}).get('triplet', {})
+        if triplet.get('enabled', False) and triplet.get('feature_source', 'legacy') != 'model':
+            raise ValueError('MGN Triplet requires loss.triplet.feature_source=model.')
     head_cfg = model_cfg.get("head", {})
     loss_cfg = cfg.get("loss", {})
 

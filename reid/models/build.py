@@ -4,6 +4,17 @@ from reid.models.baseline import ReidBaseline
 def build_model(cfg, num_classes: int | None = None, *, initialize_pretrained: bool = True):
     mcfg = cfg["model"]
     name = mcfg["name"]
+    if name == "mgn":
+        from reid.models.mgn import MGN, validate_mgn_model_config
+        from reid.utils.checkpoint import make_reconstruction_metadata
+
+        validate_mgn_model_config(mcfg)
+        pretrained = initialize_pretrained and mcfg['pretrained']
+        model = MGN(num_classes, pretrained=pretrained,
+                    weights_path=mcfg.get('weights_path') if pretrained else None)
+        model.checkpoint_metadata = make_reconstruction_metadata(
+            cfg, model.num_classes, model.embedding_dim)
+        return model
     if name == "pcb":
         from reid.models.pcb import PCB
         from reid.utils.config import validate_pcb_model_config

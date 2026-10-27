@@ -180,3 +180,34 @@ class MGN(nn.Module):
         classifier_features = tuple(part.flatten(1) for part in pooled[:3]) + reduced[3:]
         return dict(emb=torch.cat(reduced, dim=1), feat_raw=None, feat_bn=None,
                     metric_features=reduced[:3], logits=self.classifiers(classifier_features))
+
+
+def validate_mgn_model_config(model_cfg):
+    """Canonicalize the sole supported variant/provenance without artifact I/O."""
+    allowed = {'name', 'variant', 'pretrained', 'weights_path', 'initialization', 'head'}
+    if not isinstance(model_cfg, dict) or model_cfg.get('name') != 'mgn':
+        raise ValueError('MGN configuration requires model.name=mgn.')
+    if set(model_cfg)-allowed:
+        raise ValueError(f'Unsupported MGN model fields: {sorted(set(model_cfg)-allowed)}')
+    if model_cfg.get('variant', VARIANT) != VARIANT:
+        raise ValueError(f'MGN model.variant must be {VARIANT}.')
+    pretrained = model_cfg.get('pretrained', True)
+    if type(pretrained) is not bool:
+        raise ValueError('MGN model.pretrained must be boolean.')
+    path = model_cfg.get('weights_path')
+    if path is not None and (not isinstance(path, str) or not path.strip()):
+        raise ValueError('MGN weights_path must be a nonempty string or None.')
+    if path is not None and not pretrained:
+        raise ValueError('MGN weights_path requires pretrained=true.')
+    head = model_cfg.get('head', {})
+    if not isinstance(head, dict) or set(head)-{'classifier'} or head.get('classifier', True) is not True:
+        raise ValueError('MGN head supports only classifier=true; topology is fixed by variant.')
+    initialization = model_cfg.get('initialization', {})
+    expected = dict(artifact_id=ARTIFACT_ID, sha256=IMAGENET_SHA256, head_init_id=HEAD_INIT_ID)
+    if not isinstance(initialization, dict) or set(initialization)-set(expected):
+        raise ValueError('Unsupported MGN initialization fields.')
+    for key, value in expected.items():
+        if initialization.get(key, value) != value:
+            raise ValueError(f'MGN initialization.{key} must be {value}.')
+    model_cfg.update(variant=VARIANT, pretrained=pretrained,
+                     head={'classifier': True}, initialization=expected)

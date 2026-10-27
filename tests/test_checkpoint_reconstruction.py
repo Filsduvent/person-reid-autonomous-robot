@@ -348,3 +348,69 @@ def test_real_pcb_checkpoint_rejects_incompatible_state_or_metadata(real_pcb_che
     expected = ValueError if mutation in {"dimension", "variant"} else RuntimeError
     with pytest.raises(expected):
         reconstruct_model(checkpoint)
+
+
+@pytest.fixture
+def real_mgn_checkpoint(monkeypatch):
+    import reid.models.mgn as mgn
+    def forbidden(*a, **kw): pytest.fail('MGN reconstruction accessed pretrained artifact')
+    monkeypatch.setattr(mgn, '_read_historical_weights', forbidden)
+    monkeypatch.setattr(mgn, 'Path', forbidden)
+    monkeypatch.setattr(torch.hub, 'download_url_to_file', forbidden)
+    monkeypatch.setattr(torch.hub, 'load_state_dict_from_url', forbidden)
+    cfg = {'model': {'name': 'mgn', 'pretrained': False}}
+    model = builders.build_model(cfg, num_classes=3).eval()
+    cfg['model'].update(pretrained=True, weights_path='/absent/source/imagenet.pth')
+    payload = dict(model=model.state_dict(), cfg=copy.deepcopy(cfg),
+                   reconstruction=copy.deepcopy(model.checkpoint_metadata))
+    return model, payload
+
+
+def test_real_mgn_checkpoint_roundtrip_source_classes_and_outputs(real_mgn_checkpoint, tmp_path):
+    from reid.models.mgn import MGN
+    model, payload = real_mgn_checkpoint
+    path = tmp_path/'mgn.pth'
+    save_checkpoint(path, model, cfg=payload['cfg'])
+    checkpoint = torch.load(path, map_location='cpu', weights_only=True)
+    before = copy.deepcopy(checkpoint['cfg'])
+    restored = reconstruct_model(checkpoint, cfg={'model': {'name': 'other', 'num_classes': 999}}).eval()
+    assert type(restored) is MGN and restored.num_classes == 3
+    assert restored.embedding_dim == 2048 and restored.feat_dim is None
+    assert checkpoint['cfg'] == before
+    assert restored.checkpoint_metadata == checkpoint['reconstruction']
+    assert list(restored.state_dict()) == list(model.state_dict())
+    for key, value in model.state_dict().items():
+        torch.testing.assert_close(value, restored.state_dict()[key], rtol=0, atol=0)
+    with torch.no_grad():
+        images = torch.randn(1, 3, 384, 128)
+        expected, actual = model(images), restored(images)
+    torch.testing.assert_close(actual['emb'], expected['emb'], rtol=0, atol=0)
+    for field in ['logits', 'metric_features']:
+        for value, original in zip(actual[field], expected[field]):
+            torch.testing.assert_close(value, original, rtol=0, atol=0)
+    for infer in [infer_num_classes_from_checkpoint, standalone_classes, cross_classes]:
+        assert infer(checkpoint) == 3
+
+
+@pytest.mark.parametrize('damage', ['missing', 'bias', 'global_shape', 'local_shape', 'dimension', 'variant', 'no_metadata'])
+def test_real_mgn_checkpoint_strict_corruption_rejection(real_mgn_checkpoint, damage):
+    _, payload = real_mgn_checkpoint
+    key = 'classifiers.heads.0.weight'
+    if damage == 'missing': del payload['model'][key]
+    elif damage == 'bias': payload['model']['classifiers.heads.0.bias'] = torch.zeros(3)
+    elif damage == 'global_shape': payload['model'][key] = torch.zeros(3, 256)
+    elif damage == 'local_shape': payload['model']['classifiers.heads.3.weight'] = torch.zeros(3, 2048)
+    elif damage == 'dimension': payload['reconstruction']['embedding_dim'] = 256
+    elif damage == 'variant': payload['reconstruction']['variant'] = 'other'
+    else: del payload['reconstruction']
+    with pytest.raises(ValueError if damage in ['dimension', 'variant', 'no_metadata'] else RuntimeError):
+        reconstruct_model(payload)
+
+
+def test_real_mgn_uniform_dataparallel_prefix_roundtrip(real_mgn_checkpoint):
+    model, payload = real_mgn_checkpoint
+    payload['model'] = {'module.'+key: value for key, value in payload['model'].items()}
+    restored = reconstruct_model(payload)
+    assert restored.num_classes == 3
+    for key, tensor in model.state_dict().items():
+        torch.testing.assert_close(tensor, restored.state_dict()[key], rtol=0, atol=0)
