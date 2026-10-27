@@ -154,3 +154,29 @@ class MGNClassifiers(nn.Module):
     def forward(self, features):
         _validate_features(features, [(2048,)]*3+[(256,)]*5, 'MGN classifiers')
         return tuple(head(feature) for head, feature in zip(self.heads, features))
+
+
+class MGN(nn.Module):
+    """Frozen paper-v3 MGN, exposing raw retrieval and explicit metric features."""
+    variant = VARIANT
+    embedding_dim = 2048
+    feat_dim = None
+
+    def __init__(self, num_classes, *, pretrained=False, weights_path=None):
+        super().__init__()
+        _validate_num_classes(num_classes)
+        self.num_classes = num_classes
+        self.backbone = MGNBackbone(pretrained=pretrained, weights_path=weights_path)
+        self.pool = MGNMaxPool()
+        self.reductions = MGNReductions()
+        self.classifiers = MGNClassifiers(num_classes)
+
+    def forward(self, images):
+        self.backbone.validate_input(images)
+        if self.training and images.shape[0] == 1:
+            raise ValueError('MGN training reduction BatchNorm requires B > 1.')
+        pooled = self.pool(self.backbone(images))
+        reduced = self.reductions(pooled)
+        classifier_features = tuple(part.flatten(1) for part in pooled[:3]) + reduced[3:]
+        return dict(emb=torch.cat(reduced, dim=1), feat_raw=None, feat_bn=None,
+                    metric_features=reduced[:3], logits=self.classifiers(classifier_features))

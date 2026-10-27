@@ -246,3 +246,79 @@ def test_classifiers_reject_invalid_features(damage):
     else: features[-1] = features[-1].double()
     with pytest.raises(ValueError, match='classifiers'):
         classifiers(features)
+
+
+@pytest.mark.parametrize('training,batch', [(False, 1), (True, 2)])
+def test_public_model_output_order_and_supervision_locations(training, batch):
+    from reid.models.outputs import ensure_output_dict
+    model = mgn.MGN(5).train(training)
+    captured = {}
+    handles = [model.pool.register_forward_hook(lambda mod, args, out: captured.update(pooled=out)),
+               model.reductions.register_forward_hook(lambda mod, args, out: captured.update(reduced=out)),
+               model.classifiers.register_forward_pre_hook(lambda mod, args: captured.update(inputs=args[0]))]
+    images = torch.randn(batch, 3, 384, 128)
+    with torch.no_grad():
+        output = model(images)
+    for handle in handles: handle.remove()
+    assert ensure_output_dict(output) is output
+    assert model.variant == mgn.VARIANT and model.embedding_dim == 2048 and model.feat_dim is None
+    assert output['feat_raw'] is output['feat_bn'] is None
+    assert output['emb'].shape == (batch, 2048)
+    assert [f.shape for f in output['metric_features']] == [torch.Size([batch, 256])]*3
+    assert [f.shape for f in output['logits']] == [torch.Size([batch, 5])]*8
+    torch.testing.assert_close(output['emb'], torch.cat(captured['reduced'], dim=1), rtol=0, atol=0)
+    assert all(a is b for a, b in zip(output['metric_features'], captured['reduced'][:3]))
+    for i in range(3):
+        torch.testing.assert_close(captured['inputs'][i], captured['pooled'][i].flatten(1), rtol=0, atol=0)
+    assert all(a is b for a, b in zip(captured['inputs'][3:], captured['reduced'][3:]))
+    assert not torch.allclose(output['emb'].norm(dim=1), torch.ones(batch))
+    assert not any(isinstance(module, nn.Dropout) for module in model.modules())
+    if not training:
+        with torch.no_grad():
+            for head in model.classifiers.heads: head.weight.fill_(10)
+            after = model(images)['emb']
+        torch.testing.assert_close(output['emb'], after, rtol=0, atol=0)
+
+
+def test_public_model_real_backward_and_independent_loss_routing():
+    from reid.losses.build import build_criterion
+    import torch.nn.functional as F
+    torch.manual_seed(42)
+    model = mgn.MGN(3).train()
+    labels = torch.tensor([0, 0, 1, 1])
+    output = model(torch.randn(4, 3, 384, 128))
+    assert output['emb'].requires_grad
+    assert all(feature.requires_grad for feature in output['metric_features'])
+    global_ce = sum(F.cross_entropy(head, labels) for head in output['logits'][:3])
+    assert all(gradient is None for gradient in torch.autograd.grad(
+        global_ce, tuple(model.reductions.parameters()), allow_unused=True, retain_graph=True))
+    cfg = {'model': {'head': {}}, 'loss': {
+        'id': dict(enabled=True, weight=1., head_aggregation='mean', label_smoothing=0.),
+        'triplet': dict(enabled=True, weight=1., margin=1.2, feature_source='model', feature_aggregation='mean'),
+        'center': dict(enabled=False)}}
+    criterion = build_criterion(cfg, 3, None)
+    metric_loss = sum(criterion.triplet(feature, labels) for feature in output['metric_features'])/3
+    metric_grads = torch.autograd.grad(metric_loss, tuple(model.reductions.parameters()), allow_unused=True, retain_graph=True)
+    for name, gradient in zip(dict(model.reductions.named_parameters()), metric_grads):
+        if int(name.split('.')[1]) < 3:
+            assert gradient is not None and torch.isfinite(gradient).all()
+        else:
+            assert gradient is None
+    loss, logs = criterion(output, labels)
+    manual_ce = sum(F.cross_entropy(head, labels) for head in output['logits'])/8
+    torch.testing.assert_close(loss, manual_ce+metric_loss, rtol=0, atol=0)
+    assert logs['loss/id'] == pytest.approx(manual_ce.item())
+    assert logs['loss/triplet'] == pytest.approx(metric_loss.item())
+    loss.backward()
+    for name, parameter in model.named_parameters():
+        assert parameter.grad is not None, name
+        assert torch.isfinite(parameter.grad).all(), name
+    assert model.backbone.shared.conv1.weight.grad.count_nonzero() > 0
+
+
+def test_public_model_invalid_geometry_or_single_train_fails_before_bn_mutation():
+    model = mgn.MGN(3).train()
+    before = {key: value.clone() for key, value in model.named_buffers()}
+    for images in [torch.randn(2, 3, 256, 128), torch.randn(1, 3, 384, 128)]:
+        with pytest.raises(ValueError): model(images)
+        assert all(torch.equal(value, before[key]) for key, value in model.named_buffers())
