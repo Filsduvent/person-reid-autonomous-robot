@@ -11,5 +11,6 @@
   "test_sha256": "094ee3f839de329f96381ba44e72144d4f829c5b892a366a433ec046cafdee7c",
   "manifest_sha256": "5d0173f2448726520f8a3a3381d88c9683f8a15c74fe81ec9f7131ee7159fdd2",
   "official_training_launched": false,
-  "live_preflight": "PENDING"
+  "live_preflight": "PASS_ALL_FOUR_READY_FRESH",
+  "live_preflight_receipt": "docs/mgn_preflight_qualification.json"
 }

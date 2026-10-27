@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-27",
+  "phase": 15,
+  "status": "TECHNICAL_PASS",
+  "tested_preparation_commit": "44b31aa6ee60940f0f784548ea1f81d1bac82270",
+  "manifest_sha256": "5d0173f2448726520f8a3a3381d88c9683f8a15c74fe81ec9f7131ee7159fdd2",
+  "live_preflight": {
+    "market1501": {
+      "response": {
+        "status": "READY_FRESH",
+        "source": "market1501",
+        "code_commit": "44b31aa6ee60940f0f784548ea1f81d1bac82270",
+        "manifest_sha256": "5d0173f2448726520f8a3a3381d88c9683f8a15c74fe81ec9f7131ee7159fdd2",
+        "config": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/configs/mgn/market1501.yaml",
+        "config_sha256": "9b34601154284a3850c1bc615ef025f029a5e0c5237b64c966523907affa30d9",
+        "output": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/mgn/market1501",
+        "source_classes": 751,
+        "training_images": 12936,
+        "planned_fresh_updates": 21999,
+        "continuation": null,
+        "gpu": {
+          "before": {
+            "timestamp_utc": "2026-10-27T22:21:49.693141+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "after_runtime_query": {
+            "timestamp_utc": "2026-10-27T22:21:49.790803+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "runtime": {
+            "torch": "2.7.1+cu126",
+            "cuda": "12.6",
+            "cudnn": 90501,
+            "matmul_allow_tf32": false,
+            "cudnn_allow_tf32": true
+          }
+        },
+        "training_launched": false,
+        "notice": "Read-only preflight; launch common scripts/train.py yourself."
+      },
+      "stdout_path": "/tmp/mgn-phase15-preflight-market1501.json",
+      "stdout_sha256": "2566ad487726c213ef44523bc0d216724188bfabd5d655559137911325f7c103",
+      "stderr_path": "/tmp/mgn-phase15-preflight-market1501.stderr",
+      "stderr_sha256": "6312aa2ef698d965caa77dc1ac6fa5e1b7f0aed3895299d93413ba7d3677e8db"
+    },
+    "duke": {
+      "response": {
+        "status": "READY_FRESH",
+        "source": "duke",
+        "code_commit": "44b31aa6ee60940f0f784548ea1f81d1bac82270",
+        "manifest_sha256": "5d0173f2448726520f8a3a3381d88c9683f8a15c74fe81ec9f7131ee7159fdd2",
+        "config": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/configs/mgn/duke.yaml",
+        "config_sha256": "f70eefcdc4a977fa225aeabeae704379db6d47608cf029114f97fa1c026b05b3",
+        "output": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/mgn/duke",
+        "source_classes": 702,
+        "training_images": 16522,
+        "planned_fresh_updates": 27130,
+        "continuation": null,
+        "gpu": {
+          "before": {
+            "timestamp_utc": "2026-10-27T22:22:39.246219+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "after_runtime_query": {
+            "timestamp_utc": "2026-10-27T22:22:39.345150+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "runtime": {
+            "torch": "2.7.1+cu126",
+            "cuda": "12.6",
+            "cudnn": 90501,
+            "matmul_allow_tf32": false,
+            "cudnn_allow_tf32": true
+          }
+        },
+        "training_launched": false,
+        "notice": "Read-only preflight; launch common scripts/train.py yourself."
+      },
+      "stdout_path": "/tmp/mgn-phase15-preflight-duke.json",
+      "stdout_sha256": "33fcdcf53857f7b5911583dd9854b663328e398825631a4905c59e2ffbda6660",
+      "stderr_path": "/tmp/mgn-phase15-preflight-duke.stderr",
+      "stderr_sha256": "6bfc0751d0b66389c2fbdc36ab5925d55af4bb3edb9fde7cedc3814d9780f766"
+    },
+    "cuhk03": {
+      "response": {
+        "status": "READY_FRESH",
+        "source": "cuhk03",
+        "code_commit": "44b31aa6ee60940f0f784548ea1f81d1bac82270",
+        "manifest_sha256": "5d0173f2448726520f8a3a3381d88c9683f8a15c74fe81ec9f7131ee7159fdd2",
+        "config": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/configs/mgn/cuhk03.yaml",
+        "config_sha256": "7c67b817f243b155477e49621447dc9a54c2415b438633b16c68a4722efd80df",
+        "output": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/mgn/cuhk03",
+        "source_classes": 767,
+        "training_images": 7365,
+        "planned_fresh_updates": 11156,
+        "continuation": null,
+        "gpu": {
+          "before": {
+            "timestamp_utc": "2026-10-27T22:24:35.779337+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "after_runtime_query": {
+            "timestamp_utc": "2026-10-27T22:24:35.875256+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "runtime": {
+            "torch": "2.7.1+cu126",
+            "cuda": "12.6",
+            "cudnn": 90501,
+            "matmul_allow_tf32": false,
+            "cudnn_allow_tf32": true
+          }
+        },
+        "training_launched": false,
+        "notice": "Read-only preflight; launch common scripts/train.py yourself."
+      },
+      "stdout_path": "/tmp/mgn-phase15-preflight-cuhk03.json",
+      "stdout_sha256": "1977aa64490ee5ff2a4bbfaad63fcfba2e2b335c27b7f14714776ffcaf4e3981",
+      "stderr_path": "/tmp/mgn-phase15-preflight-cuhk03.stderr",
+      "stderr_sha256": "cbe222013f5a1d23665f116d732a0a2b166d20188e0f7882577c4101513f40ee"
+    },
+    "msmt17": {
+      "response": {
+        "status": "READY_FRESH",
+        "source": "msmt17",
+        "code_commit": "44b31aa6ee60940f0f784548ea1f81d1bac82270",
+        "manifest_sha256": "5d0173f2448726520f8a3a3381d88c9683f8a15c74fe81ec9f7131ee7159fdd2",
+        "config": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/configs/mgn/msmt17.yaml",
+        "config_sha256": "976a9d454be245cccf7eaa175276302333f0f8f4bd10f6cf099cc479e61671e6",
+        "output": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/mgn/msmt17",
+        "source_classes": 1041,
+        "training_images": 30248,
+        "planned_fresh_updates": 52426,
+        "continuation": null,
+        "gpu": {
+          "before": {
+            "timestamp_utc": "2026-10-27T22:25:06.689621+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "after_runtime_query": {
+            "timestamp_utc": "2026-10-27T22:25:06.785170+00:00",
+            "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+            "physical_index": 0,
+            "name": "NVIDIA TITAN Xp",
+            "driver": "570.211.01",
+            "total_mib": 12288,
+            "free_mib": 12179,
+            "utilization_percent": 0,
+            "compute_mode": "Default",
+            "mig_mode": "[N/A]",
+            "processes": []
+          },
+          "runtime": {
+            "torch": "2.7.1+cu126",
+            "cuda": "12.6",
+            "cudnn": 90501,
+            "matmul_allow_tf32": false,
+            "cudnn_allow_tf32": true
+          }
+        },
+        "training_launched": false,
+        "notice": "Read-only preflight; launch common scripts/train.py yourself."
+      },
+      "stdout_path": "/tmp/mgn-phase15-preflight-msmt17.json",
+      "stdout_sha256": "3b5502f7366bfd36d2ded45515471c7358b052ae08687931a48714612439b0dc",
+      "stderr_path": "/tmp/mgn-phase15-preflight-msmt17.stderr",
+      "stderr_sha256": "13d8fef66cb5712f86f55d4523ac6d8713db9d458ab7eab198b1543a82945fd1"
+    }
+  },
+  "validation": {
+    "runtime_hashes_matching": 56,
+    "protected_files_unchanged": 48,
+    "original_roadmap_history_preserved": true,
+    "active_phases_numbered_1_through_23": true,
+    "nine_contract_fields_per_phase": true,
+    "baseline_pcb_configuration_and_model_unchanged": true,
+    "official_training_roots_absent": true
+  },
+  "gpu_authority": "Current explicit user manual owner authorization; no scheduler allocation claimed.",
+  "official_training_launched": false,
+  "optional_amp": "WAIVED_NOT_EXECUTED",
+  "human_review_of_concrete_handoff": "PENDING",
+  "limitations": [
+    "Read-only preflight does not run the model, optimizer or retrieval evaluation.",
+    "Bounded FP32 qualification is three updates per case, not long-run stability or accuracy.",
+    "CUHK03 semantic new/classic partition provenance remains unverified.",
+    "Full image corpora are not byte-hashed or exhaustively decoded.",
+    "Ordinary continuation does not restore stochastic sampler/RNG trajectories."
+  ],
+  "next_phase": "Phase 16 user-operated separately authorized official within-domain training; not started."
+}
