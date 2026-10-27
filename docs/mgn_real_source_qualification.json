@@ -1,0 +1,463 @@
+{
+  "schema_version": 1,
+  "phase": 14,
+  "status": "IN_PROGRESS",
+  "sources": {
+    "market1501": {
+      "case": "phase14_real_market1501_fp32",
+      "gpu_uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+      "attempt": 1,
+      "precision": "FP32",
+      "configuration": {
+        "experiment": {
+          "name": "mgn_market1501",
+          "output_dir": "exp/mgn_smoke/source_contract/market1501",
+          "notes": "MGN v3/project FP32 recipe. Periodic source test mAP selects best; no independent validation split."
+        },
+        "system": {
+          "device": "cuda",
+          "gpu_id": 0,
+          "amp": false,
+          "log_interval": 20
+        },
+        "repro": {
+          "seed": 42,
+          "deterministic": false,
+          "benchmark": true
+        },
+        "logging": {
+          "to_file": true,
+          "tensorboard": true,
+          "wandb": {
+            "enabled": false,
+            "project": "reid",
+            "entity": null,
+            "tags": [
+              "mgn"
+            ]
+          }
+        },
+        "data": {
+          "root": "/home/addirakoze/nobackup/Projects/Dataset",
+          "num_workers": 4,
+          "pin_memory": true,
+          "train": {
+            "dataset": {
+              "name": "market1501",
+              "split": "trainval",
+              "format": "processed"
+            },
+            "images": {
+              "size": [
+                384,
+                128
+              ],
+              "batch_dims": "NCHW",
+              "interpolation": "bicubic"
+            },
+            "aug": {
+              "mean": [
+                0.485,
+                0.456,
+                0.406
+              ],
+              "std": [
+                0.229,
+                0.224,
+                0.225
+              ],
+              "mirror": "random",
+              "padding": {
+                "enabled": false
+              },
+              "random_crop": {
+                "enabled": false
+              },
+              "random_erasing": {
+                "enabled": false
+              }
+            },
+            "loader": {
+              "shuffle": true,
+              "final_batch": true
+            },
+            "batch": {
+              "sampler": "pk",
+              "P": 16,
+              "K": 4,
+              "batch_size": 64
+            }
+          },
+          "test": {
+            "dataset": {
+              "name": "market1501",
+              "split": "test",
+              "format": "processed"
+            },
+            "images": {
+              "size": [
+                384,
+                128
+              ],
+              "batch_dims": "NCHW",
+              "interpolation": "bicubic"
+            },
+            "aug": {
+              "mean": [
+                0.485,
+                0.456,
+                0.406
+              ],
+              "std": [
+                0.229,
+                0.224,
+                0.225
+              ],
+              "mirror": "none"
+            },
+            "loader": {
+              "shuffle": false,
+              "final_batch": true
+            },
+            "batch": {
+              "size": 32
+            }
+          }
+        },
+        "model": {
+          "name": "mgn",
+          "variant": "paper_v3_global2048_independent_v1",
+          "pretrained": true,
+          "weights_path": "/home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth",
+          "head": {
+            "classifier": true
+          },
+          "initialization": {
+            "artifact_id": "resnet50-19c8e357",
+            "sha256": "19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097",
+            "head_init_id": "reference_a_384e820_bias_free_v1"
+          }
+        },
+        "loss": {
+          "id": {
+            "enabled": true,
+            "weight": 1.0,
+            "label_smoothing": 0.0,
+            "head_aggregation": "mean"
+          },
+          "triplet": {
+            "enabled": true,
+            "weight": 1.0,
+            "margin": 1.2,
+            "mining": "batch_hard",
+            "feature_source": "model",
+            "feature_aggregation": "mean"
+          },
+          "center": {
+            "enabled": false
+          }
+        },
+        "optim": {
+          "name": "sgd",
+          "lr": 0.01,
+          "momentum": 0.9,
+          "nesterov": false,
+          "weight_decay": 0.0005,
+          "bias_lr_factor": 1.0,
+          "weight_decay_bias": 0.0005
+        },
+        "sched": {
+          "name": "epoch_multistep",
+          "milestones": [
+            60,
+            90
+          ],
+          "gamma": 0.1
+        },
+        "train": {
+          "epochs": 120,
+          "eval_interval": 10,
+          "save": {
+            "metric": "mAP",
+            "save_best": true,
+            "save_last": true,
+            "resume": "",
+            "require_selection_state_on_resume": true
+          }
+        },
+        "eval": {
+          "weight": "",
+          "normalize_feat": true,
+          "distance": "euclidean",
+          "topk": [
+            1,
+            5,
+            10
+          ],
+          "rerank": {
+            "enabled": false,
+            "k1": 20,
+            "k2": 6,
+            "lambda_value": 0.3
+          },
+          "export": {
+            "format": [
+              "json"
+            ]
+          },
+          "flip_aggregation": "mean"
+        }
+      },
+      "configuration_sha256": "bb9032d0a56cab3ccad55d88c066c859cbca1582c8bcc08aedc3e0f38edf4f71",
+      "weights_sha256": "19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097",
+      "code_hash": "7675c71a5df5fa6e76dde6d336c3698f431fc70d41fb50611b1df0fe9fd51591",
+      "code_commit": "b71955132177f51f2573a839b1ee2184b41ede7a",
+      "authorization_note": "Current user manual owner authorization 2026-10-27 and activated autonomous Phase14 source-case scope; no scheduler allocation claimed.",
+      "gpu_before": {
+        "timestamp_utc": "2026-10-27T22:01:00.667321+00:00",
+        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "physical_index": 0,
+        "name": "NVIDIA TITAN Xp",
+        "driver": "570.211.01",
+        "total_mib": 12288,
+        "free_mib": 12179,
+        "utilization_percent": 0,
+        "compute_mode": "Default",
+        "mig_mode": "[N/A]",
+        "processes": []
+      },
+      "gpu_after": {
+        "timestamp_utc": "2026-10-27T22:01:33.706707+00:00",
+        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "physical_index": 0,
+        "name": "NVIDIA TITAN Xp",
+        "driver": "570.211.01",
+        "total_mib": 12288,
+        "free_mib": 12179,
+        "utilization_percent": 47,
+        "compute_mode": "Default",
+        "mig_mode": "[N/A]",
+        "processes": []
+      },
+      "status": "PASS",
+      "source_provenance": {
+        "source": "market1501",
+        "descriptor": {
+          "name": "market1501",
+          "split": "trainval",
+          "format": "processed"
+        },
+        "image_directory": "/mnt/hd-data/addirakoze/Projects/Dataset/market1501/images",
+        "images": 12936,
+        "num_classes": 751,
+        "records_sha256": "0ef4f954090f6f569f941b426b1d9ae0011b9a973c69eb955f728b2e53283ab2",
+        "identity_map_sha256": "b2561ff1f8b6fd40a9f4cb05dc5c0d46c55545b0d2ea0f9158637881e2a53113",
+        "file_inventory_sha256": "95b138ac2f499576bbbd4bf81c316fab0165302e277f7818f92c985c31434160",
+        "metadata_sha256": {
+          "/mnt/hd-data/addirakoze/Projects/Dataset/market1501/partitions.pkl": "3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab"
+        },
+        "image_content_hash_policy": "Only actually consumed smoke images are byte-hashed; full corpus is not byte-hashed.",
+        "cuhk03_semantic_protocol_verification": null,
+        "identity_sha256": "a074c14ac50ff687e0835cc548d1d7084054d689aeef167c8fde6bfffd77b91e"
+      },
+      "runtime": {
+        "torch": "2.7.1+cu126",
+        "cuda": "12.6",
+        "cudnn": 90501,
+        "gpu_name": "NVIDIA TITAN Xp",
+        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "visible": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "precision": "FP32",
+        "cudnn_benchmark": true,
+        "cudnn_deterministic": false,
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": true,
+        "torch_architectures": [
+          "sm_50",
+          "sm_60",
+          "sm_70",
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90"
+        ],
+        "environment_controls": {
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "PYTORCH_CUDA_ALLOC_CONF": null,
+          "PYTORCH_ALLOC_CONF": null,
+          "CUBLAS_WORKSPACE_CONFIG": null,
+          "NVIDIA_TF32_OVERRIDE": null,
+          "CUDA_LAUNCH_BLOCKING": null
+        }
+      },
+      "loader": {
+        "num_workers": 4,
+        "pin_memory": true,
+        "prefetch_factor": 2,
+        "initial_epoch_batches": 183
+      },
+      "loader_observation": {
+        "scheduled_batches": 11,
+        "scheduled_images": 704,
+        "consumed_batches": 3,
+        "consumed_images": 192,
+        "unconsumed_scheduled_batches": 8,
+        "unconsumed_scheduled_images": 512
+      },
+      "steps": [
+        {
+          "step": 1,
+          "loss": {
+            "loss/total": 16.46061897277832,
+            "loss/triplet": 3.8144640922546387,
+            "loss/id": 12.64615535736084,
+            "loss/center": 0.0,
+            "loss/triplet/feature_0": 3.559779644012451,
+            "loss/triplet/feature_1": 3.9418063163757324,
+            "loss/triplet/feature_2": 3.9418063163757324
+          },
+          "embedding_shape": [
+            64,
+            2048
+          ],
+          "logits_shape": [
+            8,
+            64,
+            751
+          ],
+          "metric_shape": [
+            3,
+            64,
+            256
+          ],
+          "peak_allocated_bytes": 11880413184,
+          "peak_reserved_bytes": 12144607232,
+          "free_bytes": 11229003776,
+          "total_bytes": 12774801408,
+          "finite_gradients": true,
+          "finite_model": true,
+          "finite_momentum": true,
+          "parameter_changed": true,
+          "elapsed_seconds": 28.54442918486893
+        },
+        {
+          "step": 2,
+          "loss": {
+            "loss/total": 15.697029113769531,
+            "loss/triplet": 3.5187175273895264,
+            "loss/id": 12.178311347961426,
+            "loss/center": 0.0,
+            "loss/triplet/feature_0": 3.2898192405700684,
+            "loss/triplet/feature_1": 3.6476945877075195,
+            "loss/triplet/feature_2": 3.6186389923095703
+          },
+          "embedding_shape": [
+            64,
+            2048
+          ],
+          "logits_shape": [
+            8,
+            64,
+            751
+          ],
+          "metric_shape": [
+            3,
+            64,
+            256
+          ],
+          "peak_allocated_bytes": 10109133824,
+          "peak_reserved_bytes": 11081351168,
+          "free_bytes": 1494024192,
+          "total_bytes": 12774801408,
+          "finite_gradients": true,
+          "finite_model": true,
+          "finite_momentum": true,
+          "parameter_changed": true,
+          "elapsed_seconds": 30.030943257268518
+        },
+        {
+          "step": 3,
+          "loss": {
+            "loss/total": 15.179519653320312,
+            "loss/triplet": 3.4475016593933105,
+            "loss/id": 11.732017517089844,
+            "loss/center": 0.0,
+            "loss/triplet/feature_0": 3.423548460006714,
+            "loss/triplet/feature_1": 3.4556546211242676,
+            "loss/triplet/feature_2": 3.463301658630371
+          },
+          "embedding_shape": [
+            64,
+            2048
+          ],
+          "logits_shape": [
+            8,
+            64,
+            751
+          ],
+          "metric_shape": [
+            3,
+            64,
+            256
+          ],
+          "peak_allocated_bytes": 10109764608,
+          "peak_reserved_bytes": 11081351168,
+          "free_bytes": 1494024192,
+          "total_bytes": 12774801408,
+          "finite_gradients": true,
+          "finite_model": true,
+          "finite_momentum": true,
+          "parameter_changed": true,
+          "elapsed_seconds": 31.375879587139934
+        }
+      ],
+      "source_batches": [
+        {
+          "identities": 16,
+          "images_per_identity": 4,
+          "input_sha256": "a0bd2d4f5c19d2b1537162689402c0a6b2f1cf9c8bd897bef970088974905dbe",
+          "first_original_image_mode": "RGB",
+          "pixel_oracle": "horizontal_flip",
+          "min": -2.1179039478302,
+          "max": 2.640000104904175,
+          "indices_sha256": "52cffd4363f5a6620c76d0fc2d16c7b48b1d0d190ab04458f7a2c2a448f0025c",
+          "labels_sha256": "2fe66842f02e28f937564c5dfa702a970a926d9c21f8dbd3842a59319c5d443e",
+          "used_image_bytes_sha256": "56c20970b786e3b6a3c5c4eab2b093c971c04d7d34cb03cb17f744d4bf3eeba9"
+        },
+        {
+          "identities": 16,
+          "images_per_identity": 4,
+          "input_sha256": "0bce23bcc31ec69ce6a6b3d8d4640b8292c91638afcc3fc36cdb1f61958d5612",
+          "first_original_image_mode": "RGB",
+          "pixel_oracle": "original",
+          "min": -2.1179039478302,
+          "max": 2.640000104904175,
+          "indices_sha256": "557ae80824e7ecb8315972208195d1e236110a2f235fdfb50cfc8fe296181102",
+          "labels_sha256": "e01d818ec3d112fd0b90f212f6f60192ef45aa606df98a50fd7f14fd97b32b9f",
+          "used_image_bytes_sha256": "df5305ce7303a9d8c40bebd2d8683dc580d7bad9eb92481942863bc54ba77662"
+        },
+        {
+          "identities": 16,
+          "images_per_identity": 4,
+          "input_sha256": "4060e0e9433a788dafcb9eae6a950fa86419a6701c438dd33ece53333935cc48",
+          "first_original_image_mode": "RGB",
+          "pixel_oracle": "horizontal_flip",
+          "min": -2.1179039478302,
+          "max": 2.640000104904175,
+          "indices_sha256": "864a7f202fd9344ce23434f5a35003cdfdc37c3a419ca66b6f759d2d960de4b2",
+          "labels_sha256": "8f94a214656c66e4de7041945882dc3b8a3c04a274d7cbe57a8022d02f287903",
+          "used_image_bytes_sha256": "0e3f77da1817a26b6c664fca61c89b261665bfe94231bba3a9f8a3f842be83e7"
+        }
+      ],
+      "raw_receipt_root": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/mgn_smoke/phase14_real_market1501_fp32_GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c_attempt1/fp32",
+      "raw_file_sha256": {
+        "manifest.json": "d4c101bf4997ec3cef4f7407152ce8765441ba7bbeb4c23829081e645e132367",
+        "summary.json": "72c3df7c5306e9184c1348c4e30535e4663de536645c0d0f5f8b14e24672bd03",
+        "worker_receipt.json": "2b59f789617de8c06c7027e07035c6b3303551c29962425a858e730957817b47",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout.log": "ee1e9acd52e9f6adbab980faaa739f849454196cf986a049b0dbbd4eda187ce3"
+      }
+    }
+  }
+}
