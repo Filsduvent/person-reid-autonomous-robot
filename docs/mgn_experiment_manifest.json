@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "status": "PREPARING",
+  "status": "FROZEN",
   "date": "2026-10-27",
   "protocol_id": "mgn_offline_v1_fp32_sgd120",
   "scope": "Part 1 offline within/cross-domain integration; this freeze prepares four user-operated within-domain runs. LODO remains mandatory via later versioned gates.",
-  "tested_implementation_commit": "b719551",
-  "preparation_basis_commit": "52c68794edf31083754db097554339491aea11c8",
+  "tested_implementation_commit": "569e8d533c1a3b863c2681ad5898160c546364bc",
+  "preparation_basis_commit": "569e8d533c1a3b863c2681ad5898160c546364bc",
   "human_review_of_concrete_handoff": "PENDING; technical progression authorized by the activated amendment",
   "official_training": "NOT_LAUNCHED; user-operated only",
   "gpu_uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
@@ -2526,6 +2526,8 @@
     "previous_manifest_sha256": "5d0173f2448726520f8a3a3381d88c9683f8a15c74fe81ec9f7131ee7159fdd2",
     "previous_snapshot": "docs/mgn_freezes/20261027_phase15",
     "scope": "Common-trainer automatic admission only; scientific recipe unchanged. Revised runtime hashes do not identify the previous implementation.",
-    "qualification": "docs/mgn_launch_interface_qualification.json"
+    "qualification": "docs/mgn_launch_interface_qualification.json",
+    "implementation_commit": "569e8d533c1a3b863c2681ad5898160c546364bc",
+    "scientific_configuration_change": "NONE; only train.preflight operational opt-in"
   }
 }
