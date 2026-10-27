@@ -165,3 +165,40 @@ def test_baseline_builder_retains_exact_state_and_forward():
 def test_unknown_builder_dispatch_precedes_baseline_fields():
     with pytest.raises(NotImplementedError, match="unknown"):
         build_model({"model": {"name": "unknown"}}, num_classes=3)
+
+
+@pytest.mark.parametrize('kind', ['missing', 'none', 'empty', 'tensor', 'list', 'tuple'])
+def test_optional_metric_features_preserve_identity_and_gradients(kind):
+    from reid.models.outputs import ensure_output_dict, metric_feature_tensors
+    features = [torch.randn(2, width, requires_grad=True) for width in (3, 7, 4)]
+    values = {'none': None, 'empty': [], 'tensor': features[0], 'list': features, 'tuple': tuple(features)}
+    output = {'emb': torch.randn(2, 9), 'logits': None}
+    if kind != 'missing':
+        output['metric_features'] = values[kind]
+    assert ensure_output_dict(output) is output
+    tensors = metric_feature_tensors(output.get('metric_features'), batch_size=2)
+    if tensors:
+        sum(t.sum() for t in tensors).backward()
+        for i, tensor in enumerate(tensors):
+            assert tensor is features[i]
+            assert torch.equal(tensor.grad, torch.ones_like(tensor))
+    if kind != 'missing':
+        assert output['metric_features'] is values[kind]
+    else:
+        assert 'metric_features' not in output
+
+
+@pytest.mark.parametrize('bad', [42, [None], [[torch.ones(2, 3)]], torch.ones(2, 3, 1),
+    torch.ones(2, 3, dtype=torch.long), torch.ones(2, 0), torch.ones(0, 3),
+    torch.ones(3, 4), [torch.ones(2, 3), torch.ones(2, 4).double()],
+    [torch.ones(2, 3), torch.empty(2, 4, device='meta')]])
+def test_optional_metric_features_reject_invalid(bad):
+    from reid.models.outputs import ensure_output_dict
+    with pytest.raises(ValueError, match='metric_features'):
+        ensure_output_dict({'emb': torch.ones(2, 8), 'metric_features': bad})
+
+
+def test_legacy_tuple_does_not_interpret_third_metric_position():
+    from reid.models.outputs import ensure_output_dict
+    output = ensure_output_dict((torch.ones(2, 4), None, torch.ones(2, 3)))
+    assert 'metric_features' not in output

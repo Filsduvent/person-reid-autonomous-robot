@@ -676,3 +676,9 @@ The user explicitly approved the proposed autonomous execution amendment dated 2
 GPU execution requires verified access to an approved allocated device; historical identity or an idle GPU is insufficient. Without allocation, stop at the GPU boundary. Full within-domain/LODO training, ONNX/runtime experiments, push and merge remain prohibited. Official training is user-operated. The original pending-approval record above is preserved as history and superseded by this activation.
 
 Activation baseline: main at be628bbb0bcb98ba218a7d383bb637a28167393e. Pre-existing PCB/history/results and unrelated working changes are excluded from implementation commits. No GPU allocation has been established.
+
+### Phase 1 implementation receipt — 2026-10-27
+
+Implemented optional `metric_features` validation and tuple-view helper, preserving dictionary/container/tensor identity, order, heterogeneous widths and autograd. Legacy transport and outputs remain unchanged. Added malformed-input and gradient tests and documented the optional field.
+
+Validation: `OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. /home/addirakoze/environments/Reid/bin/python -B -m pytest -p no:cacheprovider -q tests/test_model_interface.py tests/test_model_forward.py tests/test_pcb_model.py tests/test_model_plugin_contract.py`: **143 passed, 1 skipped**, 100.90 seconds. Skip: existing CUDA-only baseline test, CUDA unavailable; no GPU execution. Focused cases cover missing/None/empty/tensor/list/tuple, mixed widths and gradients, malformed rank/type/batch/dtype/device/zero dimensions. Scoped `git diff --check` passed. CPU output-contract acceptance passed; no model-training or GPU-feasibility claim. Baseline activation commit: `6fa61fc`.

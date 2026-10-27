@@ -35,6 +35,8 @@ Models expose the same dictionary structure in train and eval mode:
     "feat_raw": Tensor[B, F] | None,
     "feat_bn": Tensor[B, F] | None,
     "logits": Tensor[B, C] | tuple[Tensor[B, C], ...] | list[Tensor[B, C]] | None,
+    # Optional; omission preserves legacy transport:
+    "metric_features": Tensor[B, F] | tuple[Tensor[B, F], ...] | list[Tensor[B, F]] | None,
 }
 ```
 
@@ -49,6 +51,12 @@ Models expose the same dictionary structure in train and eval mode:
   Empty/nested/mixed sequences, mismatched dimensions, integer tensors and
   incompatible dtype/device are rejected by `validate_logits` in
   `reid/models/outputs.py`. Callers can provide the expected label batch size.
+
+`metric_features` accepts zero, one, or multiple floating rank-two tensors.
+Widths may differ; positive batch sizes, floating dtype and device must agree.
+`metric_feature_tensors` returns a tuple view without cloning or detaching.
+None and empty sequences mean zero features. Legacy tuple transport does not
+interpret additional positions as metric features.
 
 `ensure_output_dict` preserves dictionary identity and tensor/sequence order,
 validates logits against the embedding batch when available, and retains legacy
