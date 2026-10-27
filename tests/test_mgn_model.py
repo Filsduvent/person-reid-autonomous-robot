@@ -191,3 +191,58 @@ def test_max_pooling_tie_gradient_matches_standard_maxpool():
     expected = torch.zeros_like(maps[0])
     expected[:, :, 0, 0] = 1
     assert torch.equal(maps[0].grad, expected)
+
+
+@pytest.mark.parametrize('classes', [751, 702, 767, 1041])
+def test_classifiers_source_dimensions_bias_and_independent_storage(classes):
+    classifiers = mgn.MGNClassifiers(classes)
+    assert classifiers.num_classes == classes
+    assert len(classifiers.heads) == 8
+    assert [head.in_features for head in classifiers.heads] == [2048]*3+[256]*5
+    assert all(head.out_features == classes and head.bias is None for head in classifiers.heads)
+    assert len({head.weight.data_ptr() for head in classifiers.heads}) == 8
+    features = [torch.randn(2, width) for width in [2048]*3+[256]*5]
+    assert [tuple(logit.shape) for logit in classifiers(features)] == [(2, classes)]*8
+
+
+def test_classifier_initializer_and_controlled_routing_gradients(monkeypatch):
+    calls = []
+    original = nn.init.kaiming_normal_
+    def kaiming(weight, *args, **kwargs):
+        calls.append((weight.shape, kwargs))
+        return original(weight, *args, **kwargs)
+    monkeypatch.setattr(nn.init, 'kaiming_normal_', kaiming)
+    classifiers = mgn.MGNClassifiers(3)
+    assert calls == [(torch.Size([3, width]), {'mode': 'fan_out'}) for width in [2048]*3+[256]*5]
+    features = [torch.full((2, width), float(i+2), requires_grad=True) for i, width in enumerate([2048]*3+[256]*5)]
+    with torch.no_grad():
+        for i, head in enumerate(classifiers.heads):
+            head.weight.zero_()
+            head.weight[:, 0] = torch.arange(1, 4)*(i+1)
+    logits = classifiers(features)
+    for i, output in enumerate(logits):
+        expected = (torch.arange(1, 4)*(i+1)*(i+2)).float().expand(2, 3)
+        torch.testing.assert_close(output, expected, rtol=0, atol=0)
+    sum(logit.sum() for logit in logits).backward()
+    for feature, head in zip(features, classifiers.heads):
+        assert feature.grad is not None and feature.grad[:, 0].count_nonzero() == 2
+        assert head.weight.grad is not None and head.weight.grad.count_nonzero() == head.weight.numel()
+
+
+@pytest.mark.parametrize('classes', [None, 0, -1, True, 2.5])
+def test_classifiers_reject_invalid_source_class_count(classes):
+    with pytest.raises(ValueError, match='num_classes'):
+        mgn.MGNClassifiers(classes)
+
+
+@pytest.mark.parametrize('damage', ['reduced_global', 'unreduced_local', 'count', 'batch', 'dtype'])
+def test_classifiers_reject_invalid_features(damage):
+    classifiers = mgn.MGNClassifiers(3)
+    features = [torch.ones(2, width) for width in [2048]*3+[256]*5]
+    if damage == 'reduced_global': features[0] = torch.ones(2, 256)
+    elif damage == 'unreduced_local': features[-1] = torch.ones(2, 2048)
+    elif damage == 'count': features.pop()
+    elif damage == 'batch': features[-1] = torch.ones(3, 256)
+    else: features[-1] = features[-1].double()
+    with pytest.raises(ValueError, match='classifiers'):
+        classifiers(features)

@@ -133,3 +133,24 @@ class MGNReductions(nn.Module):
         if self.training and pooled[0].shape[0] == 1:
             raise ValueError('MGN reduction training BatchNorm requires B > 1.')
         return tuple(reduction(feature).flatten(1) for reduction, feature in zip(self.parts, pooled))
+
+
+def _validate_num_classes(num_classes):
+    if type(num_classes) is not int or num_classes <= 0:
+        raise ValueError('MGN num_classes must be a positive source identity count.')
+
+
+class MGNClassifiers(nn.Module):
+    """Three unreduced global 2048-D and five reduced local 256-D CE heads."""
+    def __init__(self, num_classes):
+        super().__init__()
+        _validate_num_classes(num_classes)
+        self.num_classes = num_classes
+        self.heads = nn.ModuleList([nn.Linear(width, num_classes, bias=False)
+                                    for width in [2048]*3+[256]*5])
+        for head in self.heads:
+            nn.init.kaiming_normal_(head.weight, mode='fan_out')
+
+    def forward(self, features):
+        _validate_features(features, [(2048,)]*3+[(256,)]*5, 'MGN classifiers')
+        return tuple(head(feature) for head, feature in zip(self.heads, features))
