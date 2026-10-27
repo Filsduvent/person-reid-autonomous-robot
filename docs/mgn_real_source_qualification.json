@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "phase": 14,
-  "status": "IN_PROGRESS",
+  "status": "PASS",
   "sources": {
     "market1501": {
       "case": "phase14_real_market1501_fp32",
@@ -1378,6 +1378,462 @@
         "worker_receipt.json": "71060d14781fe1b6f9d2ef442490750e9310b1adfd6775911b7bb178c4d0c445",
         "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
         "stdout.log": "dc4b03656629f1a446ef60d90c4fb68e29b5ad0ed2e9718175511146df31a336"
+      }
+    },
+    "msmt17": {
+      "case": "phase14_real_msmt17_fp32",
+      "gpu_uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+      "attempt": 1,
+      "precision": "FP32",
+      "configuration": {
+        "experiment": {
+          "name": "mgn_msmt17",
+          "output_dir": "exp/mgn_smoke/source_contract/msmt17",
+          "notes": "MGN v3/project FP32 recipe. Periodic source test mAP selects best; no independent validation split."
+        },
+        "system": {
+          "device": "cuda",
+          "gpu_id": 0,
+          "amp": false,
+          "log_interval": 20
+        },
+        "repro": {
+          "seed": 42,
+          "deterministic": false,
+          "benchmark": true
+        },
+        "logging": {
+          "to_file": true,
+          "tensorboard": true,
+          "wandb": {
+            "enabled": false,
+            "project": "reid",
+            "entity": null,
+            "tags": [
+              "mgn"
+            ]
+          }
+        },
+        "data": {
+          "root": "/home/addirakoze/nobackup/Projects/Dataset",
+          "num_workers": 4,
+          "pin_memory": true,
+          "train": {
+            "dataset": {
+              "name": "msmt17",
+              "split": "train",
+              "format": "raw"
+            },
+            "images": {
+              "size": [
+                384,
+                128
+              ],
+              "batch_dims": "NCHW",
+              "interpolation": "bicubic"
+            },
+            "aug": {
+              "mean": [
+                0.485,
+                0.456,
+                0.406
+              ],
+              "std": [
+                0.229,
+                0.224,
+                0.225
+              ],
+              "mirror": "random",
+              "padding": {
+                "enabled": false
+              },
+              "random_crop": {
+                "enabled": false
+              },
+              "random_erasing": {
+                "enabled": false
+              }
+            },
+            "loader": {
+              "shuffle": true,
+              "final_batch": true
+            },
+            "batch": {
+              "sampler": "pk",
+              "P": 16,
+              "K": 4,
+              "batch_size": 64
+            }
+          },
+          "test": {
+            "dataset": {
+              "name": "msmt17",
+              "split": "test",
+              "format": "raw"
+            },
+            "images": {
+              "size": [
+                384,
+                128
+              ],
+              "batch_dims": "NCHW",
+              "interpolation": "bicubic"
+            },
+            "aug": {
+              "mean": [
+                0.485,
+                0.456,
+                0.406
+              ],
+              "std": [
+                0.229,
+                0.224,
+                0.225
+              ],
+              "mirror": "none"
+            },
+            "loader": {
+              "shuffle": false,
+              "final_batch": true
+            },
+            "batch": {
+              "size": 32
+            }
+          }
+        },
+        "model": {
+          "name": "mgn",
+          "variant": "paper_v3_global2048_independent_v1",
+          "pretrained": true,
+          "weights_path": "/home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth",
+          "head": {
+            "classifier": true
+          },
+          "initialization": {
+            "artifact_id": "resnet50-19c8e357",
+            "sha256": "19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097",
+            "head_init_id": "reference_a_384e820_bias_free_v1"
+          }
+        },
+        "loss": {
+          "id": {
+            "enabled": true,
+            "weight": 1.0,
+            "label_smoothing": 0.0,
+            "head_aggregation": "mean"
+          },
+          "triplet": {
+            "enabled": true,
+            "weight": 1.0,
+            "margin": 1.2,
+            "mining": "batch_hard",
+            "feature_source": "model",
+            "feature_aggregation": "mean"
+          },
+          "center": {
+            "enabled": false
+          }
+        },
+        "optim": {
+          "name": "sgd",
+          "lr": 0.01,
+          "momentum": 0.9,
+          "nesterov": false,
+          "weight_decay": 0.0005,
+          "bias_lr_factor": 1.0,
+          "weight_decay_bias": 0.0005
+        },
+        "sched": {
+          "name": "epoch_multistep",
+          "milestones": [
+            60,
+            90
+          ],
+          "gamma": 0.1
+        },
+        "train": {
+          "epochs": 120,
+          "eval_interval": 10,
+          "save": {
+            "metric": "mAP",
+            "save_best": true,
+            "save_last": true,
+            "resume": "",
+            "require_selection_state_on_resume": true
+          }
+        },
+        "eval": {
+          "weight": "",
+          "normalize_feat": true,
+          "distance": "euclidean",
+          "topk": [
+            1,
+            5,
+            10
+          ],
+          "rerank": {
+            "enabled": false,
+            "k1": 20,
+            "k2": 6,
+            "lambda_value": 0.3
+          },
+          "export": {
+            "format": [
+              "json"
+            ]
+          },
+          "flip_aggregation": "mean"
+        }
+      },
+      "configuration_sha256": "7ccebc3b0b8df9de8579a53b2ffa6153c6f7e88c2e6ff4823543a9a91a7b7a5c",
+      "weights_sha256": "19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097",
+      "code_hash": "7675c71a5df5fa6e76dde6d336c3698f431fc70d41fb50611b1df0fe9fd51591",
+      "code_commit": "d22ce10e12efe01780faccbdbf2aba6485883cf0",
+      "authorization_note": "Current user manual owner authorization 2026-10-27 and activated autonomous Phase14 source-case scope; no scheduler allocation claimed.",
+      "gpu_before": {
+        "timestamp_utc": "2026-10-27T22:06:49.683718+00:00",
+        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "physical_index": 0,
+        "name": "NVIDIA TITAN Xp",
+        "driver": "570.211.01",
+        "total_mib": 12288,
+        "free_mib": 12179,
+        "utilization_percent": 0,
+        "compute_mode": "Default",
+        "mig_mode": "[N/A]",
+        "processes": []
+      },
+      "gpu_after": {
+        "timestamp_utc": "2026-10-27T22:07:25.783480+00:00",
+        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "physical_index": 0,
+        "name": "NVIDIA TITAN Xp",
+        "driver": "570.211.01",
+        "total_mib": 12288,
+        "free_mib": 12179,
+        "utilization_percent": 57,
+        "compute_mode": "Default",
+        "mig_mode": "[N/A]",
+        "processes": []
+      },
+      "status": "PASS",
+      "source_provenance": {
+        "source": "msmt17",
+        "descriptor": {
+          "name": "msmt17",
+          "split": "train",
+          "format": "raw"
+        },
+        "image_directory": "/mnt/hd-data/addirakoze/Projects/Dataset/msmt17/MSMT17_V2/train",
+        "images": 30248,
+        "num_classes": 1041,
+        "records_sha256": "535b598bdc4d39a6545d7eeb1d0b02994d4558495a53f7ba0b12a3f47f0168f0",
+        "identity_map_sha256": "60a09ceda406c56dfe55991600e93f142381bb25ebf51d0a9652017816878dec",
+        "file_inventory_sha256": "9a184a787b2c5e43621b24ee943f70bfb1b0a8173667a6a6368e6da968dd9441",
+        "metadata_sha256": {
+          "/mnt/hd-data/addirakoze/Projects/Dataset/msmt17/MSMT17_V2/list_train.txt": "00930d5911e66ec6ac4d9b177e61b49433658758cc091231bf7cfcb83c70d0bf"
+        },
+        "image_content_hash_policy": "Only actually consumed smoke images are byte-hashed; full corpus is not byte-hashed.",
+        "cuhk03_semantic_protocol_verification": null,
+        "identity_sha256": "2483eb24e9de1f0c12798e07bd6b18e7e7b566f38cf7809077945545199a13fd"
+      },
+      "runtime": {
+        "torch": "2.7.1+cu126",
+        "cuda": "12.6",
+        "cudnn": 90501,
+        "gpu_name": "NVIDIA TITAN Xp",
+        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "visible": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "precision": "FP32",
+        "cudnn_benchmark": true,
+        "cudnn_deterministic": false,
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": true,
+        "torch_architectures": [
+          "sm_50",
+          "sm_60",
+          "sm_70",
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90"
+        ],
+        "environment_controls": {
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "PYTORCH_CUDA_ALLOC_CONF": null,
+          "PYTORCH_ALLOC_CONF": null,
+          "CUBLAS_WORKSPACE_CONFIG": null,
+          "NVIDIA_TF32_OVERRIDE": null,
+          "CUDA_LAUNCH_BLOCKING": null
+        }
+      },
+      "loader": {
+        "num_workers": 4,
+        "pin_memory": true,
+        "prefetch_factor": 2,
+        "initial_epoch_batches": 437
+      },
+      "loader_observation": {
+        "scheduled_batches": 11,
+        "scheduled_images": 704,
+        "consumed_batches": 3,
+        "consumed_images": 192,
+        "unconsumed_scheduled_batches": 8,
+        "unconsumed_scheduled_images": 512
+      },
+      "steps": [
+        {
+          "step": 1,
+          "loss": {
+            "loss/total": 16.173381805419922,
+            "loss/triplet": 3.9686670303344727,
+            "loss/id": 12.204713821411133,
+            "loss/center": 0.0,
+            "loss/triplet/feature_0": 3.80206036567688,
+            "loss/triplet/feature_1": 4.051970481872559,
+            "loss/triplet/feature_2": 4.051970481872559
+          },
+          "embedding_shape": [
+            64,
+            2048
+          ],
+          "logits_shape": [
+            8,
+            64,
+            1041
+          ],
+          "metric_shape": [
+            3,
+            64,
+            256
+          ],
+          "peak_allocated_bytes": 11901345792,
+          "peak_reserved_bytes": 12155092992,
+          "free_bytes": 11243683840,
+          "total_bytes": 12774801408,
+          "finite_gradients": true,
+          "finite_model": true,
+          "finite_momentum": true,
+          "parameter_changed": true,
+          "elapsed_seconds": 31.883427782915533
+        },
+        {
+          "step": 2,
+          "loss": {
+            "loss/total": 15.215156555175781,
+            "loss/triplet": 3.823957920074463,
+            "loss/id": 11.391199111938477,
+            "loss/center": 0.0,
+            "loss/triplet/feature_0": 3.719005584716797,
+            "loss/triplet/feature_1": 3.8808541297912598,
+            "loss/triplet/feature_2": 3.872013807296753
+          },
+          "embedding_shape": [
+            64,
+            2048
+          ],
+          "logits_shape": [
+            8,
+            64,
+            1041
+          ],
+          "metric_shape": [
+            3,
+            64,
+            256
+          ],
+          "peak_allocated_bytes": 10143389696,
+          "peak_reserved_bytes": 11106516992,
+          "free_bytes": 1468858368,
+          "total_bytes": 12774801408,
+          "finite_gradients": true,
+          "finite_model": true,
+          "finite_momentum": true,
+          "parameter_changed": true,
+          "elapsed_seconds": 33.259431663900614
+        },
+        {
+          "step": 3,
+          "loss": {
+            "loss/total": 14.639702796936035,
+            "loss/triplet": 3.372182846069336,
+            "loss/id": 11.2675199508667,
+            "loss/center": 0.0,
+            "loss/triplet/feature_0": 3.465580940246582,
+            "loss/triplet/feature_1": 3.350067615509033,
+            "loss/triplet/feature_2": 3.3008995056152344
+          },
+          "embedding_shape": [
+            64,
+            2048
+          ],
+          "logits_shape": [
+            8,
+            64,
+            1041
+          ],
+          "metric_shape": [
+            3,
+            64,
+            256
+          ],
+          "peak_allocated_bytes": 10143774720,
+          "peak_reserved_bytes": 11106516992,
+          "free_bytes": 1468858368,
+          "total_bytes": 12774801408,
+          "finite_gradients": true,
+          "finite_model": true,
+          "finite_momentum": true,
+          "parameter_changed": true,
+          "elapsed_seconds": 34.60948027856648
+        }
+      ],
+      "source_batches": [
+        {
+          "identities": 16,
+          "images_per_identity": 4,
+          "input_sha256": "49ecf821c18fb20573b034af1bb2c773aa2ffa9b3aab805b9f93a06b2a5a8ef2",
+          "first_original_image_mode": "RGB",
+          "pixel_oracle": "horizontal_flip",
+          "min": -2.1179039478302,
+          "max": 2.640000104904175,
+          "indices_sha256": "cb7da154865f3b2183be09af31ed9cccfa043625d5902ee6c227f753b7840234",
+          "labels_sha256": "682211e7dcb97e325c61bd2babe635892ef96f74ad3c27a501d87913bcb1bc03",
+          "used_image_bytes_sha256": "f2593af8c9b46996b46c78dc731abcdb50c361eb52f910997728842435d98a50"
+        },
+        {
+          "identities": 16,
+          "images_per_identity": 4,
+          "input_sha256": "6bb6a87dad5ee40188f964ec9bd4f9b752a9ff5442367ef6670a33e9943ad786",
+          "first_original_image_mode": "RGB",
+          "pixel_oracle": "horizontal_flip",
+          "min": -2.1179039478302,
+          "max": 2.640000104904175,
+          "indices_sha256": "6f6536cc002f543d34643b562935fa1d58521c2334ae7d578dee95800a9aca17",
+          "labels_sha256": "c1a78aad7040a2927432f1c0b31b017d098644804a93719ed74946667aecf943",
+          "used_image_bytes_sha256": "dae9528dab0b6e942327c6a3f6f12076e0f5fd826c3604642a248f62ec0b57ed"
+        },
+        {
+          "identities": 16,
+          "images_per_identity": 4,
+          "input_sha256": "24af3e115927c7f83a7ff76c5f8f5a314d3926a0e682a9585899eed0aa6767b4",
+          "first_original_image_mode": "RGB",
+          "pixel_oracle": "horizontal_flip",
+          "min": -2.1179039478302,
+          "max": 2.640000104904175,
+          "indices_sha256": "9b2d334c1af03004647eb8ceb36c6c8f558659d3fd0ccaf27c4f697340d14aae",
+          "labels_sha256": "a477395280062d9463037f8148323bd04dad2ef709aa996af30f85c5a81e300b",
+          "used_image_bytes_sha256": "86f9cad3c5cdee3cc2d4c29360e0f6c93dffb356a6693730b4046678632f65cd"
+        }
+      ],
+      "raw_receipt_root": "/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/mgn_smoke/phase14_real_msmt17_fp32_GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c_attempt1/fp32",
+      "raw_file_sha256": {
+        "manifest.json": "29fee5ef31fc8b68fd2941cb684b8004ffdfdb83c99af03776f90e2e3da4683e",
+        "summary.json": "4162a743dbd35f535a5704c06479e84eb4ed4c92c35757519d2ecd0b02568a73",
+        "worker_receipt.json": "506ecd1412da5ccc0efdbe80cfc3557159cff406b995eb375f414154e513e72c",
+        "stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdout.log": "ec38773ec27f5553dd057abb69d48038e198c798870a1610243454ea2e0b8d4f"
       }
     }
   }
