@@ -12,6 +12,7 @@ from pathlib import Path
 
 import torch
 from torch import nn
+from torch.nn import functional as F
 from torchvision.models import resnet50
 
 VARIANT = 'paper_v3_global2048_independent_v1'
@@ -85,3 +86,50 @@ class MGNBackbone(nn.Module):
         self.validate_input(images)
         shared = self.shared(images)
         return tuple(branch(shared) for branch in self.branches)
+
+
+def _validate_features(features, shapes, name):
+    if not isinstance(features, (list, tuple)) or len(features) != len(shapes):
+        raise ValueError(f'{name} requires exactly {len(shapes)} feature tensors.')
+    first = None
+    for feature, shape in zip(features, shapes):
+        if (not torch.is_tensor(feature) or not feature.is_floating_point()
+                or feature.ndim != len(shape)+1 or tuple(feature.shape[1:]) != tuple(shape)
+                or feature.shape[0] <= 0):
+            raise ValueError(f'{name} feature must have shape [B,{",".join(map(str, shape))}] with B > 0.')
+        if first is not None and (feature.shape[0] != first.shape[0]
+                or feature.dtype != first.dtype or feature.device != first.device):
+            raise ValueError(f'{name} requires matching batch size, dtype and device.')
+        first = feature
+
+
+class MGNMaxPool(nn.Module):
+    """Three whole-map maxima, then P2 top/bottom and P3 top/middle/bottom."""
+    def forward(self, maps):
+        _validate_features(maps, [(2048, 12, 4), (2048, 24, 8), (2048, 24, 8)], 'MGN pooling')
+        parts = list(maps)
+        parts.extend(maps[1].chunk(2, dim=2))
+        parts.extend(maps[2].chunk(3, dim=2))
+        return tuple(F.max_pool2d(part, kernel_size=part.shape[-2:]) for part in parts)
+
+
+class MGNReductions(nn.Module):
+    """Eight identical-in-value, independent Conv/BN/ReLU reduction copies."""
+    def __init__(self):
+        super().__init__()
+        template = nn.Sequential(nn.Conv2d(2048, 256, 1, bias=False),
+                                 nn.BatchNorm2d(256, eps=1e-5, momentum=.1),
+                                 nn.ReLU(inplace=False))
+        nn.init.kaiming_normal_(template[0].weight, mode='fan_in')
+        nn.init.normal_(template[1].weight, 1., .02)
+        nn.init.zeros_(template[1].bias)
+        nn.init.zeros_(template[1].running_mean)
+        nn.init.ones_(template[1].running_var)
+        nn.init.zeros_(template[1].num_batches_tracked)
+        self.parts = nn.ModuleList([copy.deepcopy(template) for _ in range(8)])
+
+    def forward(self, pooled):
+        _validate_features(pooled, [(2048, 1, 1)]*8, 'MGN reductions')
+        if self.training and pooled[0].shape[0] == 1:
+            raise ValueError('MGN reduction training BatchNorm requires B > 1.')
+        return tuple(reduction(feature).flatten(1) for reduction, feature in zip(self.parts, pooled))

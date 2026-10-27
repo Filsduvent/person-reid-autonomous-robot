@@ -105,3 +105,89 @@ def test_exact_existing_historical_artifact_reader():
     base = resnet50(weights=None)
     mgn._load_imagenet_state(base, state)
     assert torch.equal(base.conv1.weight, state['conv1.weight'])
+
+
+def test_max_pooling_global_and_stripe_boundaries_exact_order():
+    maps = [torch.arange(h*w, dtype=torch.float32).reshape(1, 1, h, w).expand(2, 2048, h, w).clone()+offset
+            for h, w, offset in [(12, 4, 0), (24, 8, 100), (24, 8, 1000)]]
+    for feature in maps: feature.requires_grad_()
+    pooled = mgn.MGNMaxPool()(maps)
+    expected = [47, 291, 1191, 195, 291, 1063, 1127, 1191]
+    for value, wanted in zip(pooled, expected):
+        assert value.shape == (2, 2048, 1, 1)
+        assert torch.equal(value, torch.full_like(value, wanted))
+    pooled[3].sum().backward()
+    assert maps[1].grad[:, :, :12].count_nonzero() == 2*2048
+    assert maps[1].grad[:, :, 12:].count_nonzero() == 0
+
+
+def test_reductions_template_values_independent_storage_and_initializer(monkeypatch):
+    calls = []
+    original = nn.init.kaiming_normal_
+    def kaiming(tensor, *args, **kwargs):
+        calls.append(kwargs)
+        return original(tensor, *args, **kwargs)
+    monkeypatch.setattr(nn.init, 'kaiming_normal_', kaiming)
+    reductions = mgn.MGNReductions()
+    assert calls == [{'mode': 'fan_in'}]
+    assert len(reductions.parts) == 8
+    for part in reductions.parts:
+        assert part[0].bias is None and part[0].kernel_size == (1, 1)
+        assert part[1].eps == 1e-5 and part[1].momentum == .1
+        assert part[1].affine and part[1].track_running_stats
+        assert not part[2].inplace
+    states = [part.state_dict() for part in reductions.parts]
+    for key in states[0]:
+        assert len({state[key].data_ptr() for state in states}) == 8
+        for state in states[1:]:
+            torch.testing.assert_close(state[key], states[0][key], rtol=0, atol=0)
+    assert torch.equal(states[0]['1.running_mean'], torch.zeros(256))
+    assert torch.equal(states[0]['1.running_var'], torch.ones(256))
+    reductions.parts[0][1].running_mean.fill_(3)
+    assert reductions.parts[1][1].running_mean.count_nonzero() == 0
+
+
+def test_reduction_numerical_order_and_attached_gradients():
+    reductions = mgn.MGNReductions().eval()
+    pooled = [torch.randn(2, 2048, 1, 1, requires_grad=True) for _ in range(8)]
+    actual = reductions(pooled)
+    expected = []
+    for part, feature in zip(reductions.parts, pooled):
+        conv, bn = part[:2]
+        raw = feature.flatten(1) @ conv.weight.flatten(1).T
+        expected.append(((raw-bn.running_mean)/(bn.running_var+bn.eps).sqrt()*bn.weight+bn.bias).relu())
+    for value, wanted in zip(actual, expected):
+        torch.testing.assert_close(value, wanted, atol=2e-6, rtol=2e-5)
+        assert value.shape == (2, 256)
+    sum((i+1)*value.square().mean() for i, value in enumerate(actual)).backward()
+    assert all(feature.grad is not None and torch.isfinite(feature.grad).all() for feature in pooled)
+    assert all(parameter.grad is not None and torch.isfinite(parameter.grad).all() for parameter in reductions.parameters())
+
+
+@pytest.mark.parametrize('damage', ['count', 'shape', 'batch', 'dtype', 'device', 'single_train'])
+def test_reductions_validate_all_inputs_before_bn_mutation(damage):
+    reductions = mgn.MGNReductions().train()
+    pooled = [torch.randn(2, 2048, 1, 1) for _ in range(8)]
+    if damage == 'count': pooled.pop()
+    elif damage == 'shape': pooled[-1] = torch.ones(2, 2048, 2, 1)
+    elif damage == 'batch': pooled[-1] = torch.ones(3, 2048, 1, 1)
+    elif damage == 'dtype': pooled[-1] = pooled[-1].double()
+    elif damage == 'device': pooled[-1] = torch.empty(2, 2048, 1, 1, device='meta')
+    else: pooled = [part[:1] for part in pooled]
+    before = {k: v.clone() for k, v in reductions.named_buffers()}
+    with pytest.raises(ValueError): reductions(pooled)
+    assert all(torch.equal(value, before[key]) for key, value in reductions.named_buffers())
+
+
+def test_pooling_rejects_wrong_geometry():
+    maps = [torch.zeros(1, 2048, 12, 4), torch.zeros(1, 2048, 23, 8), torch.zeros(1, 2048, 24, 8)]
+    with pytest.raises(ValueError, match='pooling'):
+        mgn.MGNMaxPool()(maps)
+
+
+def test_max_pooling_tie_gradient_matches_standard_maxpool():
+    maps = [torch.ones(2, 2048, h, w, requires_grad=True) for h, w in [(12, 4), (24, 8), (24, 8)]]
+    mgn.MGNMaxPool()(maps)[0].sum().backward()
+    expected = torch.zeros_like(maps[0])
+    expected[:, :, 0, 0] = 1
+    assert torch.equal(maps[0].grad, expected)
