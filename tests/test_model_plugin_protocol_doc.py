@@ -47,7 +47,8 @@ def test_model_plugin_protocol_documents_generic_boundaries_and_capabilities():
     for term in ("embedding_dim", "nonempty ordered flat", "validate_logits", "feat_dim",
                  "Center loss requires a positive integer", "initialize_pretrained=False",
                  "source `num_classes`", "strictly loads state", "single tensor",
-                 "not yet supported"):
+                 "metric_features", "loss.triplet.feature_source", "loss.id.head_aggregation",
+                 "loss/triplet/feature_N", "flip_aggregation"):
         assert term in text
     assert "Every trainable model must expose" not in text
     assert "only core framework file" not in text

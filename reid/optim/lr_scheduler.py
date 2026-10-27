@@ -33,6 +33,7 @@ class EpochMultiStepLR:
                      for base in self.base_lrs)
 
     def step(self):
+        self._validate_group_layout()
         self.completed_epochs += 1
         for group, rate in zip(self.optimizer.param_groups, self.get_last_lr()):
             group['lr'] = rate
@@ -49,6 +50,12 @@ class EpochMultiStepLR:
         if type(epoch) is not int or epoch != self.completed_epochs:
             raise ValueError("Checkpoint epoch and scheduler completed_epochs disagree.")
 
+    def _validate_group_layout(self):
+        current = tuple((g.get('param_name'), tuple(tuple(p.shape) for p in g['params']))
+                        for g in self.optimizer.param_groups)
+        if current != self.group_layout:
+            raise ValueError('Restored optimizer group_layout does not match the epoch scheduler.')
+
     def load_state_dict(self, state):
         expected = self.state_dict()
         if not isinstance(state, dict) or state.keys() != expected.keys():
@@ -61,6 +68,7 @@ class EpochMultiStepLR:
         rates = self.rates_after(state['completed_epochs'])
         if tuple(g['lr'] for g in self.optimizer.param_groups) != rates:
             raise ValueError("Restored optimizer LR does not match epoch scheduler count.")
+        self._validate_group_layout()
         self.completed_epochs = state['completed_epochs']
 
 

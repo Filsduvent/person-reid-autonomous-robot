@@ -342,3 +342,15 @@ def test_epoch_scheduler_rejects_boolean_schema_version():
     state['schema_version'] = True
     with pytest.raises(ValueError, match='schema_version'):
         scheduler.load_state_dict(state)
+
+
+def test_epoch_scheduler_rejects_restored_optimizer_group_metadata_corruption():
+    _, optimizer, scheduler = epoch_setup()
+    state = scheduler.state_dict()
+    optimizer.param_groups[0]['param_name'] = 'wrong.parameter'
+    with pytest.raises(ValueError, match='group_layout'):
+        scheduler.load_state_dict(state)
+    assert scheduler.completed_epochs == 0
+    with pytest.raises(ValueError, match='group_layout'):
+        scheduler.step()
+    assert scheduler.completed_epochs == 0
