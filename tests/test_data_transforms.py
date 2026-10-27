@@ -90,3 +90,27 @@ def test_train_transform_outputs_tensor_of_expected_shape():
 
     assert isinstance(out, torch.Tensor)
     assert out.shape == (3, 256, 128)
+
+
+def test_explicit_bicubic_matches_pil_pixels_and_omitted_resize_is_unchanged():
+    import numpy as np
+    image = Image.fromarray(np.random.default_rng(42).integers(0, 256, (17, 9, 3), dtype=np.uint8))
+    mean, std = [0., 0., 0.], [1., 1., 1.]
+    expected = T.ToTensor()(image.resize((5, 11), resample=Image.Resampling.BICUBIC))
+    test_tf = build_test_tf((11, 5), mean, std, interpolation='bicubic')
+    torch.testing.assert_close(test_tf(image), expected, rtol=0, atol=0)
+    aug = dict(mean=mean, std=std, mirror='none')
+    torch.testing.assert_close(build_train_tf((11, 5), aug, interpolation='bicubic')(image), expected, rtol=0, atol=0)
+    historical = T.Compose([T.Resize((11, 5)), T.ToTensor(), T.Normalize(mean, std)])(image)
+    torch.testing.assert_close(build_test_tf((11, 5), mean, std)(image), historical, rtol=0, atol=0)
+    torch.testing.assert_close(build_train_tf((11, 5), aug)(image), historical, rtol=0, atol=0)
+
+
+def test_invalid_interpolation_fails_transform_and_config_validation():
+    import pytest
+    from reid.utils.config import validate_reid_config
+    for value in ['unknown', 3, True]:
+        with pytest.raises(ValueError, match='interpolation'):
+            build_test_tf((11, 5), [0]*3, [1]*3, interpolation=value)
+        with pytest.raises(ValueError, match='interpolation'):
+            validate_reid_config({'data': {'train': {'images': {'interpolation': value}}}})

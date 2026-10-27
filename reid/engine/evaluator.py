@@ -15,7 +15,9 @@ MSMT17_RERANK_WARNING = "[Warning] MSMT17 reranking may require large memory due
 
 
 @torch.no_grad()
-def extract_features(model, loader, device, *, progress=None, before_batch=None):
+def extract_features(model, loader, device, *, progress=None, before_batch=None, flip_aggregation='none'):
+    if flip_aggregation not in ('none', 'mean'):
+        raise ValueError("eval.flip_aggregation must be 'none' or 'mean'.")
     model.eval()
     feats, pids, cams, names, marks = [], [], [], [], []
     started, images = time.monotonic(), 0
@@ -23,10 +25,21 @@ def extract_features(model, loader, device, *, progress=None, before_batch=None)
         if before_batch is not None:
             before_batch()
         imgs = imgs.to(device, non_blocking=True)
+        if flip_aggregation == 'mean' and (imgs.ndim != 4 or min(imgs.shape) <= 0):
+            raise ValueError('Flip aggregation requires positive NCHW image dimensions.')
         outputs = ensure_output_dict(model(imgs))
         emb = outputs.get("emb")
         if emb is None:
             raise ValueError("Model output dict is missing 'emb'.")
+        if flip_aggregation == 'mean':
+            flipped = ensure_output_dict(model(torch.flip(imgs, dims=(3,)))).get('emb')
+            for feature in (emb, flipped):
+                if (not torch.is_tensor(feature) or feature.ndim != 2 or not feature.is_floating_point()
+                        or feature.shape[0] != imgs.shape[0] or feature.shape[1] <= 0):
+                    raise ValueError('Flip aggregation requires floating [B,D] embeddings.')
+            if emb.shape != flipped.shape or emb.dtype != flipped.dtype or emb.device != flipped.device:
+                raise ValueError('Original/flip embeddings must have matching shape, dtype and device.')
+            emb = (emb + flipped) / 2
         emb = emb.detach().cpu().numpy()
         feats.append(emb)
         pids.append(pid.numpy())
@@ -67,7 +80,8 @@ def _warn_rerank_memory(cfg, logger=None):
 
 def evaluate_reid(cfg, model, test_loader, device, logger=None, *, progress=None, before_batch=None):
     feat, ids, cams, im_names, marks = extract_features(model, test_loader, device,
-                                                       progress=progress, before_batch=before_batch)
+                                                       progress=progress, before_batch=before_batch,
+                                                       flip_aggregation=cfg['eval'].get('flip_aggregation', 'none'))
 
     def report(phase):
         if progress is not None:

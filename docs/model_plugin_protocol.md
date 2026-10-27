@@ -67,7 +67,8 @@ normalizes embeddings. The evaluator consumes only `outputs["emb"]`.
 
 - `embedding_dim`: positive retrieval width D.
 - `feat_dim`: optional metric-feature width F, distinct from retrieval width.
-  It may be None for an ID-only model without metric features.
+  It may be None for ID-only models or models exposing multiple metric widths;
+  only Center loss requires this single declared width.
 - Standard `named_parameters()`, `state_dict()` and strict `load_state_dict()`
   behavior inherited from `nn.Module` remain mandatory.
 
@@ -129,10 +130,22 @@ bounded `classifier.weight` fallback. New multi-head models must use metadata.
 
 ## Evaluation and artifacts
 
-Feature extraction collects `emb`. The common evaluator applies configured global
+Feature extraction collects `emb`. `eval.flip_aggregation` is `none` by default
+(one forward) or explicit `mean` (sequential original/width-flipped forwards).
+Mean aggregation validates floating matching [B,D] descriptors, averages raw
+views once, and preserves one metadata record per image. The common evaluator
+then applies configured global
 normalization using `norm + 1e-12`, then the configured distance. Model-side
 normalization policy must be documented per architecture; baseline behavior is
 preserved. Neither output transport nor checkpoint reconstruction changes it.
+
+Image interpolation is a generic train/test image setting: explicit `bilinear`
+or `bicubic`, with omission preserving the old bilinear Resize behavior.
+Test preprocessing and flip/normalization policy remain source-owned in cross-
+domain evaluation. Missing and explicit `none` flip policies compare equally
+without modifying historical configurations. LODO v1 retains its ResNet50/PCB
+whitelist and historical identities; execution-changing interpolation or flip
+policies are rejected. MGN LODO needs its separately approved versioned protocol.
 
 Core metrics remain `mAP`, `mINP`, `Rank1`, `Rank5`, `Rank10`. Optional
 `rerank_mAP`, `rerank_mINP`, `rerank_Rank1`, `rerank_Rank5`, `rerank_Rank10` remain

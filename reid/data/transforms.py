@@ -5,6 +5,17 @@ from typing import Tuple
 import torchvision.transforms as T
 
 
+def resolve_interpolation(value=None):
+    """Omission retains torchvision Resize's historical bilinear default."""
+    choices = {'bilinear': T.InterpolationMode.BILINEAR,
+               'bicubic': T.InterpolationMode.BICUBIC}
+    if value is None:
+        return T.InterpolationMode.BILINEAR
+    if not isinstance(value, str) or value not in choices:
+        raise ValueError("images.interpolation must be 'bilinear' or 'bicubic'.")
+    return choices[value]
+
+
 class RandomErasing(object):
     def __init__(
         self,
@@ -48,13 +59,13 @@ class RandomErasing(object):
         return img
 
 
-def build_train_tf(image_size: Tuple[int, int], aug_cfg):
+def build_train_tf(image_size: Tuple[int, int], aug_cfg, *, interpolation=None):
     H, W = image_size
     mean = aug_cfg["mean"]
     std = aug_cfg["std"]
     tf = []
 
-    tf.append(T.Resize((H, W)))
+    tf.append(T.Resize((H, W), interpolation=resolve_interpolation(interpolation)))
 
     if aug_cfg.get("mirror", "none") == "random":
         tf.append(T.RandomHorizontalFlip(p=0.5))
@@ -86,10 +97,10 @@ def build_train_tf(image_size: Tuple[int, int], aug_cfg):
     return T.Compose(tf)
 
 
-def build_test_tf(image_size: Tuple[int, int], mean, std):
+def build_test_tf(image_size: Tuple[int, int], mean, std, *, interpolation=None):
     H, W = image_size
     return T.Compose([
-        T.Resize((H, W)),
+        T.Resize((H, W), interpolation=resolve_interpolation(interpolation)),
         T.ToTensor(),
         T.Normalize(mean=mean, std=std),
     ])

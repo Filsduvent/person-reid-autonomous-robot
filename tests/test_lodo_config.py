@@ -338,3 +338,40 @@ def test_stage_a_still_requires_epochs():
     del cfg["train"]["epochs"]
     with pytest.raises(ValueError, match="train.epochs"):
         validate_config(cfg)
+
+
+@pytest.mark.parametrize('architecture,expected', [
+    ('resnet50', ['a681c90890ebf0006f8709d67ff8c0d246d1f66a2365db53060287f87e69db1b',
+                 '35100c2ff4e74d501393fc55b951318be0767947bb55b211f2dac86958874762',
+                 'fbeede6c9b35ebcc49d61f49de00fe6bb8eb54b6d0822d3d829c398fa51091a1',
+                 '56f38a33fbddf77fb5e326d699f3c26516f7a3cdaaad0ceef628c0b246de6010']),
+    ('pcb', ['419b74cbe1217848a78df18959f83d543a79895155356a6e9d0b9df9edcd1f23',
+             '88dae2a85e1d9e572de0456fc122f2cdaf5cbd480898fa6a810a92b4dfc5ae96',
+             'b2b33be146001c1d0306fe6892620803e50559416f4d940cda392614f8f810b7',
+             'c44ae77ecf8807b70457a7a930b454788a977700a89a9b874bc2c27302966d6b'])])
+def test_mgn_extensions_preserve_all_eight_historical_scientific_identities(architecture, expected):
+    # Captured against be628bbb's original pure scientific identity functions.
+    for index, digest in enumerate(expected, 1):
+        cfg = lodo_config(architecture, f'LODO-{index}')
+        assert configuration_identity(cfg) == digest
+        cfg['eval']['flip_aggregation'] = 'none'
+        for role in ['train', 'test']:
+            cfg['data'][role]['images']['interpolation'] = 'bilinear'
+        assert configuration_identity(cfg) == digest
+
+
+@pytest.mark.parametrize('architecture', ['resnet50', 'pcb'])
+def test_lodo_v1_rejects_execution_changing_flip_or_interpolation(architecture):
+    cfg = lodo_config(architecture)
+    cfg['eval']['flip_aggregation'] = 'mean'
+    with pytest.raises(ValueError, match='flip_aggregation'):
+        validate_lodo_config(cfg)
+    cfg['eval']['flip_aggregation'] = 'none'
+    for role in ['train', 'test']:
+        changed = copy.deepcopy(cfg)
+        changed['data'][role]['images']['interpolation'] = 'bicubic'
+        with pytest.raises(ValueError, match='interpolation'):
+            validate_lodo_config(changed)
+    cfg['protocol']['architecture'] = 'mgn'
+    with pytest.raises(ValueError, match='architecture'):
+        validate_lodo_config(cfg)

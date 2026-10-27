@@ -667,3 +667,18 @@ def test_build_loaders_reject_unknown_msmt17_format(monkeypatch):
 
     with pytest.raises(ValueError, match="Unsupported MSMT17 test dataset format"):
         build_test_loader(test_cfg)
+
+
+def test_explicit_interpolation_flows_through_both_common_loader_builders(monkeypatch):
+    calls = []
+    monkeypatch.setattr('reid.data.build.Market1501FromPartitions', _TrainDataset)
+    monkeypatch.setattr('reid.data.build.Market1501TestFromPartitions', _EvalDataset)
+    monkeypatch.setattr('reid.data.build.build_train_tf', lambda **kwargs: calls.append(('train', kwargs)))
+    monkeypatch.setattr('reid.data.build.build_test_tf', lambda **kwargs: calls.append(('test', kwargs)))
+    train_cfg, test_cfg = copy.deepcopy(TRAIN_CFG), copy.deepcopy(TEST_CFG)
+    train_cfg['data']['train']['images']['interpolation'] = 'bicubic'
+    test_cfg['data']['test']['images']['interpolation'] = 'bicubic'
+    build_train_loader(train_cfg)
+    build_test_loader(test_cfg)
+    assert [role for role, kwargs in calls] == ['train', 'test']
+    assert all(kwargs['interpolation'] == 'bicubic' for role, kwargs in calls)

@@ -203,6 +203,13 @@ def validate_reid_config(cfg: Dict[str, Any], num_classes: int | None = None, *,
     if has_lodo_protocol(cfg):
         validate_lodo_config(cfg, project_root=project_root)
     validate_optimizer_param_groups(cfg.get("optim", {}))
+    if cfg.get('eval', {}).get('flip_aggregation', 'none') not in ('none', 'mean'):
+        raise ValueError("eval.flip_aggregation must be 'none' or 'mean'.")
+    for role in ('train', 'test'):
+        images = cfg.get('data', {}).get(role, {}).get('images', {})
+        if 'interpolation' in images:
+            from reid.data.transforms import resolve_interpolation
+            resolve_interpolation(images['interpolation'])
     model_cfg = cfg.get("model", {})
     if model_cfg.get('name') == 'mgn':
         from reid.models.mgn import validate_mgn_model_config

@@ -363,3 +363,31 @@ def test_standalone_conflict_fails_before_artifacts_or_loader(tmp_path, monkeypa
     with pytest.raises(ValueError, match="source data.test.images"):
         standalone.main()
     assert not output.exists()
+
+
+def test_flip_and_interpolation_are_source_owned_with_default_equivalence():
+    source = source_config()
+    source['eval']['flip_aggregation'] = 'mean'
+    source['data']['test']['images']['interpolation'] = 'bicubic'
+    target = target_config('duke')
+    target['eval']['flip_aggregation'] = 'none'
+    target['data']['test']['images']['interpolation'] = 'bilinear'
+    before = copy.deepcopy(source)
+    cfg = build_cross_domain_config(source, target, 'duke', 'fresh-mgn-eval')
+    assert cfg['eval']['flip_aggregation'] == 'mean'
+    assert cfg['data']['test']['images']['interpolation'] == 'bicubic'
+    assert source == before
+    request = copy.deepcopy(source)
+    request['eval']['flip_aggregation'] = 'none'
+    with pytest.raises(ValueError, match='conflicts'):
+        prepare_standalone_config({'cfg': source}, request)
+    del source['eval']['flip_aggregation']
+    request = copy.deepcopy(source)
+    request['eval']['flip_aggregation'] = 'none'
+    preserved = copy.deepcopy(source)
+    result = prepare_standalone_config({'cfg': source}, request)
+    assert source == preserved
+    assert 'flip_aggregation' not in result['eval']
+    source['eval']['flip_aggregation'] = 'none'
+    del request['eval']['flip_aggregation']
+    assert prepare_standalone_config({'cfg': source}, request)['eval']['flip_aggregation'] == 'none'

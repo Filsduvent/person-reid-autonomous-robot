@@ -156,6 +156,8 @@ def _descriptor(value, role):
 
 
 def _contract(cfg):
+    if cfg.get('eval', {}).get('flip_aggregation', 'none') != 'none':
+        raise ValueError('LODO v1 requires flip_aggregation=none; historical retrieval identity is frozen.')
     protocol = _at(cfg, "protocol")
     _keys(protocol, {"name", "version", "architecture", "fold"}, "protocol")
     _expect(cfg, "protocol.name", PROTOCOL_ID)
@@ -264,6 +266,8 @@ def _contract(cfg):
     for role in ("train", "test"):
         _expect(cfg, f"data.{role}.images.size", size)
         images = _at(cfg, f"data.{role}.images")
+        if images.get('interpolation') not in (None, 'bilinear'):
+            raise ValueError('LODO v1 requires historical bilinear interpolation.')
         if images.get("dir") is not None or images.get("batch_dims", "NCHW") != "NCHW":
             raise ValueError("LODO uses descriptor-owned images in NCHW layout")
         for key, expected in {"mean": [0.486, 0.459, 0.408], "std": [0.229, 0.224, 0.225],

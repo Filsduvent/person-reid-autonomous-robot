@@ -44,7 +44,8 @@ def prepare_standalone_config(checkpoint, requested_cfg):
         "data.test.images": (source["data"]["test"]["images"], requested_cfg["data"]["test"]["images"]),
         "data.test.aug": (source["data"]["test"]["aug"], requested_cfg["data"]["test"]["aug"]),
         "data.test.loader": (source["data"]["test"]["loader"], requested_cfg["data"]["test"]["loader"]),
-        "eval": tuple({k: v for k, v in c["eval"].items() if k not in {"weight", "export"}}
+        "eval": tuple(dict({k: v for k, v in c["eval"].items() if k not in {"weight", "export"}},
+                           flip_aggregation=c['eval'].get('flip_aggregation', 'none'))
                       for c in (source, requested_cfg)),
     }
     for name, (saved, supplied) in sections.items():

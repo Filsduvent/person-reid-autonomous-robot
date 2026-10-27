@@ -155,6 +155,7 @@ def build_train_loader(cfg):
     tf = build_train_tf(
         image_size=image_size,
         aug_cfg=aug,
+        **({'interpolation': tcfg['images']['interpolation']} if 'interpolation' in tcfg['images'] else {}),
     )
 
     dataset_cfg = tcfg["dataset"]
@@ -242,7 +243,8 @@ def build_test_loader(cfg):
 
     image_size = tuple(tcfg["images"]["size"])
     aug = tcfg["aug"]
-    tf = build_test_tf(image_size=image_size, mean=aug["mean"], std=aug["std"])
+    tf = build_test_tf(image_size=image_size, mean=aug["mean"], std=aug["std"],
+                       **({'interpolation': tcfg['images']['interpolation']} if 'interpolation' in tcfg['images'] else {}))
 
     dataset_cfg = tcfg["dataset"]
     ds_name = dataset_cfg["name"]
