@@ -509,6 +509,10 @@ def run_lodo_training(cfg):
 def main():
     args = parse_args()
     cfg = load_config(args.config, overrides=args.opts)
+    from reid.utils.training_preflight import run_training_preflight
+    preflight_receipt = run_training_preflight(cfg, config_path=args.config, overrides=args.opts)
+    if preflight_receipt is not None:
+        print(json.dumps({'training_preflight': preflight_receipt}, indent=2))
     from reid.utils.lodo_protocol import has_lodo_protocol
     if has_lodo_protocol(cfg):
         from reid.utils.lodo_operational import validate_training_admission
@@ -533,6 +537,10 @@ def main():
         logger = setup_logger("reid.train", exp_dir, filename="train.log")
         resolved_config_path = save_resolved_config(exp_dir, cfg)
         artifact_paths = save_run_artifacts(exp_dir, argv=sys.argv)
+        if preflight_receipt is not None:
+            with open(osp.join(exp_dir, 'artifacts', 'training_preflight.json'), 'w') as handle:
+                json.dump(preflight_receipt, handle, indent=2)
+                handle.write('\n')
 
         device, _ = select_device(cfg["system"]["device"], cfg["system"].get("gpu_id", 0), cfg)
         set_seed(

@@ -80,6 +80,9 @@ def validate_config(cfg: dict, *, project_root=None) -> None:
             raise ValueError(f"Missing config section: {section}")
         _require_mapping(cfg[section], section)
 
+    from reid.utils.training_preflight import validate_training_preflight
+    validate_training_preflight(cfg)
+
     require_explicit_lodo(cfg)
     lodo = has_lodo_protocol(cfg)
     for key in REQUIRED_KEYS:

@@ -138,7 +138,28 @@ def gpu_guard(uuid,expected,peak_reserved):
     return dict(before=before,after_runtime_query=current,runtime=runtime)
 
 
-def preflight(source,*,resume=False):
+def effective_configuration(frozen, configuration, config_path, frozen_path, *, resume):
+    """Bind common-trainer arguments to the admitted YAML; resume is operational."""
+    if config_path is not None and Path(config_path).resolve()!=frozen_path.resolve():
+        raise ValueError('Training config path must identify the frozen source preset.')
+    if configuration is None:
+        return frozen
+    if normalized_training_cfg(configuration)!=normalized_training_cfg(frozen):
+        raise ValueError('Effective training configuration differs from frozen admission.')
+    supplied=configuration['train']['save'].get('resume','')
+    if not isinstance(supplied,str):raise ValueError('Resume must be a checkpoint path string.')
+    if resume:
+        expected=ROOT/'exp/mgn'/frozen['data']['train']['dataset']['name']/'checkpoints/ckpt_last.pth'
+        path=Path(supplied)
+        if not path.is_absolute():path=ROOT/path
+        if not supplied.strip() or path!=expected or path.resolve()!=expected:
+            raise ValueError('Resume must use the original source ckpt_last.pth without redirection.')
+    elif supplied:
+        raise ValueError('Fresh admission cannot contain a resume checkpoint.')
+    return configuration
+
+
+def preflight(source,*,resume=False,configuration=None,config_path=None):
     from reid.utils.config import load_config,validate_reid_config
     from reid.utils.config_schema import validate_config
     if source not in SOURCES:raise ValueError('Unknown frozen MGN source.')
@@ -152,10 +173,11 @@ def preflight(source,*,resume=False):
     subprocess.run(['git','merge-base','--is-ancestor',manifest['tested_implementation_commit'],'HEAD'],cwd=ROOT,check=True,capture_output=True)
     verify_hashes(manifest['runtime_source_sha256'])
     verify_hashes(manifest['qualification_receipt_sha256'])
-    config_path=ROOT/entry['config_path']
-    verify_hashes({str(config_path):entry['config_sha256']})
-    cfg=load_config(str(config_path));validate_config(cfg);validate_reid_config(cfg)
+    frozen_path=ROOT/entry['config_path']
+    verify_hashes({str(frozen_path):entry['config_sha256']})
+    cfg=load_config(str(frozen_path));validate_config(cfg);validate_reid_config(cfg)
     if cfg!=entry['resolved_configuration']:raise ValueError('Resolved source configuration differs from frozen admission.')
+    cfg=effective_configuration(cfg,configuration,config_path,frozen_path,resume=resume)
     run=output_guard(source,cfg,resume=resume)
     if environment()!=manifest['environment']:raise ValueError('Python/packages/environment controls differ from the frozen admission environment.')
     verify_hashes({cfg['model']['weights_path']:manifest['weights_sha256']})
@@ -173,10 +195,10 @@ def preflight(source,*,resume=False):
     gpu=gpu_guard(uuid,entry['runtime'],entry['maximum_reserved_bytes'])
     return dict(status='READY_TO_RESUME' if resume else 'READY_FRESH',source=source,
         code_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
-        manifest_sha256=file_hash(MANIFEST),config=str(config_path),config_sha256=entry['config_sha256'],
+        manifest_sha256=file_hash(MANIFEST),config=str(frozen_path),config_sha256=entry['config_sha256'],
         output=str(run),source_classes=classes,training_images=actual['images'],
         planned_fresh_updates=entry['planned_fresh_budget']['total_updates'],continuation=continuation,gpu=gpu,
-        training_launched=False,notice='Read-only preflight; launch common scripts/train.py yourself.')
+        training_launched=False,notice='Read-only admission passed; the common trainer may now dispatch training.')
 
 
 def main():

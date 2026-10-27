@@ -23,6 +23,7 @@ ROOT=Path(__file__).resolve().parents[1]
 def test_frozen_presets_match_qualified_recipe_except_isolated_official_output(source):
     cfg=load_config(str(ROOT/f'configs/mgn/{source}.yaml'))
     expected=smoke.configuration(source);expected['experiment']['output_dir']=f'exp/mgn/{source}'
+    expected['train']['preflight']={'name':'mgn_offline_v1'}
     assert cfg==expected
     validate_config(cfg);validate_reid_config(cfg)
     manifest=json.loads((ROOT/'docs/mgn_experiment_manifest.json').read_text())

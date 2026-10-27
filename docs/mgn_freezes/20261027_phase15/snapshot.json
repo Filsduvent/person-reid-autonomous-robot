@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "commit": "b568c6b6ea35014bc5c1a61a26889eb11b9770ad",
+  "files_sha256": {
+    "docs/mgn_experiment_manifest.json": "5d0173f2448726520f8a3a3381d88c9683f8a15c74fe81ec9f7131ee7159fdd2",
+    "docs/mgn_experiment_protocol.md": "c786d66e3740921f239a6d36628ce6ec56c922abc1836bd4d96374748258cedc",
+    "docs/mgn_preset_qualification.json": "4371b1ef223ab499fed4deb0f301c8de2b467fa4957e65f8ab23d3efd59ab7e4",
+    "docs/mgn_preflight_qualification.json": "f239e2d96ebb697e5eca9118d5f39423628235468b23c546b7a3c705b213d604",
+    "configs/mgn/cuhk03.yaml": "7c67b817f243b155477e49621447dc9a54c2415b438633b16c68a4722efd80df",
+    "configs/mgn/duke.yaml": "f70eefcdc4a977fa225aeabeae704379db6d47608cf029114f97fa1c026b05b3",
+    "configs/mgn/market1501.yaml": "9b34601154284a3850c1bc615ef025f029a5e0c5237b64c966523907affa30d9",
+    "configs/mgn/msmt17.yaml": "976a9d454be245cccf7eaa175276302333f0f8f4bd10f6cf099cc479e61671e6"
+  }
+}

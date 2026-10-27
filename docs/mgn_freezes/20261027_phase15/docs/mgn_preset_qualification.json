@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "phase": 15,
+  "status": "CPU_PASS",
+  "passed": 141,
+  "seconds": 27.51,
+  "command": "timeout 120s env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:scripts:tests /home/addirakoze/environments/Reid/bin/python -B -m pytest -p no:cacheprovider -q tests/test_mgn_presets.py tests/test_mgn_config.py tests/test_scheduler_trace.py tests/test_pcb_presets.py tests/test_config_schema.py",
+  "log": "/tmp/mgn-phase15-final-tests.log",
+  "log_sha256": "9478dc471b1bdf210f00ff1becc029a4b5d880dcf75ed39fdf2be1e0eac6c3f0",
+  "preflight_script_sha256": "4846d48eea300d532f8f9aefac29379f8c159a8edd8ba88f103c02076e23242d",
+  "test_sha256": "094ee3f839de329f96381ba44e72144d4f829c5b892a366a433ec046cafdee7c",
+  "manifest_sha256": "5d0173f2448726520f8a3a3381d88c9683f8a15c74fe81ec9f7131ee7159fdd2",
+  "official_training_launched": false,
+  "live_preflight": "PASS_ALL_FOUR_READY_FRESH",
+  "live_preflight_receipt": "docs/mgn_preflight_qualification.json"
+}
