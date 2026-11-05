@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "status": "PREPARING",
+  "status": "FROZEN",
   "date": "2026-11-05",
   "protocol_id": "mgn_offline_v1_fp32_sgd120",
   "scope": "Original four source scientific contracts retained; one isolated Market1501 LR-milestone trial at40/60, with120 epochs and no reranking. No LODO or computational changes.",
-  "tested_implementation_commit": "569e8d533c1a3b863c2681ad5898160c546364bc",
-  "preparation_basis_commit": "569e8d533c1a3b863c2681ad5898160c546364bc",
+  "tested_implementation_commit": "b72c4a3979ff0d20e3036908bbccb7fce7eb681f",
+  "preparation_basis_commit": "b72c4a3979ff0d20e3036908bbccb7fce7eb681f",
   "human_review_of_concrete_handoff": "PENDING; technical progression authorized by the activated amendment",
   "official_training": "Original four trainings completed and separately registered; this schedule trial is NOT_LAUNCHED and user-operated only.",
   "gpu_uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
@@ -2537,7 +2537,9 @@
       "scientific_configuration_change": "NONE; only train.preflight operational opt-in"
     },
     "scope": "Only add a named schedule-trial admission profile; original four source configurations and scientific contracts remain identical.",
-    "qualification": "docs/mgn_market1501_paper_schedule120_qualification.yaml"
+    "qualification": "docs/mgn_market1501_paper_schedule120_qualification.yaml",
+    "implementation_commit": "b72c4a3979ff0d20e3036908bbccb7fce7eb681f",
+    "qualification_status": "408 CPU tests passed; live read-only admission pending separate receipt; no training launched."
   },
   "experiments": {
     "market1501_paper_schedule120": {

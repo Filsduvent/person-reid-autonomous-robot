@@ -48,3 +48,9 @@ Watch background startup/progress with `tail -n 50 -F /tmp/mgn-market1501-paper-
 Completion requires epoch120 in last checkpoint and scheduler, final selected/final-epoch metric artifacts, final-evaluation log and consistent provenance. Preserve original launch/config/checkpoint receipts before any continuation. A future user-operated resume must use the trial's own `checkpoints/ckpt_last.pth` and identical frozen configuration; the original completed Market1501 checkpoint is refused. Ordinary continuation preserves model/optimizer/epoch LR/selection, not bitwise stochastic replay.
 
 Official training remains user-operated; Codex stops after preparation, tests, freeze verification and command handoff.
+
+## Observed qualification
+
+CPU qualification: 408 tests passed in 90.81 seconds. The exact test command, stdout, hashes and limitations are recorded in `docs/mgn_market1501_paper_schedule120_qualification.yaml`. Original four source contracts remain identical; 57 runtime hashes and seven qualification receipt hashes were verified. History additions are append-only and existing result/artifact documents remain unchanged.
+
+Implementation commit: `b72c4a3979ff0d20e3036908bbccb7fce7eb681f`. The separate freeze revision binds these tested runtime bytes and this trial YAML. Training has not been launched; live admission evidence follows separately.
