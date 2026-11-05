@@ -1,0 +1,72 @@
+date: '2026-11-05'
+status: REFUSED_GPU_OCCUPIED
+exit_code: 1
+observed_freeze_commit: 81d356be37ed0e1c8551bcb020aae7e4633b33a9
+manifest_sha256_at_probe: 0ecba5c92dcb984e296d8e4cdef1e0fd8095f39861e9a0de4f04be0c8a270442
+config_sha256: 4443cc4164562be04ebda92b8d26faba208a44bdd1ca22333db32d5b8ec4169f
+profile: market1501_paper_schedule120
+scope: Real common trainer entrypoint, preflight only; unconditional sentinel before
+  create_experiment_dirs.
+driver_source: "\"\"\"Exercise real common admission; unconditionally stop before\
+  \ output creation.\"\"\"\nimport sys\nfrom pathlib import Path\nsys.path.insert(0,str(Path.cwd()))\n\
+  from scripts import train\n\nclass AdmissionDispatchReached(Exception):\n    pass\n\
+  \ndef stop_before_output(*args, **kwargs):\n    raise AdmissionDispatchReached\n\
+  \ntrain.create_experiment_dirs = stop_before_output\ntry:\n    train.main()\nexcept\
+  \ AdmissionDispatchReached:\n    print('ADMITTED_AND_STOPPED_BEFORE_OUTPUT_CREATION',\
+  \ file=sys.stderr)\nelse:\n    raise RuntimeError('Admission-only test failed to\
+  \ reach the protected stop boundary.')\n"
+driver_sha256: 9295dea40f48bd60548a8c9f674d263e0239d4a280c283154156f95ddb032e5e
+environment:
+  interpreter: /home/addirakoze/environments/Reid/bin/python
+  MGN_AUTHORIZED_GPU_UUID: GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c
+  CUDA_VISIBLE_DEVICES: GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+  PYTHONPATH: .
+argv:
+- --config
+- configs/mgn_experiments/market1501_paper_schedule120.yaml
+stderr: "[Dataset] name=Market1501 role=train\nroot: /home/addirakoze/nobackup/Projects/Dataset\n\
+  format: processed\nsplit: trainval\nnum images: 12936\nnum identities: 751\nnum\
+  \ cameras: 6\nnum query images: n/a\nnum gallery images: n/a\n[Dataset] name=Market1501\
+  \ role=test\nroot: /home/addirakoze/nobackup/Projects/Dataset\nformat: processed\n\
+  split: test\nnum images: 31969\nnum identities: 751\nnum cameras: 6\nnum query images:\
+  \ 3368\nnum gallery images: 15913\nTraceback (most recent call last):\n  File \"\
+  /tmp/mgn-launch-admission-only.py\", line 15, in <module>\n    train.main()\n  File\
+  \ \"/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/scripts/train.py\"\
+  , line 513, in main\n    preflight_receipt = run_training_preflight(cfg, config_path=args.config,\
+  \ overrides=args.opts)\n                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n\
+  \  File \"/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/reid/utils/training_preflight.py\"\
+  , line 52, in run_training_preflight\n    receipt = preflight(source, resume=bool(resume_path.strip()),\n\
+  \              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/scripts/mgn_preflight.py\"\
+  , line 208, in preflight\n    gpu=gpu_guard(uuid,entry['runtime'],entry['maximum_reserved_bytes'])\n\
+  \        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File\
+  \ \"/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/scripts/mgn_preflight.py\"\
+  , line 128, in gpu_guard\n    before=audit_gpu(uuid)\n           ^^^^^^^^^^^^^^^\n\
+  \  File \"/mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/reid/utils/lodo_device.py\"\
+  , line 47, in audit_gpu\n    raise ValueError('Authorized GPU is occupied; no fallback\
+  \ permitted')\nValueError: Authorized GPU is occupied; no fallback permitted\n"
+stderr_sha256: b43ed7e7891b0a555f1b39d1c0901c1f784a1a84372a19bab94a3c1961e95eee
+stdout_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+checks_reached: All file/hash/ancestry/config/environment/pretrained/data/disk checks
+  passed; gpu_guard.audit_gpu rejected occupied GPU before CUDA model/training.
+observed_gpu_processes:
+- pid: 638674
+  process: python train.py --datasets kitti --name kitti_rs --n_frames 10 --ckpt checkpoints/kitti_rs_130000.pth
+  memory_mib: 8498
+  owner: other user
+- pids:
+  - 3894467
+  - 3894695
+  - 3894887
+  - 3895226
+  memory_mib_each: 148
+  environment: dpvo
+  owner: other user
+training_launched: false
+output_created: false
+gpu_forward_backward_or_optimizer_step: false
+limitation: Full live READY_FRESH receipt cannot be obtained until the existing authorized
+  device is free; no workload interrupted and no device switched.
+cpu_qualification: docs/mgn_market1501_paper_schedule120_qualification.yaml

@@ -2539,7 +2539,7 @@
     "scope": "Only add a named schedule-trial admission profile; original four source configurations and scientific contracts remain identical.",
     "qualification": "docs/mgn_market1501_paper_schedule120_qualification.yaml",
     "implementation_commit": "b72c4a3979ff0d20e3036908bbccb7fce7eb681f",
-    "qualification_status": "408 CPU tests passed; live read-only admission pending separate receipt; no training launched."
+    "qualification_status": "408 CPU tests passed. Real admission reached GPU guard and correctly refused occupied device; no training/output creation. Live receipt: docs/mgn_market1501_paper_schedule120_live_admission.yaml."
   },
   "experiments": {
     "market1501_paper_schedule120": {
