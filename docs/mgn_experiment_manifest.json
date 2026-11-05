@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "status": "FROZEN",
-  "date": "2026-10-27",
+  "status": "PREPARING",
+  "date": "2026-11-05",
   "protocol_id": "mgn_offline_v1_fp32_sgd120",
-  "scope": "Part 1 offline within/cross-domain integration; this freeze prepares four user-operated within-domain runs. LODO remains mandatory via later versioned gates.",
+  "scope": "Original four source scientific contracts retained; one isolated Market1501 LR-milestone trial at40/60, with120 epochs and no reranking. No LODO or computational changes.",
   "tested_implementation_commit": "569e8d533c1a3b863c2681ad5898160c546364bc",
   "preparation_basis_commit": "569e8d533c1a3b863c2681ad5898160c546364bc",
   "human_review_of_concrete_handoff": "PENDING; technical progression authorized by the activated amendment",
-  "official_training": "NOT_LAUNCHED; user-operated only",
+  "official_training": "Original four trainings completed and separately registered; this schedule trial is NOT_LAUNCHED and user-operated only.",
   "gpu_uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
   "weights_sha256": "19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097",
   "weights_bytes": 102502400,
@@ -44,7 +44,8 @@
     "docs/mgn_gpu_smoke_contract.json": "24b42d2f60fcf4e914ca99076446d7d6bd21fd14a1da9ff7177122bed8f29267",
     "docs/mgn_gpu_fp32_qualification.json": "53e34fd5649df4e324e67070a15cc4dea8ab97b564be6088231f7f0ea79940ea",
     "docs/mgn_real_source_qualification.json": "bc84fecc681848823fb61d975ee037d54a8789efa68c53284dcba27eed75606a",
-    "docs/mgn_launch_interface_qualification.json": "e5e447ec70917915f7e98460aecaead394aaa2d110e9416c049ca25297c5efb5"
+    "docs/mgn_launch_interface_qualification.json": "e5e447ec70917915f7e98460aecaead394aaa2d110e9416c049ca25297c5efb5",
+    "docs/mgn_market1501_paper_schedule120_qualification.yaml": "9ff40efd3cd24d5ff7476924de573f0f8fd59b54b1ba213b8d26a73a0868c273"
   },
   "runtime_source_sha256": {
     "reid/__init__.py": "23890df54f69800ac493cce4acd5c798968c657678c5cc15c02af71db7dcf24e",
@@ -102,8 +103,8 @@
     "reid/utils/seed.py": "933b9261a77565254b68a1e0d2ede2525eb66dac56b7561a8b40e74e5dbe5c16",
     "scripts/train.py": "6d10e4dedba41f5b5849ccfe5b6a4cea59206c10d390342101dc4c686c248eb6",
     "scripts/mgn_gpu_smoke.py": "7675c71a5df5fa6e76dde6d336c3698f431fc70d41fb50611b1df0fe9fd51591",
-    "scripts/mgn_preflight.py": "52be526b7d91ef4d77d2ece2fc43e0b2449e0313f379f0803ba82d9daabba789",
-    "reid/utils/training_preflight.py": "1b2726e5d9748dad9c620fb72e11b75f828aea453545cc9612b87328016885de"
+    "scripts/mgn_preflight.py": "380f25dcf8e20748220a1fcf95e3fe08af8b69a9b40aa61893aec5cda7b774c0",
+    "reid/utils/training_preflight.py": "527c6279441a9fe3f905ed594d2c873124e6528ae366a7f26d4a8173b7a3000a"
   },
   "sources": {
     "market1501": {
@@ -2521,13 +2522,648 @@
     "No official training, benchmark evaluation, MGN LODO admission, ONNX or runtime experiments executed"
   ],
   "freeze_revision": {
-    "id": "20261027_automatic_preflight_v1",
-    "previous_commit": "b568c6b6ea35014bc5c1a61a26889eb11b9770ad",
-    "previous_manifest_sha256": "5d0173f2448726520f8a3a3381d88c9683f8a15c74fe81ec9f7131ee7159fdd2",
-    "previous_snapshot": "docs/mgn_freezes/20261027_phase15",
-    "scope": "Common-trainer automatic admission only; scientific recipe unchanged. Revised runtime hashes do not identify the previous implementation.",
-    "qualification": "docs/mgn_launch_interface_qualification.json",
-    "implementation_commit": "569e8d533c1a3b863c2681ad5898160c546364bc",
-    "scientific_configuration_change": "NONE; only train.preflight operational opt-in"
+    "id": "20261105_market1501_schedule_trial_v1",
+    "previous_commit": "9ac343ff3a36fcd858f270ef0688233bb2b4ffc0",
+    "previous_manifest_sha256": "b289ea8a1ee1ee03d2a2b41267e0286168241dcda3b07817d864df0f1d8f286e",
+    "previous_snapshot": "docs/mgn_freezes/20261105_before_schedule_trial/mgn_experiment_manifest.json",
+    "parent_freeze_revision": {
+      "id": "20261027_automatic_preflight_v1",
+      "previous_commit": "b568c6b6ea35014bc5c1a61a26889eb11b9770ad",
+      "previous_manifest_sha256": "5d0173f2448726520f8a3a3381d88c9683f8a15c74fe81ec9f7131ee7159fdd2",
+      "previous_snapshot": "docs/mgn_freezes/20261027_phase15",
+      "scope": "Common-trainer automatic admission only; scientific recipe unchanged. Revised runtime hashes do not identify the previous implementation.",
+      "qualification": "docs/mgn_launch_interface_qualification.json",
+      "implementation_commit": "569e8d533c1a3b863c2681ad5898160c546364bc",
+      "scientific_configuration_change": "NONE; only train.preflight operational opt-in"
+    },
+    "scope": "Only add a named schedule-trial admission profile; original four source configurations and scientific contracts remain identical.",
+    "qualification": "docs/mgn_market1501_paper_schedule120_qualification.yaml"
+  },
+  "experiments": {
+    "market1501_paper_schedule120": {
+      "config_path": "configs/mgn_experiments/market1501_paper_schedule120.yaml",
+      "config_sha256": "4443cc4164562be04ebda92b8d26faba208a44bdd1ca22333db32d5b8ec4169f",
+      "resolved_configuration": {
+        "experiment": {
+          "name": "mgn_market1501_paper_schedule120",
+          "output_dir": "exp/mgn/market1501_paper_schedule120",
+          "notes": "Isolated Market1501 schedule trial: paper LR milestones40/60, fixed120 epochs, no reranking. Compare with the preserved original MGN run; no independent validation split."
+        },
+        "system": {
+          "device": "cuda",
+          "gpu_id": 0,
+          "amp": false,
+          "log_interval": 20
+        },
+        "repro": {
+          "seed": 42,
+          "deterministic": false,
+          "benchmark": true
+        },
+        "logging": {
+          "to_file": true,
+          "tensorboard": true,
+          "wandb": {
+            "enabled": false,
+            "project": "reid",
+            "entity": null,
+            "tags": [
+              "mgn"
+            ]
+          }
+        },
+        "data": {
+          "root": "/home/addirakoze/nobackup/Projects/Dataset",
+          "num_workers": 4,
+          "pin_memory": true,
+          "train": {
+            "dataset": {
+              "name": "market1501",
+              "split": "trainval",
+              "format": "processed"
+            },
+            "images": {
+              "size": [
+                384,
+                128
+              ],
+              "batch_dims": "NCHW",
+              "interpolation": "bicubic"
+            },
+            "aug": {
+              "mean": [
+                0.485,
+                0.456,
+                0.406
+              ],
+              "std": [
+                0.229,
+                0.224,
+                0.225
+              ],
+              "mirror": "random",
+              "padding": {
+                "enabled": false
+              },
+              "random_crop": {
+                "enabled": false
+              },
+              "random_erasing": {
+                "enabled": false
+              }
+            },
+            "loader": {
+              "shuffle": true,
+              "final_batch": true
+            },
+            "batch": {
+              "sampler": "pk",
+              "P": 16,
+              "K": 4,
+              "batch_size": 64
+            }
+          },
+          "test": {
+            "dataset": {
+              "name": "market1501",
+              "split": "test",
+              "format": "processed"
+            },
+            "images": {
+              "size": [
+                384,
+                128
+              ],
+              "batch_dims": "NCHW",
+              "interpolation": "bicubic"
+            },
+            "aug": {
+              "mean": [
+                0.485,
+                0.456,
+                0.406
+              ],
+              "std": [
+                0.229,
+                0.224,
+                0.225
+              ],
+              "mirror": "none"
+            },
+            "loader": {
+              "shuffle": false,
+              "final_batch": true
+            },
+            "batch": {
+              "size": 32
+            }
+          }
+        },
+        "model": {
+          "name": "mgn",
+          "variant": "paper_v3_global2048_independent_v1",
+          "pretrained": true,
+          "weights_path": "/home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth",
+          "head": {
+            "classifier": true
+          },
+          "initialization": {
+            "artifact_id": "resnet50-19c8e357",
+            "sha256": "19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097",
+            "head_init_id": "reference_a_384e820_bias_free_v1"
+          }
+        },
+        "loss": {
+          "id": {
+            "enabled": true,
+            "weight": 1.0,
+            "label_smoothing": 0.0,
+            "head_aggregation": "mean"
+          },
+          "triplet": {
+            "enabled": true,
+            "weight": 1.0,
+            "margin": 1.2,
+            "mining": "batch_hard",
+            "feature_source": "model",
+            "feature_aggregation": "mean"
+          },
+          "center": {
+            "enabled": false
+          }
+        },
+        "optim": {
+          "name": "sgd",
+          "lr": 0.01,
+          "momentum": 0.9,
+          "nesterov": false,
+          "weight_decay": 0.0005,
+          "bias_lr_factor": 1.0,
+          "weight_decay_bias": 0.0005
+        },
+        "sched": {
+          "name": "epoch_multistep",
+          "milestones": [
+            40,
+            60
+          ],
+          "gamma": 0.1
+        },
+        "train": {
+          "preflight": {
+            "name": "mgn_market1501_paper_schedule120"
+          },
+          "epochs": 120,
+          "eval_interval": 10,
+          "save": {
+            "metric": "mAP",
+            "save_best": true,
+            "save_last": true,
+            "resume": "",
+            "require_selection_state_on_resume": true
+          }
+        },
+        "eval": {
+          "weight": "",
+          "normalize_feat": true,
+          "distance": "euclidean",
+          "topk": [
+            1,
+            5,
+            10
+          ],
+          "rerank": {
+            "enabled": false,
+            "k1": 20,
+            "k2": 6,
+            "lambda_value": 0.3
+          },
+          "export": {
+            "format": [
+              "json"
+            ]
+          },
+          "flip_aggregation": "mean"
+        }
+      },
+      "training": {
+        "source": "market1501",
+        "descriptor": {
+          "name": "market1501",
+          "split": "trainval",
+          "format": "processed"
+        },
+        "image_directory": "/mnt/hd-data/addirakoze/Projects/Dataset/market1501/images",
+        "images": 12936,
+        "num_classes": 751,
+        "records_sha256": "0ef4f954090f6f569f941b426b1d9ae0011b9a973c69eb955f728b2e53283ab2",
+        "identity_map_sha256": "b2561ff1f8b6fd40a9f4cb05dc5c0d46c55545b0d2ea0f9158637881e2a53113",
+        "file_inventory_sha256": "95b138ac2f499576bbbd4bf81c316fab0165302e277f7818f92c985c31434160",
+        "metadata_sha256": {
+          "/mnt/hd-data/addirakoze/Projects/Dataset/market1501/partitions.pkl": "3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab"
+        },
+        "image_content_hash_policy": "Only actually consumed smoke images are byte-hashed; full corpus is not byte-hashed.",
+        "cuhk03_semantic_protocol_verification": null,
+        "identity_sha256": "a074c14ac50ff687e0835cc548d1d7084054d689aeef167c8fde6bfffd77b91e"
+      },
+      "evaluation": {
+        "images": 31969,
+        "query": 3368,
+        "gallery": 15913,
+        "records_sha256": "f458afab5af6f59f8a9a533ece6dc60e3f1bc02f4f1f9d911b9bdf34e58f9752",
+        "file_inventory_sha256": "69b243d4fcf8a229aaeedcea0fb9ca0ee83e5bad1c4c46ac8d2bf6cac5178818",
+        "metadata_sha256": {
+          "/mnt/hd-data/addirakoze/Projects/Dataset/market1501/partitions.pkl": "3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab"
+        },
+        "image_content_hash_policy": "File inventory/metadata only; full evaluation image bytes are not hashed or decoded."
+      },
+      "smoke_image_sha256": {
+        "00001421_0002_00000002.jpg": "8f3ea71c82e867b53b53bb69d67c059c590d96022d772fbb3215aea7ad78497f",
+        "00000615_0003_00000004.jpg": "75cf2e4473145b233e71daedec90ae4f7d147bff4b3bb086dfcaf04bfc44972a",
+        "00000615_0005_00000001.jpg": "148a681f0436529c16ea816934ad99fccf8a9b200d9a1bbd60cef4f4f3cb1b56",
+        "00001421_0003_00000001.jpg": "26847b5c158924dd907b3320f182e74cf25c20c46ea72488af91a6402b6ff81d",
+        "00001421_0003_00000003.jpg": "0f72b844532d453e984c04922bcaeac35fdeb9f2976d9064e83fce2ad99cd202",
+        "00001421_0002_00000000.jpg": "c4baafed51b044de8f33c754b6799c761552b8819d2b1943a17365993adee01e",
+        "00000248_0002_00000002.jpg": "6e99d2e18d5482a4c969be6dc193bcf30c28fa919259e967236857ca60f36d0b",
+        "00000248_0005_00000000.jpg": "bdac57c92695b568cd77eba2dfac84d4304e5ef2b46ba54c4e96300ecee9b5e6",
+        "00000761_0002_00000001.jpg": "4755434a87df0ae1392a8cd9068cc6f149e67550fb391bb9dae65f249eedc029",
+        "00000248_0006_00000000.jpg": "eff8fa5c02b780d4938acedf2f85dc2b543e1fba2ec5d579d853bdaf3e571bc7",
+        "00000248_0006_00000001.jpg": "1451950ec82f59886f383a66702c20e8c6de798719000249c843fc19d9813489",
+        "00001093_0002_00000000.jpg": "05a4de456ae8399eed7588fefefd1f7909d290e1809c447249199f8e3a9bf365",
+        "00001093_0002_00000001.jpg": "7793cf5c2e0c3cdc931672920b5716e38a2da89bca75219e10cbb3d26d93f05f",
+        "00000589_0005_00000002.jpg": "90ac73446852beeff0aab5d71c126722c396577239ffb48ee86d24c9bd504e64",
+        "00001093_0002_00000004.jpg": "d8003b8bfa077701ecd148958870ae23c3c4b16fb36e9011311fcc0f0928a40c",
+        "00000963_0002_00000000.jpg": "7e968bcd6aed5b90eee758b9c31fc01cf84f326334cf6abc60fd871a2c585732",
+        "00001093_0003_00000001.jpg": "a11faf2dae5a8e870b27c2be9f3c36510968091b22ca0c2a4e8e0fd5ee7f5cc3",
+        "00000761_0006_00000001.jpg": "ef91b858c3c3137f697aab6789056a1447f5bcb08062cee0b71d0b8a5ee6861d",
+        "00000761_0006_00000000.jpg": "643707055d0e43c99c87ca614536e06b162369d8462ae9fabf379401dad384a8",
+        "00000761_0006_00000004.jpg": "8f78e23e92169abb2c28e58f90fc882a8d77bed50c61688f0eccaea535e29f51",
+        "00000589_0006_00000002.jpg": "e8a1013cf5fdcafacb1271370dc7f4a6819184214b62283767581539371eb104",
+        "00000963_0003_00000002.jpg": "7a8646b79167e3982f2ee8a493c2cd01e1443326bc956fa4e1ef705f9172207f",
+        "00000166_0001_00000000.jpg": "6515ab7cfb34e2101e893d5a34ccea337157f840510e526585e6de702e0df743",
+        "00000166_0001_00000001.jpg": "595b5bd528724ec70f696e3323d61a1bde268d3c981330ff93be5cef1c31b04e",
+        "00000166_0003_00000000.jpg": "10be9c67aa4084db085857f794eaf99c049c947b98ee2f7703f775a357143290",
+        "00000589_0006_00000014.jpg": "e0c48b7886e201b14e3cb9d9c1f434090cb31ce10a99a1bf4459aa1586fab6af",
+        "00000963_0006_00000006.jpg": "5a7ca4cfb48e05a97da5165e9636e0a58e4a3a969954ec1cb1e4da75ab7529ab",
+        "00000166_0005_00000001.jpg": "b58873bbac446b37b64eaee2b2899a5867f9a89c1e5351481ecab1004431434a",
+        "00000963_0006_00000007.jpg": "675a244758338b88d1294f4baf2c5a917044da7a7fb246dd57de00ccf8190efb",
+        "00000107_0001_00000000.jpg": "4df2e58eb1add3280c9b8f44648826b459c53d2eebf8b288c1a131ca31b84023",
+        "00000589_0006_00000016.jpg": "d0afc169a9001206088862cb989661feca2736c9e19a39bb70dc84fce185647a",
+        "00000622_0001_00000000.jpg": "8b9674d53f226b56f34974f62301f04381083ece75a481d1a4c39e7e910e5318",
+        "00000890_0002_00000001.jpg": "922aa8ec2f93141d3a5010e3ce717dcf057981eb95c67cefa3679a2cc61120ee",
+        "00000622_0002_00000000.jpg": "3c9a1dd1c5b536f9a239ecd433059f43aecb70c12936fba54b10c23bd1ce89e0",
+        "00000890_0003_00000000.jpg": "13aad72a7c4807c34f78e1421befc17881244e650c80f53758d679b36f4fa5a8",
+        "00000774_0001_00000002.jpg": "eb37f4e6feeabb0f00c64319eb664c44ca1377451811c55e82461c0892efcb18",
+        "00000622_0003_00000001.jpg": "4896dcf9f40132ae86970abdffbf0f44a0ed9d612c93a2e56c97f15b7f6322bf",
+        "00000622_0006_00000000.jpg": "5cd26f2c57d7ba7437e47df1514f9ab5dcd6606341e2d42ce375bb83178e23cf",
+        "00000774_0001_00000005.jpg": "fc46cab5bae3b6a5ec9dec6f6ceed454e2221a316082746d9503d7a241fe66ca",
+        "00000107_0003_00000000.jpg": "7539e62adbd6a6c47620e6e903d606ec08617925ea317f9cddc68f8dd6eeac57",
+        "00000890_0006_00000001.jpg": "754dd33c3c9a10627b4f111bc071e4b4a2020fc8fbdf1851f54043c642741cd6",
+        "00000774_0002_00000002.jpg": "32bee2fe9e808efc4c35e9f0521b55fbe2d9bd6fc16c8ba0dd6a75d3f2f58cb5",
+        "00000890_0003_00000001.jpg": "5be7fa4610efb7b938d74df21cafd03592bcd149894b039538872798ef778641",
+        "00000774_0005_00000002.jpg": "3a31f8f8fcbddcefeea88de82cf8805fd08ea8e54c781bd75a507ab94fe97b68",
+        "00000107_0006_00000001.jpg": "f22b0fbb138dbd9eadbdde6bd95cab3273906c65765446546b8cfdf110fedd8b",
+        "00001295_0001_00000001.jpg": "097af877ab245b0361defc65d2467811c37ae49086aa0ed2c350f39c5d38f71d",
+        "00001231_0001_00000001.jpg": "fff3e543c0ba2a9eb61faec0926f4ab5d286d81669bae6cf97070e4d040b4c7c",
+        "00001231_0003_00000000.jpg": "064971d5073bf0af53f317086d5040eb9b5723945c5c4d51a7d47eb6e71d8a5b",
+        "00001295_0003_00000000.jpg": "0e5dcb3aca1003cc8b1f4faf2932eca8cdf48f322c259a80388b238ad7ae86c8",
+        "00001295_0001_00000003.jpg": "85c082908a8bdf26c5b0dc60bc1a7494cb4b874497eb73f236f703d9c6f77e58",
+        "00001295_0003_00000003.jpg": "fd063e45b158d81539a4fa514dbe2f26527f3759df9d53b75cc41b52765090ce",
+        "00000667_0002_00000000.jpg": "4bacd31c07e56ca31f4a77c192d860b9197d5edfd2cce44507e01f6312433566",
+        "00001231_0006_00000000.jpg": "a39b6c038b9f6073034618783cb521f3607f479395327d830eb171068bd951e1",
+        "00001231_0005_00000001.jpg": "3a4be0813eaeaaa236ff9b7f6789187e04b9832de2fec10181719d654c89a69f",
+        "00000546_0001_00000000.jpg": "3108cecdc9c9d8da4de15cf9bb377b21bde7031d7f4741d4aad4703b8f748077",
+        "00000107_0006_00000017.jpg": "fb66470be800c4f9889f39abcd3622368840f00e258be570de9d132fecb728e0",
+        "00000546_0002_00000001.jpg": "25f7aa91fde76766ba1949ae70f22136bd7fbfb418731cfa70cfb0646b15d75b",
+        "00000546_0002_00000002.jpg": "9e6186d01f0b00ce11c79cbbec0385b5d4bcd1ac96b8ff684eb38cf7cc3ed9d6",
+        "00000667_0006_00000000.jpg": "f425ea2402940b1afa1ea53b0493672ee00071456c364e0ecbc4111fe11a36b9",
+        "00000667_0006_00000001.jpg": "3bca52b9dcaa0e5e780e0ce51c78fbde6ca4ba064ec71eb378955759650d8dfa",
+        "00000546_0003_00000002.jpg": "c13a6b74869e1bdbbe1fbe709cc812d66fa224f69548e5d728307d12cadc6322",
+        "00000667_0006_00000003.jpg": "5a1311e8cb0272bfc59d9219a30d666656b3ba25a743d81145eeaee7528c6158",
+        "00000615_0003_00000000.jpg": "3eeb885b070bba942f311057032cf9f71dc97742fc2182ae5460b7198ad0afc8",
+        "00000615_0003_00000001.jpg": "9b0499a14c40bfa94c7099de8b19cd0f671a63ed2a1d89e8e5e930094dd78f37",
+        "00000212_0003_00000000.jpg": "353eda7bc0367dc66d74b126bdf3d1d5f80f09e4046cc512658a6bddd5dc8a1f",
+        "00000347_0003_00000002.jpg": "98eec58d92975f0099468118aeb5c286539c3ce249d293ce389f14c6103916c3",
+        "00000434_0003_00000000.jpg": "6cc3fde77ff591fe41fa314f4cd4ee5bebbae471755bff0f85bcca5966bd23f9",
+        "00000724_0006_00000001.jpg": "8769f0588e03348b8b064789c01286b0e68851358da19d4d326637d1d2d30e03",
+        "00000434_0005_00000000.jpg": "566bea88e0e4c59757512f4daae3f91e162d481e7ddec7e359cae515694fbb01",
+        "00000434_0005_00000001.jpg": "05612d751b7f9b918be6c207ca6f50b78e8a19ba8a5a666db18ce2e5a247c58c",
+        "00001479_0001_00000000.jpg": "e71f1a20bd4cc56f004d52bdbb3f707ad5b069186c2d1b212b5555ac08e79cee",
+        "00000434_0005_00000003.jpg": "78a7946ac7d53505961afd692206188b0d30b00c30a6210ad27329cb27fbf120",
+        "00001479_0001_00000001.jpg": "1f1fc4dd8f3f48592dded21f064982d959ff543d75b0c652c8cf2844fd6aaafb",
+        "00000347_0006_00000001.jpg": "6ffc491a99b9687698e04aff60ca7e8d9f0406334745bc154b48f936ddb88696",
+        "00001479_0002_00000005.jpg": "b8e0226b1a9a118fad90d2e9224aae30dbc30af6dc96a4036a8f0839a5cb7189",
+        "00001479_0003_00000002.jpg": "642f0b31066c4877143db1da70a383e4dbcaac2e2d5e1d4a60a0d549f0f5cd03",
+        "00001406_0002_00000000.jpg": "ce47dac5c71fa6d2d309b2315f1b29db7640c4b654bb915b9edee7be65a5c7de",
+        "00001406_0002_00000001.jpg": "0ba50bc43e240b27f1415fcfe451fffb3cbd995001a6167f659ab05b061ebf1f",
+        "00001406_0003_00000000.jpg": "5646b0caddac1b3bb5f9caa0ccf6ffdfc40727a9ab9d3c85fbfb1a6cdbb358fe",
+        "00000437_0001_00000002.jpg": "662b5820d74a0b94981550b89bcc27ad6f3966f2d505a585839d49ad32e258c8",
+        "00001406_0005_00000000.jpg": "4d5f7db5b375661f21931a9c697673f8c309b06721014769be5556e010a2203b",
+        "00000437_0002_00000001.jpg": "2eee646e6d1b904ced9a5ca36d90aff1a195326f49058355a662db6031c83e11",
+        "00000437_0002_00000000.jpg": "aed123f66934ee473456462c98f0b1bfe7faa089e6eedcc859c57c35ed29a072",
+        "00000179_0003_00000002.jpg": "fe4c7aa8b8aa4886fb3248367ad8689fd7e522786c6cce860eba00124287d941",
+        "00000179_0001_00000000.jpg": "1e25264a1b26d352b07ae892bd86625792a8312c34a2645dcffb342f7e642cef",
+        "00000179_0006_00000001.jpg": "01188d70f36bc434b56fce84a10aa942c389101c05fac7470966ab05592db30e",
+        "00000437_0003_00000005.jpg": "8b40c9eb3b75bc7affe787d02bd50c13e87176b7c8dcbb4b412b3e36672a5326",
+        "00000179_0006_00000004.jpg": "ffb387d851ae3bd5062179934d9850d330b26509c4f88927ddc2de9b34260b25",
+        "00000107_0001_00000004.jpg": "2c73075e79e105f62a98b94ac70216ad17c3ebf2a2ee0ce5df42949862011b65",
+        "00000854_0002_00000000.jpg": "da3006036efc4c401898dfeeb4545bb932bfb3c16644ca38d2abf1509db38e58",
+        "00000854_0002_00000001.jpg": "8a86d458cb16651a50f8ca32d5ef4ff0274c07f95af967af0844eff6e80dfa14",
+        "00000854_0002_00000002.jpg": "a1250ae70aec8f7e93b04c17081915aba8a3d1ac75a14a341bc88eeb66898e7a",
+        "00000854_0003_00000000.jpg": "03f260d97dff16332ccc4705021d8b68082e56a79ea3b30e453c9b4d868ca388",
+        "00000030_0001_00000000.jpg": "d4d3038ce6b7b270bd8ecc18157adede170f8e8d27bddd1bdd9c963d84f0b42b",
+        "00000030_0001_00000001.jpg": "7c5f57e07de0f7328506adf4a90ec4d6b99da5e0aa9dbd57bf0277287d5f692b",
+        "00001242_0002_00000000.jpg": "78255913a7dd87d055d78dcd97e30e0b061a1f2a2d203cead9ef478dbf508a62",
+        "00001242_0002_00000001.jpg": "6b090ba2e87cec7ed05cc72d33fdbed4f4b759d2bf73f53eff022b59d19f27e9",
+        "00001242_0002_00000002.jpg": "8d87f9b1787f1654cfa081d50944977c50af1f4057eff9b9cd3a8f2c768dd83e",
+        "00000107_0005_00000001.jpg": "281a8f4621ff0dbe3493e2d58259c9db4c6f9e80725c3b7d4f52155011f0b286",
+        "00000030_0004_00000000.jpg": "03ba6397539e348bb9755b5ca0baf8bed85559b7ea4f8d5e70a11fc710e4c603",
+        "00000107_0005_00000004.jpg": "f412127b7581567c261d38682c45af2f9fee746081676c35ec805dfc3ddcf2c4",
+        "00001242_0006_00000001.jpg": "12b60c87f5cf9b01e6a2926c7cc5d0b1517ad2f170c763275d364005cee34481",
+        "00000030_0003_00000000.jpg": "ec1d7bca4a8d31b38288a82a5b518c15b6d05d84483be936d30e9b37e59a89e6",
+        "00000636_0005_00000000.jpg": "c2ba8208d5c12db2963de37a6397f4434bb020604ef53828a4080fc4b9c0aba5",
+        "00000636_0004_00000001.jpg": "15a5163269c4285d35843a0707a837365ee92fc7207e06878b030cd5062b902f",
+        "00000636_0004_00000003.jpg": "4ba83c2472c6bf6ca79d676b3624a81ed506e076ec07adfa2db4fcf3013cb383",
+        "00000636_0006_00000003.jpg": "90f59eeaa7f0650cf2ca0ae15d4c864c058c61dad37251bdd5db4c311efa2050",
+        "00000347_0002_00000001.jpg": "38ded3e289c38945bb68a96600ca8d91536950fbcff6079d0cb6818e7bfae30d",
+        "00000107_0006_00000009.jpg": "45053fbded6da4dbdcdcf7ef42e19c1f3db76244d5e4a0b4653ff66dfeee90bf",
+        "00000070_0001_00000000.jpg": "12cb1777ff1b6835b34799ff77a25533f29f6bb15d351303141602d9abba2abf",
+        "00000070_0003_00000000.jpg": "054cc88481e7a1aaa8d5829fdff66d74483ae98f1a36ca29eceaf05afb138c87",
+        "00000070_0004_00000000.jpg": "1153d2782d442a42d9d034ba06917a12f782e12e2f064295d52745a32097108c",
+        "00000070_0005_00000000.jpg": "f37cedba917bb1eb2ba713445b47b50061765dd1a94fbfd31fffb027aaed3b66",
+        "00000209_0003_00000000.jpg": "e94795e286fef5ace6447297a23ab4e0229f35c853507465721ccb57d8c742af",
+        "00000209_0005_00000005.jpg": "4e36685a34abdf453f0cbe2959a04f948899e5e2e57a3b87be9ffa9f643be769",
+        "00000724_0001_00000001.jpg": "b094164f337bc0c3b52d6dd739c4271167db87bc646714f39577ee10454b22c2",
+        "00000724_0001_00000003.jpg": "83993d595b21f2ccec078e144814ee04da5f88033b755c2499ba9db0a64bb01a",
+        "00000209_0006_00000004.jpg": "3a02fe96e70b0d728b82cb508abd15bc3fbee0d5487a4fba5917351e986646bc",
+        "00000724_0003_00000002.jpg": "9522dd58f7adb32c2799f7a6dd003d14f815604329967c47d52b4893a3763951",
+        "00000209_0006_00000006.jpg": "f8b8d1042fbbbfd323a3497aae335196454cd6486513081a0641f018693d32de",
+        "00000282_0002_00000000.jpg": "1b8796e5193b5d22ea24e817029229f99e34a62121d8f0a55393965b663dad68",
+        "00000282_0003_00000000.jpg": "1bab39c489e69e4f69873c0121d6775489a1b9422a60ee0167a7f9ba6b18d3c0",
+        "00000282_0003_00000002.jpg": "4dafb058c022f596c89c028ec3b36e9a1f80c060f19926cb45314fcb6c58ee28",
+        "00000282_0006_00000001.jpg": "e42b076f94d47697cfdddbea75baa91eb4a34e8a036bc4385df3f78d693305a0",
+        "00000347_0002_00000002.jpg": "fc04f3d05b2a5c1adf5430fe0a4b63004a95be568b88b2ef823448761ca7cc8b",
+        "00000212_0002_00000000.jpg": "e7ffc7d64cfdbeec120540f03d3e99937e229e96000205dd83b6cbc6773e21c4",
+        "00000212_0002_00000001.jpg": "a2fd359eb1775111425ed75560f421f3eea69296800ccb10469469fa7ebb548f",
+        "00000212_0002_00000002.jpg": "71c6d7303114126f0bcae522c510acbece4ff1d3d1b95472e562db1244c03197",
+        "00000111_0004_00000001.jpg": "9f7276f9fed26794020c1c9085a8d543a41601affc53c6f170bc5b4196978065",
+        "00000385_0002_00000001.jpg": "608a02fa0e4b9184117a433bdc4baed545cb67e1af6fbeb8f08e0e5a690411f6",
+        "00000385_0003_00000001.jpg": "07bea10f27d0ffc71365420ca4db00b5368f8fe4a40a2de5a82188b79ee1a8a1",
+        "00000111_0005_00000000.jpg": "22f8776dfed6dcbe01e037ceda77a8c36da382599182302340a4f9d54d9e0aa0",
+        "00000385_0005_00000000.jpg": "02c7d105d9e0c7083b3276c4fe4626aa37ea421fd2e3f9b91cc551ffb5bc40e1",
+        "00000385_0005_00000001.jpg": "d1d0bd34ded7e29354b96742682bf55534f93fa86e3272f5893a530d2a018570",
+        "00000111_0005_00000004.jpg": "eec020c2ba580c18447462d263fdbb12f4b93aff0e9e29c8e8b9d705d7ba29f4",
+        "00000234_0003_00000001.jpg": "1abe68f6969a6e39a42c8d4d741ae0389a18a6ed91af32130d930e45d4dfd3bd",
+        "00000160_0002_00000000.jpg": "c74559c2150c74abef667753271b29315f7dc4e59d31b5c7a734d24c0b3e0258",
+        "00000105_0006_00000029.jpg": "575e40d52a2b3474ad3de1d21d914877138aa5b1a803a579adf03b73bb561fb9",
+        "00000528_0002_00000000.jpg": "34551f306cc9c01f54c07b61d6b10d09da231daa5a291b3db4cca800769fb400",
+        "00000105_0006_00000031.jpg": "20c0b4dbda3e3301f1a1853993fc9c64874f465e66277e89ca549500f89a32c5",
+        "00000160_0003_00000001.jpg": "77767489088ea1fffc87382f85b1c28c3aedab8634f9ce68b6123b90ad205aad",
+        "00000528_0003_00000001.jpg": "db8dc154337dfab17d85a4f0b6a561c55cee5ea600655e72b440a95493232cf3",
+        "00000160_0006_00000002.jpg": "846187c801d847afda2f7c41e60221e97181edbf3ac29f785c74d8673d238f24",
+        "00000528_0003_00000003.jpg": "7594ca79d4879a5d20fa4834034d25e43336554dc2c8ceb9ba1300825d9f26b5",
+        "00000160_0006_00000004.jpg": "968afaf632ae8caaf13bacc2169790abf953e05abdbf85a5327f740ca0412aff",
+        "00000528_0003_00000000.jpg": "c0d774c7a1562b235317d9d4f1103b0d90bf138cb00f902b9d6b32ac29b3336e",
+        "00000234_0006_00000002.jpg": "276a9dd56796372ae1b916c26df13567997b5bef6afcadff18ad492a40c0bbee",
+        "00001240_0001_00000001.jpg": "fb236e977fd8969fcc713fae69c4a905dd894d1c401ca579e30e53f1bbc20c59",
+        "00001240_0001_00000002.jpg": "0e6374a67240bdbb7c30e56c22ca665fa88595d3fd0ec3829a769bfd979e03c2",
+        "00001240_0003_00000004.jpg": "374607bd97c628b319ae35bd15d7513805eba818c1bee0b5e9ee5be76a9e459d",
+        "00001240_0006_00000000.jpg": "b8dab8273cb7ed021a55c70f6c2a3e2cda296e5ec6e91a28c5eb250b0a14ccb8",
+        "00000714_0002_00000001.jpg": "3a334d26469a69aac3f3858fc2c62a60cc72910e9a736717670be9091e5a456d",
+        "00000714_0002_00000003.jpg": "ac18b6732f3db3303a82077a740c2f9302fe00f117ca142a3a0303fa2efac0f0",
+        "00000605_0004_00000003.jpg": "d6edf813f6195d281ee22f00b82f88883f95c2d2d5ef320521f8213f0bfa9100",
+        "00000605_0004_00000004.jpg": "fe21557368c9db70899ab4143d741c213fbbc2c196a58a8537fe3ff44b44ae7b",
+        "00000714_0002_00000008.jpg": "02422ec37fe702281bba6915c7153c3912082399ddad6efc6179ae9c73fe6952",
+        "00000518_0001_00000001.jpg": "6c1cb5c0093054193433ac511845cf65f2ac44b7b5e0748f92c7c164d1ad1271",
+        "00000714_0003_00000001.jpg": "fe16da944133ec1148137b2fffea8bd250229c1391cc1aba268d76c9025ee0be",
+        "00000020_0001_00000000.jpg": "af054f144e5d29f1c218305eafaf762ee73c57a86ce80204cdda683d98a5f45e",
+        "00000020_0004_00000000.jpg": "54b597facce81e012d235da23da830f377284184b47ed702d4e4a0f9e7bb6cee",
+        "00000518_0004_00000002.jpg": "d21470287f9cf3407aa59cf4cf0b17fb4e615ff844cf15d2ab1123c8519870fc",
+        "00000020_0004_00000003.jpg": "69b96abe33609709178526b9b5ded8edc7c937e737eac577148632cc37cb1dd6",
+        "00000020_0004_00000004.jpg": "6d559b64441fc5f965d84716d33a079cac50ab329bbc89c7c62ffda2d50fdfd9",
+        "00000518_0005_00000001.jpg": "e244c1b172d69713ba169e368e2e618efd796b24b9532f350a65466d3a24496d",
+        "00001420_0006_00000000.jpg": "68fb1084703205ae6baadf58358d5386812d1937cf94e98dce9a95ed5e571521",
+        "00000518_0003_00000000.jpg": "6b48228869fc6be04876b0aae40af77c81665a768ee5941a1cd76f5bd6727311",
+        "00000605_0005_00000002.jpg": "1bfa9e67884729d07a0001a1ab00b93f05eddfe8fafe0f5e10cea070bbd78e41",
+        "00000652_0001_00000000.jpg": "8933c77571df2d25e25cf62d3cd27243564cab23ee65a579995fcc07b183cd2c",
+        "00000652_0001_00000001.jpg": "00aaab198e29bca6fa3a960c81c329bc17ff76442ea268896cae27bff1fef2b5",
+        "00000105_0002_00000002.jpg": "77d0f2f652dd5e26792fec849d072527f58184f95bbdbf247e6af1f98b80f37d",
+        "00000117_0001_00000000.jpg": "ec2581df5cadf601bc2a8f965830f8e38ba470845774d2ec5ecada4c8c7e3e70",
+        "00000117_0004_00000000.jpg": "4accf6db1352b168b92461c6f21dde91ed10287f4414fc602ef5936c460f846b",
+        "00000117_0004_00000001.jpg": "7ac39d532c3911b88a244c894a4a7e77b3bece08bc242be5bdc5f9886049a241",
+        "00000117_0004_00000002.jpg": "48c6a184d6f7edb92a296d3c8b24b4c39ea3f055b5502fb20342929d823307ce",
+        "00000605_0006_00000012.jpg": "3dc089b26f8eec025a7f3f2845b3b2db3849d1ab863c4be039e0e48b924830c9",
+        "00001056_0001_00000001.jpg": "8b80817950f4651d53edbbb774b4ca2aca99a614f129d56864a96b7fc1ac1dda",
+        "00001056_0003_00000000.jpg": "6da37980ddbf1cf8e7308da359d565c840608573e68b4c9aa2d88fbf02b8e4e6",
+        "00001420_0001_00000002.jpg": "9fbefeb77bf4f97361fc94c0e89b95f9eaeb729d8e1fbc29ca7978f04236daad",
+        "00001420_0001_00000003.jpg": "21c614e8379245687099b24402b3fe16bcb22ad957d265e6d125ee89001ea956",
+        "00000652_0006_00000003.jpg": "e280ed1d4c8a3ad097dd6634b7334e07522363be6d248768b68e0da5085ecca1",
+        "00000652_0005_00000000.jpg": "fe47be22bdbc535302b8d354ae9da08ad80945b95ffafbe2e28dd38b51963315",
+        "00001496_0002_00000001.jpg": "96317a3b72a116dbe2c10866c5a44df834dd0ee3b6f3bc848ecd1d7717ac9fed",
+        "00001496_0002_00000002.jpg": "0f4ce4de608a8d83a6cbd6080c6ea2fceca4c1c599c0c999d40ae8eb8a758ffc",
+        "00000105_0005_00000012.jpg": "ded4cfcc41ba88cf6c7a2fa3626c9fed6720a867c10390140f9cf3b4148057e2",
+        "00001496_0003_00000001.jpg": "125f5207dddcce18a4dfdfc7c7952b4325da767e204eff37b75a74271d4bebde",
+        "00001056_0006_00000004.jpg": "a3d04b356665db4fe029251b946e2c2bd7877932984e5f9592d05d30ab18f617",
+        "00001056_0006_00000005.jpg": "1ef22973d7bb4df75948cff2a36d69c026fb0b6ca7aaeb7b67e521b21cbf351a",
+        "00001420_0006_00000002.jpg": "aad7ac8761d77cfe68ae15b5e6e1d727ae813ee61aa68dd3333604df0efff7bd",
+        "00001496_0006_00000000.jpg": "49c8ec40b346977f13f528f28b29685ee100603c2d063b458aec1915ec42d669",
+        "00000234_0002_00000001.jpg": "ebc4006b222f2c8c983716d320802b9ecefa3edc29bd3007e233889d740ced65",
+        "00000234_0002_00000000.jpg": "e65e1b2f09e9d7adecf7436046f9bb25f6a0933ae706d9943b08eca211c78eb3",
+        "00000111_0001_00000000.jpg": "49958414e7cf8538974937ed6fa3649dfef80594b4f2b09a951369d4c4c9b85e"
+      },
+      "planned_fresh_budget": {
+        "unit": "optimization updates",
+        "epochs": 120,
+        "batches_by_epoch": [
+          183,
+          184,
+          184,
+          183,
+          183,
+          183,
+          183,
+          183,
+          184,
+          184,
+          184,
+          183,
+          184,
+          183,
+          183,
+          184,
+          183,
+          183,
+          184,
+          183,
+          183,
+          183,
+          184,
+          183,
+          183,
+          184,
+          182,
+          183,
+          184,
+          184,
+          183,
+          183,
+          184,
+          184,
+          183,
+          183,
+          183,
+          183,
+          183,
+          184,
+          183,
+          184,
+          183,
+          184,
+          183,
+          184,
+          182,
+          184,
+          183,
+          183,
+          184,
+          184,
+          184,
+          183,
+          183,
+          184,
+          183,
+          184,
+          184,
+          183,
+          183,
+          184,
+          184,
+          183,
+          182,
+          184,
+          184,
+          184,
+          183,
+          184,
+          183,
+          184,
+          183,
+          183,
+          183,
+          184,
+          184,
+          183,
+          183,
+          183,
+          182,
+          183,
+          183,
+          183,
+          183,
+          183,
+          182,
+          184,
+          183,
+          184,
+          183,
+          184,
+          183,
+          183,
+          183,
+          184,
+          184,
+          182,
+          183,
+          184,
+          184,
+          183,
+          183,
+          183,
+          183,
+          183,
+          184,
+          184,
+          184,
+          183,
+          183,
+          184,
+          184,
+          182,
+          183,
+          183,
+          183,
+          183,
+          183,
+          183
+        ],
+        "total_updates": 21999,
+        "image_presentations": 1407936,
+        "index_stream_sha256": "a7ff1c89c28b377641c5f6f2a10c4e1022448c23dbb1844935305ad03ea5ed29",
+        "caveat": "Fresh uninterrupted sampler seed42 only; ordinary resume does not restore sampler/RNG trajectories."
+      },
+      "runtime": {
+        "torch": "2.7.1+cu126",
+        "cuda": "12.6",
+        "cudnn": 90501,
+        "gpu_name": "NVIDIA TITAN Xp",
+        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "visible": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "precision": "FP32",
+        "cudnn_benchmark": true,
+        "cudnn_deterministic": false,
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": true,
+        "torch_architectures": [
+          "sm_50",
+          "sm_60",
+          "sm_70",
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90"
+        ],
+        "environment_controls": {
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "PYTORCH_CUDA_ALLOC_CONF": null,
+          "PYTORCH_ALLOC_CONF": null,
+          "CUBLAS_WORKSPACE_CONFIG": null,
+          "NVIDIA_TF32_OVERRIDE": null,
+          "CUDA_LAUNCH_BLOCKING": null
+        },
+        "driver": "570.211.01"
+      },
+      "maximum_reserved_bytes": 12144607232,
+      "qualification_code_commit": "b71955132177f51f2573a839b1ee2184b41ede7a",
+      "qualification_configuration_sha256": "bb9032d0a56cab3ccad55d88c066c859cbca1582c8bcc08aedc3e0f38edf4f71",
+      "scientific_delta": {
+        "sched.milestones": {
+          "baseline": [
+            60,
+            90
+          ],
+          "trial": [
+            40,
+            60
+          ]
+        }
+      },
+      "baseline_control": {
+        "run": "exp/mgn/market1501",
+        "final_selected": {
+          "dataset": "market1501",
+          "split": "test",
+          "model": "mgn",
+          "epoch": 70,
+          "checkpoint": "ckpt_best.pth",
+          "mAP": 0.7100086212158203,
+          "mINP": 0.34995803236961365,
+          "Rank1": 0.8818289637565613,
+          "Rank5": 0.9483373165130615,
+          "Rank10": 0.9664489030838013
+        },
+        "resume_caveat": "Baseline resumed from epoch86; trial is fresh. Identical uninterrupted sampling/RNG trajectories are not claimed."
+      }
+    }
   }
 }

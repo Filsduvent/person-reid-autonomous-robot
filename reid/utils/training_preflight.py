@@ -5,6 +5,11 @@ adapters, not executable paths supplied by configuration.
 """
 from pathlib import Path
 
+PREFLIGHT_PROFILES = {
+    'mgn_offline_v1': None,
+    'mgn_market1501_paper_schedule120': 'market1501_paper_schedule120',
+}
+
 
 def validate_training_preflight(cfg):
     if not isinstance(cfg, dict) or not isinstance(cfg.get('train', {}), dict):
@@ -15,8 +20,8 @@ def validate_training_preflight(cfg):
     spec = train['preflight']
     if not isinstance(spec, dict) or set(spec) != {'name'}:
         raise ValueError('train.preflight must be a mapping containing only name.')
-    if spec['name'] != 'mgn_offline_v1':
-        raise ValueError('Unknown train.preflight.name; supported: mgn_offline_v1.')
+    if not isinstance(spec['name'], str) or spec['name'] not in PREFLIGHT_PROFILES:
+        raise ValueError('Unknown train.preflight.name; supported: ' + ', '.join(PREFLIGHT_PROFILES))
     return spec['name']
 
 
@@ -37,15 +42,19 @@ def run_training_preflight(cfg, *, config_path, overrides=()):
         return None
     from scripts.mgn_preflight import preflight
     if cfg.get('model', {}).get('name') != 'mgn':
-        raise ValueError('mgn_offline_v1 preflight requires model.name=mgn.')
+        raise ValueError(f'{name} preflight requires model.name=mgn.')
     source = cfg.get('data', {}).get('train', {}).get('dataset', {}).get('name')
     resume_path = cfg.get('train', {}).get('save', {}).get('resume', '')
     if not isinstance(resume_path, str):
         raise ValueError('Training resume must be a checkpoint path string.')
+    profile = PREFLIGHT_PROFILES[name]
+    profile_kwargs = {'profile': profile} if profile is not None else {}
     receipt = preflight(source, resume=bool(resume_path.strip()),
-                        configuration=cfg, config_path=Path(config_path))
+                        configuration=cfg, config_path=Path(config_path), **profile_kwargs)
     expected = 'READY_TO_RESUME' if resume_path.strip() else 'READY_FRESH'
     if (receipt.get('status') != expected or receipt.get('source') != source
             or receipt.get('training_launched') is not False):
         raise ValueError('Training preflight did not return the required admission receipt.')
+    if profile is not None and receipt.get('experiment_profile') != profile:
+        raise ValueError('Training preflight returned a different experiment profile.')
     return receipt

@@ -15,6 +15,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))
 from scripts.mgn_gpu_smoke import (SOURCES, authorized_uuid, file_hash, canonical_hash, source_provenance)
 MANIFEST = ROOT/'docs/mgn_experiment_manifest.json'
+EXPERIMENT_PROFILES = {
+    'market1501_paper_schedule120': ('market1501', 'exp/mgn/market1501_paper_schedule120'),
+}
 PACKAGES = ('torch','torchvision','numpy','Pillow','PyYAML','tensorboard','matplotlib','scikit-learn')
 CONTROLS = ('OMP_NUM_THREADS','MKL_NUM_THREADS','PYTORCH_CUDA_ALLOC_CONF','PYTORCH_ALLOC_CONF',
             'CUBLAS_WORKSPACE_CONFIG','NVIDIA_TF32_OVERRIDE','CUDA_LAUNCH_BLOCKING')
@@ -68,8 +71,8 @@ def planned_pk_budget(labels):
         caveat='Fresh uninterrupted sampler seed42 only; ordinary resume does not restore sampler/RNG trajectories.')
 
 
-def output_guard(source,cfg,*,resume=False,root=ROOT):
-    expected=root/'exp'/'mgn'/source
+def output_guard(source,cfg,*,resume=False,root=ROOT,expected_output=None):
+    expected=root/expected_output if expected_output is not None else root/'exp'/'mgn'/source
     supplied=Path(cfg['experiment']['output_dir'])
     if not supplied.is_absolute():supplied=root/supplied
     if supplied!=expected or supplied.resolve()!=supplied:
@@ -149,7 +152,7 @@ def effective_configuration(frozen, configuration, config_path, frozen_path, *, 
     supplied=configuration['train']['save'].get('resume','')
     if not isinstance(supplied,str):raise ValueError('Resume must be a checkpoint path string.')
     if resume:
-        expected=ROOT/'exp/mgn'/frozen['data']['train']['dataset']['name']/'checkpoints/ckpt_last.pth'
+        expected=ROOT/frozen['experiment']['output_dir']/'checkpoints/ckpt_last.pth'
         path=Path(supplied)
         if not path.is_absolute():path=ROOT/path
         if not supplied.strip() or path!=expected or path.resolve()!=expected:
@@ -159,16 +162,25 @@ def effective_configuration(frozen, configuration, config_path, frozen_path, *, 
     return configuration
 
 
-def preflight(source,*,resume=False,configuration=None,config_path=None):
+def preflight(source,*,resume=False,configuration=None,config_path=None,profile=None):
     from reid.utils.config import load_config,validate_reid_config
     from reid.utils.config_schema import validate_config
     if source not in SOURCES:raise ValueError('Unknown frozen MGN source.')
+    expected_output=None
+    if profile is not None:
+        if not isinstance(profile,str) or profile not in EXPERIMENT_PROFILES:
+            raise ValueError('Unknown frozen MGN experiment profile.')
+        expected_source,expected_output=EXPERIMENT_PROFILES[profile]
+        if source!=expected_source:raise ValueError('Experiment profile/source mismatch.')
     manifest=json.loads(MANIFEST.read_text())
     if manifest.get('status')!='FROZEN':raise ValueError('MGN preparation freeze is not complete.')
-    entry=manifest['sources'][source];uuid=manifest['gpu_uuid']
+    entry=manifest['sources'][source] if profile is None else manifest['experiments'][profile]
+    if expected_output is not None and entry['resolved_configuration']['experiment']['output_dir']!=expected_output:
+        raise ValueError('Frozen experiment output conflicts with its admitted profile.')
+    uuid=manifest['gpu_uuid']
     authorized_uuid(uuid)
     if os.environ.get('CUDA_VISIBLE_DEVICES')!=uuid:raise ValueError('Set single-UUID CUDA visibility before preflight.')
-    dirty=subprocess.check_output(['git','status','--porcelain','--untracked-files=all','--','reid','scripts','configs/mgn','docs/mgn_experiment_manifest.json'],cwd=ROOT,text=True)
+    dirty=subprocess.check_output(['git','status','--porcelain','--untracked-files=all','--','reid','scripts','configs/mgn','configs/mgn_experiments','docs/mgn_experiment_manifest.json'],cwd=ROOT,text=True)
     if dirty:raise ValueError('Frozen runtime/config/manifest worktree is dirty; preserve and resolve it before launch.')
     subprocess.run(['git','merge-base','--is-ancestor',manifest['tested_implementation_commit'],'HEAD'],cwd=ROOT,check=True,capture_output=True)
     verify_hashes(manifest['runtime_source_sha256'])
@@ -178,7 +190,8 @@ def preflight(source,*,resume=False,configuration=None,config_path=None):
     cfg=load_config(str(frozen_path));validate_config(cfg);validate_reid_config(cfg)
     if cfg!=entry['resolved_configuration']:raise ValueError('Resolved source configuration differs from frozen admission.')
     cfg=effective_configuration(cfg,configuration,config_path,frozen_path,resume=resume)
-    run=output_guard(source,cfg,resume=resume)
+    output_kwargs={'expected_output':expected_output} if expected_output is not None else {}
+    run=output_guard(source,cfg,resume=resume,**output_kwargs)
     if environment()!=manifest['environment']:raise ValueError('Python/packages/environment controls differ from the frozen admission environment.')
     verify_hashes({cfg['model']['weights_path']:manifest['weights_sha256']})
     verify_hashes(entry['training']['metadata_sha256']);verify_hashes(entry['evaluation']['metadata_sha256'])
@@ -194,6 +207,7 @@ def preflight(source,*,resume=False,configuration=None,config_path=None):
     continuation=resume_guard(cfg,run,classes) if resume else None
     gpu=gpu_guard(uuid,entry['runtime'],entry['maximum_reserved_bytes'])
     return dict(status='READY_TO_RESUME' if resume else 'READY_FRESH',source=source,
+        experiment_profile=profile or 'mgn_offline_v1',
         code_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
         manifest_sha256=file_hash(MANIFEST),config=str(frozen_path),config_sha256=entry['config_sha256'],
         output=str(run),source_classes=classes,training_images=actual['images'],
@@ -205,9 +219,11 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source',choices=SOURCES,required=True)
     parser.add_argument('--resume',action='store_true',help='Validate an existing same-run epoch-boundary continuation; never launch it.')
+    parser.add_argument('--profile',choices=EXPERIMENT_PROFILES,help='Optional separately admitted experiment profile.')
     args=parser.parse_args()
     try:
-        result=preflight(args.source,resume=args.resume)
+        profile_kwargs={'profile':args.profile} if args.profile is not None else {}
+        result=preflight(args.source,resume=args.resume,**profile_kwargs)
     except Exception as error:
         print(json.dumps(dict(status='REFUSED',source=args.source,error=str(error),training_launched=False)))
         return 2

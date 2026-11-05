@@ -1,0 +1,58 @@
+date: '2026-11-05'
+status: CPU_QUALIFIED
+experiment_profile: market1501_paper_schedule120
+training_launched: false
+gpu_training_executed: false
+parent_manifest_sha256: b289ea8a1ee1ee03d2a2b41267e0286168241dcda3b07817d864df0f1d8f286e
+parent_implementation_commit: 9ac343ff3a36fcd858f270ef0688233bb2b4ffc0
+configuration_path: configs/mgn_experiments/market1501_paper_schedule120.yaml
+configuration_sha256: 4443cc4164562be04ebda92b8d26faba208a44bdd1ca22333db32d5b8ec4169f
+scientific_delta:
+  sched.milestones:
+    baseline:
+    - 60
+    - 90
+    trial:
+    - 40
+    - 60
+unchanged:
+  epochs: 120
+  reranking: false
+  original_four_manifest_source_entries: true
+  model_losses_optimizer_scheduler_code: true
+  original_completed_run_outputs: true
+runtime_changed_sha256:
+  scripts/mgn_preflight.py: 380f25dcf8e20748220a1fcf95e3fe08af8b69a9b40aa61893aec5cda7b774c0
+  reid/utils/training_preflight.py: 527c6279441a9fe3f905ed594d2c873124e6528ae366a7f26d4a8173b7a3000a
+cpu_tests:
+  result: 408 passed in 90.81s
+  exit_code: 0
+  command: timeout 180s env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+    PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:scripts:tests /home/addirakoze/environments/Reid/bin/python
+    -B -m pytest -p no:cacheprovider -q tests/test_mgn_schedule_trial.py tests/test_training_preflight.py
+    tests/test_mgn_presets.py tests/test_config_schema.py tests/test_scheduler_trace.py
+    tests/test_pcb_presets.py tests/test_cross_domain_config.py tests/test_lodo_config.py
+  stdout: '........................................................................
+    [ 17%]
+
+    ........................................................................ [ 35%]
+
+    ........................................................................ [ 52%]
+
+    ........................................................................ [ 70%]
+
+    ........................................................................ [ 88%]
+
+    ................................................                         [100%]
+
+    408 passed in 90.81s (0:01:30)
+
+    '
+  stdout_sha256: 0a7b938ef7b5d863c4f1268650e36575a5d17621e3dc08a6a81fc898386e9cd1
+  trial_test_sha256: 6fc739d2702a9310716ab3ff713236c397183356b619b1b866332be91ae1f5e2
+limitations:
+- No new convergence or GPU forward/backward test. Prior model/batch memory qualification
+  is inherited without changing model geometry.
+- Live admission is reported separately after local freeze commits.
+- The original Market1501 run resumed; this fresh trial is not a bitwise paired sampler
+  trajectory.
