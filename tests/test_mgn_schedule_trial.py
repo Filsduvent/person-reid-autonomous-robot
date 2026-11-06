@@ -50,14 +50,37 @@ def test_only_schedule_and_operational_identity_change_from_original():
 def test_manifest_preserves_original_four_contracts_and_admits_only_new_yaml():
     current = json.loads((ROOT/'docs/mgn_experiment_manifest.json').read_text())
     previous = json.loads((ROOT/'docs/mgn_freezes/20261105_before_schedule_trial/mgn_experiment_manifest.json').read_text())
-    assert current['sources'] == previous['sources']
+    # Host qualification changes hardware, runtime and filesystem inventories.
+    # The frozen scientific recipes and planned budgets must remain identical.
+    for source, historical in previous['sources'].items():
+        qualified = current['sources'][source]
+        for key in ('config_path', 'config_sha256', 'resolved_configuration', 'planned_fresh_budget'):
+            assert qualified[key] == historical[key]
+        for key in ('records_sha256', 'identity_map_sha256', 'images', 'num_classes'):
+            assert qualified['training'][key] == historical['training'][key]
+    for relative, digest in current['qualification_receipt_sha256'].items():
+        assert gate.file_hash(ROOT/relative) == digest
+    host = current.get('host_admission')
+    if host is not None:
+        report_path = ROOT/current['qualification_report']
+        assert gate.file_hash(report_path) == current['qualification_report_sha256']
+        report = json.loads(report_path.read_text())
+        assert report['status'] == 'MGN_FP32_GPU_QUALIFICATION_PASS'
+        assert report['gpu_uuid'] == current['gpu_uuid'] == host['gpu_uuid']
+        for source, qualified in current['sources'].items():
+            case = report['cases'][source]
+            assert case['status'] == 'PASS' and case['optimizer_step_calls'] == 3
+            assert qualified['maximum_reserved_bytes'] == case['peak_reserved_bytes']
+            assert qualified['training'] == case['source_training_identity']
+            for key, value in case['runtime'].items():
+                assert qualified['runtime'][key] == value
     assert set(current['experiments']) == {PROFILE}
     entry = current['experiments'][PROFILE]
     assert entry['resolved_configuration'] == trial()
     assert entry['config_path'] == str(PATH.relative_to(ROOT))
     assert gate.file_hash(PATH) == entry['config_sha256']
     for key in ('training', 'evaluation', 'runtime', 'smoke_image_sha256', 'maximum_reserved_bytes', 'planned_fresh_budget'):
-        assert entry[key] == previous['sources']['market1501'][key]
+        assert entry[key] == current['sources']['market1501'][key]
 
 
 def test_exact_120_epoch_learning_rate_trace_and_resume_state():

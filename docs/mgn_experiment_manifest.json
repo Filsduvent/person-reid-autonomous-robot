@@ -1,14 +1,14 @@
 {
   "schema_version": 1,
   "status": "FROZEN",
-  "date": "2026-11-05",
+  "date": "2026-11-06",
   "protocol_id": "mgn_offline_v1_fp32_sgd120",
-  "scope": "Original four source scientific contracts retained; one isolated Market1501 LR-milestone trial at40/60, with120 epochs and no reranking. No LODO or computational changes.",
+  "scope": "Oneiros RTX A4000 host admission for the unchanged four-source MGN FP32 recipes and isolated Market1501 schedule120 trial; historical Constantine evidence remains preserved.",
   "tested_implementation_commit": "b72c4a3979ff0d20e3036908bbccb7fce7eb681f",
-  "preparation_basis_commit": "b72c4a3979ff0d20e3036908bbccb7fce7eb681f",
-  "human_review_of_concrete_handoff": "PENDING; technical progression authorized by the activated amendment",
-  "official_training": "Original four trainings completed and separately registered; this schedule trial is NOT_LAUNCHED and user-operated only.",
-  "gpu_uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+  "preparation_basis_commit": "f4aea841c09491cba72d1c35ba2bda1e794ba5c7",
+  "human_review_of_concrete_handoff": "User explicitly authorized integrating the Oneiros qualification into its active preflight manifest; Constantine repository must remain unchanged.",
+  "official_training": "NOT_LAUNCHED; read-only preflight integration only.",
+  "gpu_uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
   "weights_sha256": "19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097",
   "weights_bytes": 102502400,
   "environment": {
@@ -17,8 +17,8 @@
     "torch_build": "2.7.1+cu126",
     "torchvision_build": "0.22.1+cu126",
     "packages": {
-      "torch": "2.7.1",
-      "torchvision": "0.22.1",
+      "torch": "2.7.1+cu126",
+      "torchvision": "0.22.1+cu126",
       "numpy": "2.1.3",
       "Pillow": "11.2.1",
       "PyYAML": "6.0.2",
@@ -37,15 +37,20 @@
     }
   },
   "minimum_free_disk_bytes": 10737418240,
-  "disk_free_bytes_observed": 3319719120896,
+  "disk_free_bytes_observed": 2271916199936,
   "qualification_receipt_sha256": {
     "docs/mgn_cpu_qualification.json": "a322f8457c87937807a996d37ab6bfdc6ff26df5586796dd3b68d9428fc44ae6",
-    "docs/mgn_synthetic_qualification.json": "056cdf45dac5b52a3647758f5d641af573c154d3efb210b83a15ff513b0e0ddd",
+    "docs/host_qualification/oneiros_20261106/docs/mgn_synthetic_qualification.json": "d8edbafa8a4cb5c6644e8508cf2b6be932aa18378dccab998f7ee723a174d96c",
     "docs/mgn_gpu_smoke_contract.json": "24b42d2f60fcf4e914ca99076446d7d6bd21fd14a1da9ff7177122bed8f29267",
-    "docs/mgn_gpu_fp32_qualification.json": "53e34fd5649df4e324e67070a15cc4dea8ab97b564be6088231f7f0ea79940ea",
-    "docs/mgn_real_source_qualification.json": "bc84fecc681848823fb61d975ee037d54a8789efa68c53284dcba27eed75606a",
+    "docs/host_qualification/oneiros_20261106/docs/mgn_gpu_fp32_qualification.json": "d1b62c009b7bcb9e6abbd568abef0998cade768961f6460fe8d4f5356abfcb25",
     "docs/mgn_launch_interface_qualification.json": "e5e447ec70917915f7e98460aecaead394aaa2d110e9416c049ca25297c5efb5",
-    "docs/mgn_market1501_paper_schedule120_qualification.yaml": "9ff40efd3cd24d5ff7476924de573f0f8fd59b54b1ba213b8d26a73a0868c273"
+    "docs/mgn_market1501_paper_schedule120_qualification.yaml": "9ff40efd3cd24d5ff7476924de573f0f8fd59b54b1ba213b8d26a73a0868c273",
+    "docs/host_qualification/oneiros_20261106/qualification-evidence/qualification_receipt.json": "b99cf2e8f385aebb35466456e4d852cf5631b34a4259c2ac90b953421499be85",
+    "docs/host_qualification/oneiros_20261106/exp/mgn_smoke/phase12_synthetic_fp32_GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2_attempt1/fp32/summary.json": "d1b62c009b7bcb9e6abbd568abef0998cade768961f6460fe8d4f5356abfcb25",
+    "docs/host_qualification/oneiros_20261106/exp/mgn_smoke/phase14_real_market1501_fp32_GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2_attempt1/fp32/summary.json": "b1e77b889ba1b965e8a32f85f6a5f48fb9081aeebaf9d93723033dc89a812702",
+    "docs/host_qualification/oneiros_20261106/exp/mgn_smoke/phase14_real_duke_fp32_GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2_attempt1/fp32/summary.json": "1843a85d622d740c19954ac1b96f23afba3de81aafb3eca1c6faf9c4d61ff8bd",
+    "docs/host_qualification/oneiros_20261106/exp/mgn_smoke/phase14_real_cuhk03_fp32_GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2_attempt1/fp32/summary.json": "35443b5a623bd8f626e4ee6d0441225dc1effcf8a380e785f8a24c11fd2d20d5",
+    "docs/host_qualification/oneiros_20261106/exp/mgn_smoke/phase14_real_msmt17_fp32_GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2_attempt1/fp32/summary.json": "fa4f6f126d3ffdeb96103ed56a377b9d88f11688a3919ef9d38bfbfd3d276dfe"
   },
   "runtime_source_sha256": {
     "reid/__init__.py": "23890df54f69800ac493cce4acd5c798968c657678c5cc15c02af71db7dcf24e",
@@ -320,27 +325,27 @@
           "split": "trainval",
           "format": "processed"
         },
-        "image_directory": "/mnt/hd-data/addirakoze/Projects/Dataset/market1501/images",
+        "image_directory": "/home/addirakoze/nobackup/Projects/Dataset/market1501/images",
         "images": 12936,
         "num_classes": 751,
         "records_sha256": "0ef4f954090f6f569f941b426b1d9ae0011b9a973c69eb955f728b2e53283ab2",
         "identity_map_sha256": "b2561ff1f8b6fd40a9f4cb05dc5c0d46c55545b0d2ea0f9158637881e2a53113",
-        "file_inventory_sha256": "95b138ac2f499576bbbd4bf81c316fab0165302e277f7818f92c985c31434160",
+        "file_inventory_sha256": "b781c46b45442463c9cf8a3fba699d5610cdef6c00655339e8b2d3fd13e1d9e4",
         "metadata_sha256": {
-          "/mnt/hd-data/addirakoze/Projects/Dataset/market1501/partitions.pkl": "3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab"
+          "/home/addirakoze/nobackup/Projects/Dataset/market1501/partitions.pkl": "3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab"
         },
         "image_content_hash_policy": "Only actually consumed smoke images are byte-hashed; full corpus is not byte-hashed.",
         "cuhk03_semantic_protocol_verification": null,
-        "identity_sha256": "a074c14ac50ff687e0835cc548d1d7084054d689aeef167c8fde6bfffd77b91e"
+        "identity_sha256": "458524549ade788d36710190f34275bc55509fface45656e00c663ce7231502b"
       },
       "evaluation": {
         "images": 31969,
         "query": 3368,
         "gallery": 15913,
         "records_sha256": "f458afab5af6f59f8a9a533ece6dc60e3f1bc02f4f1f9d911b9bdf34e58f9752",
-        "file_inventory_sha256": "69b243d4fcf8a229aaeedcea0fb9ca0ee83e5bad1c4c46ac8d2bf6cac5178818",
+        "file_inventory_sha256": "6ced19aa4eb943d87f65ba99c44a08c9be9e84652575b71031205211c5c1fca9",
         "metadata_sha256": {
-          "/mnt/hd-data/addirakoze/Projects/Dataset/market1501/partitions.pkl": "3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab"
+          "/home/addirakoze/nobackup/Projects/Dataset/market1501/partitions.pkl": "3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab"
         },
         "image_content_hash_policy": "File inventory/metadata only; full evaluation image bytes are not hashed or decoded."
       },
@@ -672,9 +677,9 @@
         "torch": "2.7.1+cu126",
         "cuda": "12.6",
         "cudnn": 90501,
-        "gpu_name": "NVIDIA TITAN Xp",
-        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
-        "visible": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "gpu_name": "NVIDIA RTX A4000",
+        "uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "visible": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
         "precision": "FP32",
         "cudnn_benchmark": true,
         "cudnn_deterministic": false,
@@ -698,10 +703,10 @@
           "NVIDIA_TF32_OVERRIDE": null,
           "CUDA_LAUNCH_BLOCKING": null
         },
-        "driver": "570.211.01"
+        "driver": "590.44.01"
       },
-      "maximum_reserved_bytes": 12144607232,
-      "qualification_code_commit": "b71955132177f51f2573a839b1ee2184b41ede7a",
+      "maximum_reserved_bytes": 11582570496,
+      "qualification_code_commit": "f4aea841c09491cba72d1c35ba2bda1e794ba5c7",
       "qualification_configuration_sha256": "bb9032d0a56cab3ccad55d88c066c859cbca1582c8bcc08aedc3e0f38edf4f71"
     },
     "duke": {
@@ -917,27 +922,27 @@
           "split": "trainval",
           "format": "processed"
         },
-        "image_directory": "/mnt/hd-data/addirakoze/Projects/Dataset/duke/images",
+        "image_directory": "/home/addirakoze/nobackup/Projects/Dataset/duke/images",
         "images": 16522,
         "num_classes": 702,
         "records_sha256": "01c0e9610ea0e20fe070200446c947e3f94c85b038f1db69fdb485f9710d981d",
         "identity_map_sha256": "e123245328f4a8f418274b8e8170ee416b4ff6f13a4bf839fa3902d22c5c8fd4",
-        "file_inventory_sha256": "0be61acb6fb7187323a40a568b19e306ead2a54a8782b5449a418ea0bf3a8190",
+        "file_inventory_sha256": "d27dada951b58f6b59fe63bfd6b6e5664e06fbce466a5deaa2ebaf9c7af91f1a",
         "metadata_sha256": {
-          "/mnt/hd-data/addirakoze/Projects/Dataset/duke/partitions.pkl": "25929417e0a8780548924d4f58f4f644ee18098e957df41a571650eb05e6b638"
+          "/home/addirakoze/nobackup/Projects/Dataset/duke/partitions.pkl": "25929417e0a8780548924d4f58f4f644ee18098e957df41a571650eb05e6b638"
         },
         "image_content_hash_policy": "Only actually consumed smoke images are byte-hashed; full corpus is not byte-hashed.",
         "cuhk03_semantic_protocol_verification": null,
-        "identity_sha256": "dda7bc8c6d838ac2577d8edac606983460e510722f714913f015cde42fab7a20"
+        "identity_sha256": "9fb2f2890f981a27b9e724dd35049d9cfd835682a69489bc13ff1d4d38d25441"
       },
       "evaluation": {
         "images": 19889,
         "query": 2228,
         "gallery": 17661,
         "records_sha256": "3c2d7f21a949ff9be335549567274452d7956e3638c4ff62cef709cd21096570",
-        "file_inventory_sha256": "53cbd32c08faebcebeab78cfc84461d1660bc57c46dce11e7d10bde76601a5dd",
+        "file_inventory_sha256": "20d3dc8507f1c45240b93ccb9bc1cf1b21b9efb1596a5e43681fcb0dd25d56be",
         "metadata_sha256": {
-          "/mnt/hd-data/addirakoze/Projects/Dataset/duke/partitions.pkl": "25929417e0a8780548924d4f58f4f644ee18098e957df41a571650eb05e6b638"
+          "/home/addirakoze/nobackup/Projects/Dataset/duke/partitions.pkl": "25929417e0a8780548924d4f58f4f644ee18098e957df41a571650eb05e6b638"
         },
         "image_content_hash_policy": "File inventory/metadata only; full evaluation image bytes are not hashed or decoded."
       },
@@ -1269,9 +1274,9 @@
         "torch": "2.7.1+cu126",
         "cuda": "12.6",
         "cudnn": 90501,
-        "gpu_name": "NVIDIA TITAN Xp",
-        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
-        "visible": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "gpu_name": "NVIDIA RTX A4000",
+        "uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "visible": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
         "precision": "FP32",
         "cudnn_benchmark": true,
         "cudnn_deterministic": false,
@@ -1295,10 +1300,10 @@
           "NVIDIA_TF32_OVERRIDE": null,
           "CUDA_LAUNCH_BLOCKING": null
         },
-        "driver": "570.211.01"
+        "driver": "590.44.01"
       },
-      "maximum_reserved_bytes": 12144607232,
-      "qualification_code_commit": "27e41f6dd6844193ca0f8733477c288f47bb107d",
+      "maximum_reserved_bytes": 11584667648,
+      "qualification_code_commit": "f4aea841c09491cba72d1c35ba2bda1e794ba5c7",
       "qualification_configuration_sha256": "16094cd641ad4b0cee2908a70eb6bf48642dd7a4b4e463d480dba92bc461ad9f"
     },
     "cuhk03": {
@@ -1523,27 +1528,27 @@
           "protocol": "processed_partition",
           "split_id": null
         },
-        "image_directory": "/mnt/hd-data/addirakoze/Projects/Dataset/cuhk03/detected/images",
+        "image_directory": "/home/addirakoze/nobackup/Projects/Dataset/cuhk03/detected/images",
         "images": 7365,
         "num_classes": 767,
         "records_sha256": "06a37539d39406b95eaca4f52e3ab38b3dd0eab0bd1b91e22fbb19705bdaab56",
         "identity_map_sha256": "c3760cf6f7b5d5fef1c925170b6c5ffba0f3dfcbb8e923f3c8371a3fbed07d6c",
-        "file_inventory_sha256": "e675f5b5ef0ed7f9bbe8206208a80b39316a8f9fd983731841fb4a4937202042",
+        "file_inventory_sha256": "033e06363d1a3a79d81dc8be82b42be599d7f99fbc6ae5a10d1d6f9659b84cf7",
         "metadata_sha256": {
-          "/mnt/hd-data/addirakoze/Projects/Dataset/cuhk03/detected/partitions.pkl": "a1fd9a06748dd217325820b2ed5c5814de364a6b5e91cb7a93e1924915034f97"
+          "/home/addirakoze/nobackup/Projects/Dataset/cuhk03/detected/partitions.pkl": "a1fd9a06748dd217325820b2ed5c5814de364a6b5e91cb7a93e1924915034f97"
         },
         "image_content_hash_policy": "Only actually consumed smoke images are byte-hashed; full corpus is not byte-hashed.",
         "cuhk03_semantic_protocol_verification": "unverified; processed_partition is the actual loader protocol",
-        "identity_sha256": "417a7f7ed6f28e105965295c8aea176934e92caad2c1903a2915456c542f21da"
+        "identity_sha256": "7ee1357cbbd1e4b9ab1e8b58f7b6b4896897f083f9b6b445d6532ffd25b2f403"
       },
       "evaluation": {
         "images": 6732,
         "query": 1400,
         "gallery": 5332,
         "records_sha256": "46dfb20da2ebeb23ae7b1039927b8acc18cbdc956d24aa122beb09970b87a0e9",
-        "file_inventory_sha256": "ec23d0c2d64ea3f16e6f79f35208c5b906cd156c01f316488321d1ed2950d55c",
+        "file_inventory_sha256": "706e5e126ebbf2e33d5a097874f46c6b9253cc772861f8971e6ac349102b8c1b",
         "metadata_sha256": {
-          "/mnt/hd-data/addirakoze/Projects/Dataset/cuhk03/detected/partitions.pkl": "a1fd9a06748dd217325820b2ed5c5814de364a6b5e91cb7a93e1924915034f97"
+          "/home/addirakoze/nobackup/Projects/Dataset/cuhk03/detected/partitions.pkl": "a1fd9a06748dd217325820b2ed5c5814de364a6b5e91cb7a93e1924915034f97"
         },
         "image_content_hash_policy": "File inventory/metadata only; full evaluation image bytes are not hashed or decoded."
       },
@@ -1875,9 +1880,9 @@
         "torch": "2.7.1+cu126",
         "cuda": "12.6",
         "cudnn": 90501,
-        "gpu_name": "NVIDIA TITAN Xp",
-        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
-        "visible": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "gpu_name": "NVIDIA RTX A4000",
+        "uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "visible": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
         "precision": "FP32",
         "cudnn_benchmark": true,
         "cudnn_deterministic": false,
@@ -1901,10 +1906,10 @@
           "NVIDIA_TF32_OVERRIDE": null,
           "CUDA_LAUNCH_BLOCKING": null
         },
-        "driver": "570.211.01"
+        "driver": "590.44.01"
       },
-      "maximum_reserved_bytes": 12142510080,
-      "qualification_code_commit": "35dcbd1382ff08177c14687fb3042f5203cb8efd",
+      "maximum_reserved_bytes": 11572084736,
+      "qualification_code_commit": "f4aea841c09491cba72d1c35ba2bda1e794ba5c7",
       "qualification_configuration_sha256": "6f4e6350300e315317e6a112ea92d5e70f8563c6351a98956038bea0cc29ab16"
     },
     "msmt17": {
@@ -2120,28 +2125,28 @@
           "split": "train",
           "format": "raw"
         },
-        "image_directory": "/mnt/hd-data/addirakoze/Projects/Dataset/msmt17/MSMT17_V2/train",
+        "image_directory": "/home/addirakoze/nobackup/Projects/Dataset/msmt17/MSMT17_V2/train",
         "images": 30248,
         "num_classes": 1041,
         "records_sha256": "535b598bdc4d39a6545d7eeb1d0b02994d4558495a53f7ba0b12a3f47f0168f0",
         "identity_map_sha256": "60a09ceda406c56dfe55991600e93f142381bb25ebf51d0a9652017816878dec",
-        "file_inventory_sha256": "9a184a787b2c5e43621b24ee943f70bfb1b0a8173667a6a6368e6da968dd9441",
+        "file_inventory_sha256": "fcd322332be5706af219c5772bd1c41111e367a39d3dd3450c5e789d3de53d9c",
         "metadata_sha256": {
-          "/mnt/hd-data/addirakoze/Projects/Dataset/msmt17/MSMT17_V2/list_train.txt": "00930d5911e66ec6ac4d9b177e61b49433658758cc091231bf7cfcb83c70d0bf"
+          "/home/addirakoze/nobackup/Projects/Dataset/msmt17/MSMT17_V2/list_train.txt": "00930d5911e66ec6ac4d9b177e61b49433658758cc091231bf7cfcb83c70d0bf"
         },
         "image_content_hash_policy": "Only actually consumed smoke images are byte-hashed; full corpus is not byte-hashed.",
         "cuhk03_semantic_protocol_verification": null,
-        "identity_sha256": "2483eb24e9de1f0c12798e07bd6b18e7e7b566f38cf7809077945545199a13fd"
+        "identity_sha256": "5892224ae0f8ebc82c612cc299550d783e2ae8c755d52e953072eaeba4bbe0ec"
       },
       "evaluation": {
         "images": 93820,
         "query": 11659,
         "gallery": 82161,
         "records_sha256": "dbca9269935bc1bd557935f3b837098595085156dce93f08dc3993140b827d40",
-        "file_inventory_sha256": "e43f3702940293910dba9501a6ec0327b2255d6edb8ccaba1c6b8d2e34669aaf",
+        "file_inventory_sha256": "a56db73d9d59e022c7824bb4525308bd83340b85a5e426d050d221e95b9892df",
         "metadata_sha256": {
-          "/mnt/hd-data/addirakoze/Projects/Dataset/msmt17/MSMT17_V2/list_query.txt": "46b568a56e6e7567175c3350f74362f522d3b898242e0c6d4f87e27ee71cab03",
-          "/mnt/hd-data/addirakoze/Projects/Dataset/msmt17/MSMT17_V2/list_gallery.txt": "fccd30161c9185bc05f4ee5fa86af5768aab256799b526f87dc5f3a1900288fd"
+          "/home/addirakoze/nobackup/Projects/Dataset/msmt17/MSMT17_V2/list_query.txt": "46b568a56e6e7567175c3350f74362f522d3b898242e0c6d4f87e27ee71cab03",
+          "/home/addirakoze/nobackup/Projects/Dataset/msmt17/MSMT17_V2/list_gallery.txt": "fccd30161c9185bc05f4ee5fa86af5768aab256799b526f87dc5f3a1900288fd"
         },
         "image_content_hash_policy": "File inventory/metadata only; full evaluation image bytes are not hashed or decoded."
       },
@@ -2473,9 +2478,9 @@
         "torch": "2.7.1+cu126",
         "cuda": "12.6",
         "cudnn": 90501,
-        "gpu_name": "NVIDIA TITAN Xp",
-        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
-        "visible": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "gpu_name": "NVIDIA RTX A4000",
+        "uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "visible": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
         "precision": "FP32",
         "cudnn_benchmark": true,
         "cudnn_deterministic": false,
@@ -2499,10 +2504,10 @@
           "NVIDIA_TF32_OVERRIDE": null,
           "CUDA_LAUNCH_BLOCKING": null
         },
-        "driver": "570.211.01"
+        "driver": "590.44.01"
       },
-      "maximum_reserved_bytes": 12155092992,
-      "qualification_code_commit": "d22ce10e12efe01780faccbdbf2aba6485883cf0",
+      "maximum_reserved_bytes": 11523850240,
+      "qualification_code_commit": "f4aea841c09491cba72d1c35ba2bda1e794ba5c7",
       "qualification_configuration_sha256": "7ccebc3b0b8df9de8579a53b2ffa6153c6f7e88c2e6ff4823543a9a91a7b7a5c"
     }
   },
@@ -2755,27 +2760,27 @@
           "split": "trainval",
           "format": "processed"
         },
-        "image_directory": "/mnt/hd-data/addirakoze/Projects/Dataset/market1501/images",
+        "image_directory": "/home/addirakoze/nobackup/Projects/Dataset/market1501/images",
         "images": 12936,
         "num_classes": 751,
         "records_sha256": "0ef4f954090f6f569f941b426b1d9ae0011b9a973c69eb955f728b2e53283ab2",
         "identity_map_sha256": "b2561ff1f8b6fd40a9f4cb05dc5c0d46c55545b0d2ea0f9158637881e2a53113",
-        "file_inventory_sha256": "95b138ac2f499576bbbd4bf81c316fab0165302e277f7818f92c985c31434160",
+        "file_inventory_sha256": "b781c46b45442463c9cf8a3fba699d5610cdef6c00655339e8b2d3fd13e1d9e4",
         "metadata_sha256": {
-          "/mnt/hd-data/addirakoze/Projects/Dataset/market1501/partitions.pkl": "3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab"
+          "/home/addirakoze/nobackup/Projects/Dataset/market1501/partitions.pkl": "3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab"
         },
         "image_content_hash_policy": "Only actually consumed smoke images are byte-hashed; full corpus is not byte-hashed.",
         "cuhk03_semantic_protocol_verification": null,
-        "identity_sha256": "a074c14ac50ff687e0835cc548d1d7084054d689aeef167c8fde6bfffd77b91e"
+        "identity_sha256": "458524549ade788d36710190f34275bc55509fface45656e00c663ce7231502b"
       },
       "evaluation": {
         "images": 31969,
         "query": 3368,
         "gallery": 15913,
         "records_sha256": "f458afab5af6f59f8a9a533ece6dc60e3f1bc02f4f1f9d911b9bdf34e58f9752",
-        "file_inventory_sha256": "69b243d4fcf8a229aaeedcea0fb9ca0ee83e5bad1c4c46ac8d2bf6cac5178818",
+        "file_inventory_sha256": "6ced19aa4eb943d87f65ba99c44a08c9be9e84652575b71031205211c5c1fca9",
         "metadata_sha256": {
-          "/mnt/hd-data/addirakoze/Projects/Dataset/market1501/partitions.pkl": "3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab"
+          "/home/addirakoze/nobackup/Projects/Dataset/market1501/partitions.pkl": "3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab"
         },
         "image_content_hash_policy": "File inventory/metadata only; full evaluation image bytes are not hashed or decoded."
       },
@@ -3107,9 +3112,9 @@
         "torch": "2.7.1+cu126",
         "cuda": "12.6",
         "cudnn": 90501,
-        "gpu_name": "NVIDIA TITAN Xp",
-        "uuid": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
-        "visible": "GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c",
+        "gpu_name": "NVIDIA RTX A4000",
+        "uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "visible": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
         "precision": "FP32",
         "cudnn_benchmark": true,
         "cudnn_deterministic": false,
@@ -3133,10 +3138,10 @@
           "NVIDIA_TF32_OVERRIDE": null,
           "CUDA_LAUNCH_BLOCKING": null
         },
-        "driver": "570.211.01"
+        "driver": "590.44.01"
       },
-      "maximum_reserved_bytes": 12144607232,
-      "qualification_code_commit": "b71955132177f51f2573a839b1ee2184b41ede7a",
+      "maximum_reserved_bytes": 11582570496,
+      "qualification_code_commit": "f4aea841c09491cba72d1c35ba2bda1e794ba5c7",
       "qualification_configuration_sha256": "bb9032d0a56cab3ccad55d88c066c859cbca1582c8bcc08aedc3e0f38edf4f71",
       "scientific_delta": {
         "sched.milestones": {
@@ -3167,5 +3172,17 @@
         "resume_caveat": "Baseline resumed from epoch86; trial is fresh. Identical uninterrupted sampling/RNG trajectories are not claimed."
       }
     }
+  },
+  "qualification_report": "docs/host_qualification/oneiros_20261106/qualification-evidence/qualification_receipt.json",
+  "qualification_report_sha256": "b99cf2e8f385aebb35466456e4d852cf5631b34a4259c2ac90b953421499be85",
+  "host_admission": {
+    "hostname": "oneiros",
+    "gpu_uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+    "qualification_date": "2026-11-06",
+    "original_manifest_sha256": "8ffdffe73efda69b6d072d89d762b79bda6689cc478477c030ce25ebe4d652cb",
+    "original_manifest_archive": "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/.local/host_admission/oneiros-20261106/constantine-active-manifest.json",
+    "authorization": "User explicitly requested the Oneiros-only integration in the migration conversation.",
+    "bounded_qualification_scope": "MGN batch64 P16/K4 384x128 FP32, one synthetic and four real-source cases, three optimizer updates per case",
+    "lodo_qualified": false
   }
 }
