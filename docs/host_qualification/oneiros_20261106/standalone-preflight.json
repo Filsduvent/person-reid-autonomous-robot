@@ -1,0 +1,51 @@
+{
+  "status": "READY_FRESH",
+  "source": "market1501",
+  "experiment_profile": "market1501_paper_schedule120",
+  "code_commit": "2a62658eacb7517b1dfdaea1a19ae0becd8daabe",
+  "manifest_sha256": "7df12e46a7a7be27bb85a463dc3aa4deb9b67de9bde2c3f1480fcabcf43ec01b",
+  "config": "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/configs/mgn_experiments/market1501_paper_schedule120.yaml",
+  "config_sha256": "4443cc4164562be04ebda92b8d26faba208a44bdd1ca22333db32d5b8ec4169f",
+  "output": "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/market1501_paper_schedule120",
+  "source_classes": 751,
+  "training_images": 12936,
+  "planned_fresh_updates": 21999,
+  "continuation": null,
+  "gpu": {
+    "before": {
+      "timestamp_utc": "2026-11-06T20:42:15.909838+00:00",
+      "uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+      "physical_index": 0,
+      "name": "NVIDIA RTX A4000",
+      "driver": "590.44.01",
+      "total_mib": 16376,
+      "free_mib": 15967,
+      "utilization_percent": 0,
+      "compute_mode": "Default",
+      "mig_mode": "[N/A]",
+      "processes": []
+    },
+    "after_runtime_query": {
+      "timestamp_utc": "2026-11-06T20:42:16.081179+00:00",
+      "uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+      "physical_index": 0,
+      "name": "NVIDIA RTX A4000",
+      "driver": "590.44.01",
+      "total_mib": 16376,
+      "free_mib": 15964,
+      "utilization_percent": 0,
+      "compute_mode": "Default",
+      "mig_mode": "[N/A]",
+      "processes": []
+    },
+    "runtime": {
+      "torch": "2.7.1+cu126",
+      "cuda": "12.6",
+      "cudnn": 90501,
+      "matmul_allow_tf32": false,
+      "cudnn_allow_tf32": true
+    }
+  },
+  "training_launched": false,
+  "notice": "Read-only admission passed; the common trainer may now dispatch training."
+}

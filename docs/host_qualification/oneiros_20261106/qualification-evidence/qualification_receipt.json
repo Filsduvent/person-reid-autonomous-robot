@@ -1,0 +1,323 @@
+{
+  "schema_version": 1,
+  "status": "MGN_FP32_GPU_QUALIFICATION_PASS",
+  "finished_utc": "2026-11-06T20:37:28.750646+00:00",
+  "host": "oneiros.inf.ufpr.br",
+  "gpu_uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+  "gpu_name": "NVIDIA RTX A4000",
+  "driver": "590.44.01",
+  "code_commit": "f4aea841c09491cba72d1c35ba2bda1e794ba5c7",
+  "isolated_workspace": "/home/addirakoze/nobackup/Projects/oneiros-gpu-qualification-20261106",
+  "original_checkout": "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot",
+  "scope": "MGN batch64 P16/K4 384x128 FP32, one synthetic and four real-source cases, three optimizer updates per case",
+  "authorization_note": "User explicitly requested Oneiros GPU qualification on 2026-11-06.",
+  "cpu_guards": "36 passed in 7.45s",
+  "cpu_regression": "389 passed, 3 skipped in 121.47s (0:02:01)",
+  "historical_receipts_preserved": true,
+  "original_runtime_and_configs_unchanged": true,
+  "original_manifest_sha256": "8ffdffe73efda69b6d072d89d762b79bda6689cc478477c030ce25ebe4d652cb",
+  "prelaunch_refusal_log": "/home/addirakoze/nobackup/Projects/oneiros-gpu-qualification-20261106/qualification-evidence/synthetic-prelaunch-refusal.log",
+  "prelaunch_correction": "Reran current-code CPU regression and created isolated replacement synthetic CPU evidence; no GPU attempt or optimizer call occurred during the preserved stale-receipt refusal.",
+  "official_training_launched": false,
+  "lodo_qualified": false,
+  "amp_qualified": false,
+  "training_admission_status": "PENDING_HOST_MANIFEST_PORTABILITY_INTEGRATION",
+  "limitations": [
+    "Three updates per case qualify bounded feasibility and observed memory only; no full training, retrieval evaluation, long-run stability or CUDA recovery qualification.",
+    "Paper schedule120 differs only in later LR milestones; this three-update check does not exercise milestone transitions.",
+    "Main checkout admission still references Constantine; do not launch training until the new host-specific evidence is integrated and preflight passes."
+  ],
+  "cases": {
+    "synthetic": {
+      "status": "PASS",
+      "summary": "/home/addirakoze/nobackup/Projects/oneiros-gpu-qualification-20261106/exp/mgn_smoke/phase12_synthetic_fp32_GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2_attempt1/fp32/summary.json",
+      "summary_sha256": "d1b62c009b7bcb9e6abbd568abef0998cade768961f6460fe8d4f5356abfcb25",
+      "configuration_sha256": "185f94c6de0624094471bd6d6ff862eb855539901f210efdbe23d5ef5568ddb7",
+      "optimizer_step_calls": 3,
+      "peak_allocated_bytes": 10751940608,
+      "peak_reserved_bytes": 11580473344,
+      "elapsed_seconds": 13.109883297234774,
+      "runtime": {
+        "torch": "2.7.1+cu126",
+        "cuda": "12.6",
+        "cudnn": 90501,
+        "gpu_name": "NVIDIA RTX A4000",
+        "uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "visible": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "precision": "FP32",
+        "cudnn_benchmark": true,
+        "cudnn_deterministic": false,
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": true,
+        "torch_architectures": [
+          "sm_50",
+          "sm_60",
+          "sm_70",
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90"
+        ],
+        "environment_controls": {
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "PYTORCH_CUDA_ALLOC_CONF": null,
+          "PYTORCH_ALLOC_CONF": null,
+          "CUBLAS_WORKSPACE_CONFIG": null,
+          "NVIDIA_TF32_OVERRIDE": null,
+          "CUDA_LAUNCH_BLOCKING": null
+        }
+      },
+      "source_training_identity": null
+    },
+    "market1501": {
+      "status": "PASS",
+      "summary": "/home/addirakoze/nobackup/Projects/oneiros-gpu-qualification-20261106/exp/mgn_smoke/phase14_real_market1501_fp32_GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2_attempt1/fp32/summary.json",
+      "summary_sha256": "b1e77b889ba1b965e8a32f85f6a5f48fb9081aeebaf9d93723033dc89a812702",
+      "configuration_sha256": "bb9032d0a56cab3ccad55d88c066c859cbca1582c8bcc08aedc3e0f38edf4f71",
+      "optimizer_step_calls": 3,
+      "peak_allocated_bytes": 10728929280,
+      "peak_reserved_bytes": 11582570496,
+      "elapsed_seconds": 8.81510864943266,
+      "runtime": {
+        "torch": "2.7.1+cu126",
+        "cuda": "12.6",
+        "cudnn": 90501,
+        "gpu_name": "NVIDIA RTX A4000",
+        "uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "visible": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "precision": "FP32",
+        "cudnn_benchmark": true,
+        "cudnn_deterministic": false,
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": true,
+        "torch_architectures": [
+          "sm_50",
+          "sm_60",
+          "sm_70",
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90"
+        ],
+        "environment_controls": {
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "PYTORCH_CUDA_ALLOC_CONF": null,
+          "PYTORCH_ALLOC_CONF": null,
+          "CUBLAS_WORKSPACE_CONFIG": null,
+          "NVIDIA_TF32_OVERRIDE": null,
+          "CUDA_LAUNCH_BLOCKING": null
+        }
+      },
+      "source_training_identity": {
+        "source": "market1501",
+        "descriptor": {
+          "name": "market1501",
+          "split": "trainval",
+          "format": "processed"
+        },
+        "image_directory": "/home/addirakoze/nobackup/Projects/Dataset/market1501/images",
+        "images": 12936,
+        "num_classes": 751,
+        "records_sha256": "0ef4f954090f6f569f941b426b1d9ae0011b9a973c69eb955f728b2e53283ab2",
+        "identity_map_sha256": "b2561ff1f8b6fd40a9f4cb05dc5c0d46c55545b0d2ea0f9158637881e2a53113",
+        "file_inventory_sha256": "b781c46b45442463c9cf8a3fba699d5610cdef6c00655339e8b2d3fd13e1d9e4",
+        "metadata_sha256": {
+          "/home/addirakoze/nobackup/Projects/Dataset/market1501/partitions.pkl": "3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab"
+        },
+        "image_content_hash_policy": "Only actually consumed smoke images are byte-hashed; full corpus is not byte-hashed.",
+        "cuhk03_semantic_protocol_verification": null,
+        "identity_sha256": "458524549ade788d36710190f34275bc55509fface45656e00c663ce7231502b"
+      }
+    },
+    "duke": {
+      "status": "PASS",
+      "summary": "/home/addirakoze/nobackup/Projects/oneiros-gpu-qualification-20261106/exp/mgn_smoke/phase14_real_duke_fp32_GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2_attempt1/fp32/summary.json",
+      "summary_sha256": "1843a85d622d740c19954ac1b96f23afba3de81aafb3eca1c6faf9c4d61ff8bd",
+      "configuration_sha256": "16094cd641ad4b0cee2908a70eb6bf48642dd7a4b4e463d480dba92bc461ad9f",
+      "optimizer_step_calls": 3,
+      "peak_allocated_bytes": 10727120896,
+      "peak_reserved_bytes": 11584667648,
+      "elapsed_seconds": 8.257815352641046,
+      "runtime": {
+        "torch": "2.7.1+cu126",
+        "cuda": "12.6",
+        "cudnn": 90501,
+        "gpu_name": "NVIDIA RTX A4000",
+        "uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "visible": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "precision": "FP32",
+        "cudnn_benchmark": true,
+        "cudnn_deterministic": false,
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": true,
+        "torch_architectures": [
+          "sm_50",
+          "sm_60",
+          "sm_70",
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90"
+        ],
+        "environment_controls": {
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "PYTORCH_CUDA_ALLOC_CONF": null,
+          "PYTORCH_ALLOC_CONF": null,
+          "CUBLAS_WORKSPACE_CONFIG": null,
+          "NVIDIA_TF32_OVERRIDE": null,
+          "CUDA_LAUNCH_BLOCKING": null
+        }
+      },
+      "source_training_identity": {
+        "source": "duke",
+        "descriptor": {
+          "name": "duke",
+          "split": "trainval",
+          "format": "processed"
+        },
+        "image_directory": "/home/addirakoze/nobackup/Projects/Dataset/duke/images",
+        "images": 16522,
+        "num_classes": 702,
+        "records_sha256": "01c0e9610ea0e20fe070200446c947e3f94c85b038f1db69fdb485f9710d981d",
+        "identity_map_sha256": "e123245328f4a8f418274b8e8170ee416b4ff6f13a4bf839fa3902d22c5c8fd4",
+        "file_inventory_sha256": "d27dada951b58f6b59fe63bfd6b6e5664e06fbce466a5deaa2ebaf9c7af91f1a",
+        "metadata_sha256": {
+          "/home/addirakoze/nobackup/Projects/Dataset/duke/partitions.pkl": "25929417e0a8780548924d4f58f4f644ee18098e957df41a571650eb05e6b638"
+        },
+        "image_content_hash_policy": "Only actually consumed smoke images are byte-hashed; full corpus is not byte-hashed.",
+        "cuhk03_semantic_protocol_verification": null,
+        "identity_sha256": "9fb2f2890f981a27b9e724dd35049d9cfd835682a69489bc13ff1d4d38d25441"
+      }
+    },
+    "cuhk03": {
+      "status": "PASS",
+      "summary": "/home/addirakoze/nobackup/Projects/oneiros-gpu-qualification-20261106/exp/mgn_smoke/phase14_real_cuhk03_fp32_GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2_attempt1/fp32/summary.json",
+      "summary_sha256": "35443b5a623bd8f626e4ee6d0441225dc1effcf8a380e785f8a24c11fd2d20d5",
+      "configuration_sha256": "6f4e6350300e315317e6a112ea92d5e70f8563c6351a98956038bea0cc29ab16",
+      "optimizer_step_calls": 3,
+      "peak_allocated_bytes": 10729519104,
+      "peak_reserved_bytes": 11572084736,
+      "elapsed_seconds": 8.015544972382486,
+      "runtime": {
+        "torch": "2.7.1+cu126",
+        "cuda": "12.6",
+        "cudnn": 90501,
+        "gpu_name": "NVIDIA RTX A4000",
+        "uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "visible": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "precision": "FP32",
+        "cudnn_benchmark": true,
+        "cudnn_deterministic": false,
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": true,
+        "torch_architectures": [
+          "sm_50",
+          "sm_60",
+          "sm_70",
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90"
+        ],
+        "environment_controls": {
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "PYTORCH_CUDA_ALLOC_CONF": null,
+          "PYTORCH_ALLOC_CONF": null,
+          "CUBLAS_WORKSPACE_CONFIG": null,
+          "NVIDIA_TF32_OVERRIDE": null,
+          "CUDA_LAUNCH_BLOCKING": null
+        }
+      },
+      "source_training_identity": {
+        "source": "cuhk03",
+        "descriptor": {
+          "name": "cuhk03",
+          "split": "trainval",
+          "format": "processed",
+          "image_type": "detected",
+          "protocol": "processed_partition",
+          "split_id": null
+        },
+        "image_directory": "/home/addirakoze/nobackup/Projects/Dataset/cuhk03/detected/images",
+        "images": 7365,
+        "num_classes": 767,
+        "records_sha256": "06a37539d39406b95eaca4f52e3ab38b3dd0eab0bd1b91e22fbb19705bdaab56",
+        "identity_map_sha256": "c3760cf6f7b5d5fef1c925170b6c5ffba0f3dfcbb8e923f3c8371a3fbed07d6c",
+        "file_inventory_sha256": "033e06363d1a3a79d81dc8be82b42be599d7f99fbc6ae5a10d1d6f9659b84cf7",
+        "metadata_sha256": {
+          "/home/addirakoze/nobackup/Projects/Dataset/cuhk03/detected/partitions.pkl": "a1fd9a06748dd217325820b2ed5c5814de364a6b5e91cb7a93e1924915034f97"
+        },
+        "image_content_hash_policy": "Only actually consumed smoke images are byte-hashed; full corpus is not byte-hashed.",
+        "cuhk03_semantic_protocol_verification": "unverified; processed_partition is the actual loader protocol",
+        "identity_sha256": "7ee1357cbbd1e4b9ab1e8b58f7b6b4896897f083f9b6b445d6532ffd25b2f403"
+      }
+    },
+    "msmt17": {
+      "status": "PASS",
+      "summary": "/home/addirakoze/nobackup/Projects/oneiros-gpu-qualification-20261106/exp/mgn_smoke/phase14_real_msmt17_fp32_GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2_attempt1/fp32/summary.json",
+      "summary_sha256": "fa4f6f126d3ffdeb96103ed56a377b9d88f11688a3919ef9d38bfbfd3d276dfe",
+      "configuration_sha256": "7ccebc3b0b8df9de8579a53b2ffa6153c6f7e88c2e6ff4823543a9a91a7b7a5c",
+      "optimizer_step_calls": 3,
+      "peak_allocated_bytes": 10751940608,
+      "peak_reserved_bytes": 11523850240,
+      "elapsed_seconds": 9.079345650039613,
+      "runtime": {
+        "torch": "2.7.1+cu126",
+        "cuda": "12.6",
+        "cudnn": 90501,
+        "gpu_name": "NVIDIA RTX A4000",
+        "uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "visible": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "precision": "FP32",
+        "cudnn_benchmark": true,
+        "cudnn_deterministic": false,
+        "matmul_allow_tf32": false,
+        "cudnn_allow_tf32": true,
+        "torch_architectures": [
+          "sm_50",
+          "sm_60",
+          "sm_70",
+          "sm_75",
+          "sm_80",
+          "sm_86",
+          "sm_90"
+        ],
+        "environment_controls": {
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "PYTORCH_CUDA_ALLOC_CONF": null,
+          "PYTORCH_ALLOC_CONF": null,
+          "CUBLAS_WORKSPACE_CONFIG": null,
+          "NVIDIA_TF32_OVERRIDE": null,
+          "CUDA_LAUNCH_BLOCKING": null
+        }
+      },
+      "source_training_identity": {
+        "source": "msmt17",
+        "descriptor": {
+          "name": "msmt17",
+          "split": "train",
+          "format": "raw"
+        },
+        "image_directory": "/home/addirakoze/nobackup/Projects/Dataset/msmt17/MSMT17_V2/train",
+        "images": 30248,
+        "num_classes": 1041,
+        "records_sha256": "535b598bdc4d39a6545d7eeb1d0b02994d4558495a53f7ba0b12a3f47f0168f0",
+        "identity_map_sha256": "60a09ceda406c56dfe55991600e93f142381bb25ebf51d0a9652017816878dec",
+        "file_inventory_sha256": "fcd322332be5706af219c5772bd1c41111e367a39d3dd3450c5e789d3de53d9c",
+        "metadata_sha256": {
+          "/home/addirakoze/nobackup/Projects/Dataset/msmt17/MSMT17_V2/list_train.txt": "00930d5911e66ec6ac4d9b177e61b49433658758cc091231bf7cfcb83c70d0bf"
+        },
+        "image_content_hash_policy": "Only actually consumed smoke images are byte-hashed; full corpus is not byte-hashed.",
+        "cuhk03_semantic_protocol_verification": null,
+        "identity_sha256": "5892224ae0f8ebc82c612cc299550d783e2ae8c755d52e953072eaeba4bbe0ec"
+      }
+    }
+  },
+  "maximum_reserved_bytes": 11584667648,
+  "gpu_after_process_listing": "gpu_uuid, pid, process_name, used_gpu_memory [MiB]\n"
+}

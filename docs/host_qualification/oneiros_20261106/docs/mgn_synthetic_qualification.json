@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "scope": "Oneiros current-code CPU synthetic, checkpoint/resume and regression qualification; GPU hidden; benchmark training not launched",
+  "code_commit": "f4aea841c09491cba72d1c35ba2bda1e794ba5c7",
+  "source_sha256": {
+    "reid/data/build.py": "696550c9f3aa5aaab6af7959b9d3eef34a85c67b8f7d816313abb5a6d3c57e5d",
+    "reid/data/transforms.py": "cf801700a18a74a1ec2256e90ae25e34815f6308871cd5f1611f1d9286a0a237",
+    "reid/engine/evaluator.py": "5044ba91082a08d1cf0e0c0bc0731dfc3450229b7b52a902358db04aadae1310",
+    "reid/engine/train_loop.py": "a5f1df8be33313ab434a2eff7b48c87c182d22a7a76c8c1929dda5c97f153119",
+    "reid/losses/build.py": "219dc3cf24dfe9a4d4d2ef1a87f2722be18faf3b60fb11517349455c461ccfe9",
+    "reid/models/build.py": "fcac750dd6cdec62031cbad3274fbe63078a6ef0b5e647205cce6bf6f6e972d5",
+    "reid/models/mgn.py": "0706ad9fa87b6229497faae18788020596e54e0c9c6cc5bb17b8b1c53e886385",
+    "reid/models/outputs.py": "b302ace778a447314f520648374a04db78a067535382f13eb253ae56c7f41afb",
+    "reid/optim/build.py": "83af092a1156f8f02790489ae709b75232ba68d32cbb61c3d3134e75e9c2f448",
+    "reid/optim/lr_scheduler.py": "a0728ca0d95fd8b31f80605ed020318ebf52975e3d121b3f818dd422ed341490",
+    "reid/utils/checkpoint.py": "a1d8f7a89717eb9186b504dcc23e0cbbb56ea6fb9fe650fca5c9e82085da01a8",
+    "reid/utils/config.py": "5f95342a652f717afa9051fd310a446655b57b48fb0ca11f08cccf269ba9c517",
+    "reid/utils/evaluation_config.py": "1ee46372442402aba61b97f6c029ccc2b2426c229b81f76e5f08fa5c20ac61f7",
+    "reid/utils/lodo_protocol.py": "5fe40e21673dd37d4cc2dc700689116fa4cb98addbf177e0de771caba9b80b8f",
+    "scripts/train.py": "6d10e4dedba41f5b5849ccfe5b6a4cea59206c10d390342101dc4c686c248eb6"
+  },
+  "test_sha256": {},
+  "regression_log": "/home/addirakoze/nobackup/Projects/oneiros-gpu-qualification-20261106/qualification-evidence/cpu-regression.log",
+  "regression_log_sha256": "6516cd413302d63895199420c06eaa4238376665768f27772261f01e759e36b7",
+  "regression_result": "389 passed, 3 skipped in 121.47s (0:02:01)",
+  "previous_receipt_sha256": "056cdf45dac5b52a3647758f5d641af573c154d3efb210b83a15ff513b0e0ddd"
+}
