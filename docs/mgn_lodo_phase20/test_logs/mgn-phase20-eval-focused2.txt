@@ -1,0 +1,107 @@
+......................EEEEEEEE                                           [100%]
+==================================== ERRORS ====================================
+_ ERROR at setup of test_real_shared_terminal_reader_and_synthetic_target_uses_source_c _
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 183
+  def test_real_shared_terminal_reader_and_synthetic_target_uses_source_c(mgn_terminal,tmp_path):
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 122
+  @pytest.fixture
+  def mgn_terminal(tree,tmp_path,monkeypatch):
+E       fixture 'tree' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mgn_terminal, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py:122
+____ ERROR at setup of test_bad_terminal_refused_before_target_loader[head] ____
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 198
+  @pytest.mark.parametrize('damage',['head','counter','scheduler','schema','numerical_policy','pk_slots','source_c'])
+  def test_bad_terminal_refused_before_target_loader(mgn_terminal,monkeypatch,damage):
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 122
+  @pytest.fixture
+  def mgn_terminal(tree,tmp_path,monkeypatch):
+E       fixture 'tree' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mgn_terminal, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py:122
+__ ERROR at setup of test_bad_terminal_refused_before_target_loader[counter] ___
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 198
+  @pytest.mark.parametrize('damage',['head','counter','scheduler','schema','numerical_policy','pk_slots','source_c'])
+  def test_bad_terminal_refused_before_target_loader(mgn_terminal,monkeypatch,damage):
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 122
+  @pytest.fixture
+  def mgn_terminal(tree,tmp_path,monkeypatch):
+E       fixture 'tree' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mgn_terminal, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py:122
+_ ERROR at setup of test_bad_terminal_refused_before_target_loader[scheduler] __
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 198
+  @pytest.mark.parametrize('damage',['head','counter','scheduler','schema','numerical_policy','pk_slots','source_c'])
+  def test_bad_terminal_refused_before_target_loader(mgn_terminal,monkeypatch,damage):
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 122
+  @pytest.fixture
+  def mgn_terminal(tree,tmp_path,monkeypatch):
+E       fixture 'tree' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mgn_terminal, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py:122
+___ ERROR at setup of test_bad_terminal_refused_before_target_loader[schema] ___
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 198
+  @pytest.mark.parametrize('damage',['head','counter','scheduler','schema','numerical_policy','pk_slots','source_c'])
+  def test_bad_terminal_refused_before_target_loader(mgn_terminal,monkeypatch,damage):
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 122
+  @pytest.fixture
+  def mgn_terminal(tree,tmp_path,monkeypatch):
+E       fixture 'tree' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mgn_terminal, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py:122
+_ ERROR at setup of test_bad_terminal_refused_before_target_loader[numerical_policy] _
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 198
+  @pytest.mark.parametrize('damage',['head','counter','scheduler','schema','numerical_policy','pk_slots','source_c'])
+  def test_bad_terminal_refused_before_target_loader(mgn_terminal,monkeypatch,damage):
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 122
+  @pytest.fixture
+  def mgn_terminal(tree,tmp_path,monkeypatch):
+E       fixture 'tree' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mgn_terminal, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py:122
+__ ERROR at setup of test_bad_terminal_refused_before_target_loader[pk_slots] __
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 198
+  @pytest.mark.parametrize('damage',['head','counter','scheduler','schema','numerical_policy','pk_slots','source_c'])
+  def test_bad_terminal_refused_before_target_loader(mgn_terminal,monkeypatch,damage):
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 122
+  @pytest.fixture
+  def mgn_terminal(tree,tmp_path,monkeypatch):
+E       fixture 'tree' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mgn_terminal, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py:122
+__ ERROR at setup of test_bad_terminal_refused_before_target_loader[source_c] __
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 198
+  @pytest.mark.parametrize('damage',['head','counter','scheduler','schema','numerical_policy','pk_slots','source_c'])
+  def test_bad_terminal_refused_before_target_loader(mgn_terminal,monkeypatch,damage):
+file /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py, line 122
+  @pytest.fixture
+  def mgn_terminal(tree,tmp_path,monkeypatch):
+E       fixture 'tree' not found
+>       available fixtures: anyio_backend, anyio_backend_name, anyio_backend_options, capfd, capfdbinary, caplog, capsys, capsysbinary, capteesys, doctest_namespace, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, mgn_terminal, monkeypatch, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, subtests, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/test_mgn_lodo_evaluation.py:122
+=========================== short test summary info ============================
+ERROR tests/test_mgn_lodo_evaluation.py::test_real_shared_terminal_reader_and_synthetic_target_uses_source_c
+ERROR tests/test_mgn_lodo_evaluation.py::test_bad_terminal_refused_before_target_loader[head]
+ERROR tests/test_mgn_lodo_evaluation.py::test_bad_terminal_refused_before_target_loader[counter]
+ERROR tests/test_mgn_lodo_evaluation.py::test_bad_terminal_refused_before_target_loader[scheduler]
+ERROR tests/test_mgn_lodo_evaluation.py::test_bad_terminal_refused_before_target_loader[schema]
+ERROR tests/test_mgn_lodo_evaluation.py::test_bad_terminal_refused_before_target_loader[numerical_policy]
+ERROR tests/test_mgn_lodo_evaluation.py::test_bad_terminal_refused_before_target_loader[pk_slots]
+ERROR tests/test_mgn_lodo_evaluation.py::test_bad_terminal_refused_before_target_loader[source_c]
+22 passed, 8 errors in 2.66s

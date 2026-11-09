@@ -1,0 +1,58 @@
+protected_snapshot_file_count: 578
+allowed_changed_existing_files:
+- docs/mgn_lodo_protocol_proposal.md
+- docs/mgn_lodo_protocol_proposal.yaml
+- reid/data/build.py
+- reid/data/lodo_preflight.py
+- reid/optim/build.py
+- reid/utils/config.py
+- reid/utils/config_schema.py
+- reid/utils/lodo_checkpoint.py
+- reid/utils/lodo_device.py
+- reid/utils/lodo_evaluation.py
+- scripts/evaluate.py
+- scripts/train.py
+unexpected_changes: []
+historical_v1_scientific_identities:
+- config: configs/lodo/v1/resnet50_lodo-1_seed42.yaml
+  scientific_sha256: 3e00961d17d4158163cb311ddcf821834fd12a8fd47cd6b9a48f574bc5c7d25c
+  unchanged: true
+- config: configs/lodo/v1/resnet50_lodo-2_seed42.yaml
+  scientific_sha256: e85e95040d8469615d6d62915ee3bedc24dc1c73135b1420de3d59e01009ade2
+  unchanged: true
+- config: configs/lodo/v1/resnet50_lodo-3_seed42.yaml
+  scientific_sha256: e94328887c1abdef675afc974d68ee81a941d8af637e21ef3265ca912f908d1a
+  unchanged: true
+- config: configs/lodo/v1/resnet50_lodo-4_seed42.yaml
+  scientific_sha256: 47986b17b19373d09678718217da61a8b319a671450bdbb9d3e5f684ed5bad77
+  unchanged: true
+- config: configs/lodo/v1/pcb_lodo-1_seed42.yaml
+  scientific_sha256: 04251b99dca9a00cf13bc2e88e8a2fe47b752c07993c4773b7e6c0a987855d1e
+  unchanged: true
+- config: configs/lodo/v1/pcb_lodo-2_seed42.yaml
+  scientific_sha256: 0993e9454b345c6d204b89e8ed180e9b6a63e3fdef607966a3837e73094351ec
+  unchanged: true
+- config: configs/lodo/v1/pcb_lodo-3_seed42.yaml
+  scientific_sha256: e0f59a7689f1a5bb856f3e08ad4b591089f1f016557ad065db6335041229b839
+  unchanged: true
+- config: configs/lodo/v1/pcb_lodo-4_seed42.yaml
+  scientific_sha256: d53b5b2c7345e43d05e3ea3d2809efe73be66f92973c70f775496b04332d87c1
+  unchanged: true
+common_cli_fail_closed:
+- config: configs/lodo/mgn_lodo_v2/mgn_lodo-1_seed42.yaml
+  exit_code: 1
+  reason: 'ValueError: MGN LODO requires a fold-qualified scoped execution receipt;
+    Phase21 is not yet qualified'
+- config: configs/lodo/mgn_lodo_v2/mgn_lodo-2_seed42.yaml
+  exit_code: 1
+  reason: 'ValueError: MGN LODO requires a fold-qualified scoped execution receipt;
+    Phase21 is not yet qualified'
+- config: configs/lodo/mgn_lodo_v2/mgn_lodo-3_seed42.yaml
+  exit_code: 1
+  reason: 'ValueError: MGN LODO requires a fold-qualified scoped execution receipt;
+    Phase21 is not yet qualified'
+- config: configs/lodo/mgn_lodo_v2/mgn_lodo-4_seed42.yaml
+  exit_code: 1
+  reason: 'ValueError: MGN LODO requires a fold-qualified scoped execution receipt;
+    Phase21 is not yet qualified'
+no_official_output_created: true

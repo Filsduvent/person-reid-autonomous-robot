@@ -4,7 +4,7 @@ import torch
 from torch.optim.lr_scheduler import MultiStepLR
 
 from reid.optim.lr_scheduler import WarmupMultiStepLR, SuccessfulUpdateLR, EpochMultiStepLR
-from reid.utils.lodo_protocol import has_lodo_protocol, require_explicit_lodo, validate_lodo_config
+from reid.utils.lodo_dispatch import has_lodo_protocol, require_explicit_lodo, validate_lodo_config
 from reid.utils.config import validate_optimizer_param_groups
 
 

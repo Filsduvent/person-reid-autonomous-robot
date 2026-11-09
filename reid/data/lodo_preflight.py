@@ -16,7 +16,8 @@ from reid.data.cuhk03 import parse_processed_reid_name
 from reid.data.market1501 import parse_processed_name
 from reid.data.msmt17 import parse_msmt17_list
 from reid.utils.io import load_pickle
-from reid.utils.lodo_protocol import DATASET_ORDER, scientific_configuration, validate_lodo_config
+from reid.utils.lodo_protocol import DATASET_ORDER
+from reid.utils.lodo_dispatch import scientific_configuration, validate_lodo_config
 
 
 def _root(value):

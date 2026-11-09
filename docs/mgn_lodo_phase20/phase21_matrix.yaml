@@ -1,0 +1,176 @@
+schema_version: 1
+status: PREPARED_NOT_EXECUTED_RESOURCE_SCOPE_REQUIRED
+cases:
+- case_id: phase21_LODO-1_real_combined_fp32
+  fold: LODO-1
+  ordered_sources:
+  - duke
+  - cuhk03
+  - msmt17
+  target_metadata_only: market1501
+  required_combined_classes: 2510
+  configuration: configs/lodo/mgn_lodo_v2/mgn_lodo-1_seed42.yaml
+  scientific_sha256: 07c58e20d53118a35b76ccd05803ab83664d1868bb5e54d8816e256af0e39dd4
+  max_optimizer_calls_aggregate_all_children: 3
+  max_worker_seconds: 600
+  max_attempts: 3
+  precision: float32_tensors_amp_disabled
+  convolution_tf32_permission: true
+  required_workers: 0
+  P: 16
+  K: 4
+  batch_size: 64
+  status: NOT_EXECUTED
+  recovery_scope: null
+- case_id: phase21_LODO-1_bounded_fixture_rollback
+  fold: LODO-1
+  ordered_sources:
+  - duke
+  - cuhk03
+  - msmt17
+  target_metadata_only: market1501
+  required_combined_classes: 2510
+  configuration: configs/lodo/mgn_lodo_v2/mgn_lodo-1_seed42.yaml
+  scientific_sha256: 07c58e20d53118a35b76ccd05803ab83664d1868bb5e54d8816e256af0e39dd4
+  max_optimizer_calls_aggregate_all_children: 3
+  max_worker_seconds: 600
+  max_attempts: 3
+  precision: float32_tensors_amp_disabled
+  convolution_tf32_permission: true
+  required_workers: 0
+  P: 16
+  K: 4
+  batch_size: 64
+  status: NOT_EXECUTED
+  recovery_scope: bounded_fixture_requires_explicit_equivalence_review
+- case_id: phase21_LODO-2_real_combined_fp32
+  fold: LODO-2
+  ordered_sources:
+  - market1501
+  - cuhk03
+  - msmt17
+  target_metadata_only: duke
+  required_combined_classes: 2559
+  configuration: configs/lodo/mgn_lodo_v2/mgn_lodo-2_seed42.yaml
+  scientific_sha256: bbdc5b944771d1d4f6fa6db5268fe8462b3224aa4bd1312a0feaabd75b137f33
+  max_optimizer_calls_aggregate_all_children: 3
+  max_worker_seconds: 600
+  max_attempts: 3
+  precision: float32_tensors_amp_disabled
+  convolution_tf32_permission: true
+  required_workers: 0
+  P: 16
+  K: 4
+  batch_size: 64
+  status: NOT_EXECUTED
+  recovery_scope: null
+- case_id: phase21_LODO-2_bounded_fixture_rollback
+  fold: LODO-2
+  ordered_sources:
+  - market1501
+  - cuhk03
+  - msmt17
+  target_metadata_only: duke
+  required_combined_classes: 2559
+  configuration: configs/lodo/mgn_lodo_v2/mgn_lodo-2_seed42.yaml
+  scientific_sha256: bbdc5b944771d1d4f6fa6db5268fe8462b3224aa4bd1312a0feaabd75b137f33
+  max_optimizer_calls_aggregate_all_children: 3
+  max_worker_seconds: 600
+  max_attempts: 3
+  precision: float32_tensors_amp_disabled
+  convolution_tf32_permission: true
+  required_workers: 0
+  P: 16
+  K: 4
+  batch_size: 64
+  status: NOT_EXECUTED
+  recovery_scope: bounded_fixture_requires_explicit_equivalence_review
+- case_id: phase21_LODO-3_real_combined_fp32
+  fold: LODO-3
+  ordered_sources:
+  - market1501
+  - duke
+  - msmt17
+  target_metadata_only: cuhk03
+  required_combined_classes: 2494
+  configuration: configs/lodo/mgn_lodo_v2/mgn_lodo-3_seed42.yaml
+  scientific_sha256: 9677e645cce68df7e5ccd0fa38b4a7567d727b9bbda672e18569b77bedc3b443
+  max_optimizer_calls_aggregate_all_children: 3
+  max_worker_seconds: 600
+  max_attempts: 3
+  precision: float32_tensors_amp_disabled
+  convolution_tf32_permission: true
+  required_workers: 0
+  P: 16
+  K: 4
+  batch_size: 64
+  status: NOT_EXECUTED
+  recovery_scope: null
+- case_id: phase21_LODO-3_bounded_fixture_rollback
+  fold: LODO-3
+  ordered_sources:
+  - market1501
+  - duke
+  - msmt17
+  target_metadata_only: cuhk03
+  required_combined_classes: 2494
+  configuration: configs/lodo/mgn_lodo_v2/mgn_lodo-3_seed42.yaml
+  scientific_sha256: 9677e645cce68df7e5ccd0fa38b4a7567d727b9bbda672e18569b77bedc3b443
+  max_optimizer_calls_aggregate_all_children: 3
+  max_worker_seconds: 600
+  max_attempts: 3
+  precision: float32_tensors_amp_disabled
+  convolution_tf32_permission: true
+  required_workers: 0
+  P: 16
+  K: 4
+  batch_size: 64
+  status: NOT_EXECUTED
+  recovery_scope: bounded_fixture_requires_explicit_equivalence_review
+- case_id: phase21_LODO-4_real_combined_fp32
+  fold: LODO-4
+  ordered_sources:
+  - market1501
+  - duke
+  - cuhk03
+  target_metadata_only: msmt17
+  required_combined_classes: 2220
+  configuration: configs/lodo/mgn_lodo_v2/mgn_lodo-4_seed42.yaml
+  scientific_sha256: 18a75f1ca50eee0b8e919c1498d589fd367b811619b7da20458c3476dbe26330
+  max_optimizer_calls_aggregate_all_children: 3
+  max_worker_seconds: 600
+  max_attempts: 3
+  precision: float32_tensors_amp_disabled
+  convolution_tf32_permission: true
+  required_workers: 0
+  P: 16
+  K: 4
+  batch_size: 64
+  status: NOT_EXECUTED
+  recovery_scope: null
+- case_id: phase21_LODO-4_bounded_fixture_rollback
+  fold: LODO-4
+  ordered_sources:
+  - market1501
+  - duke
+  - cuhk03
+  target_metadata_only: msmt17
+  required_combined_classes: 2220
+  configuration: configs/lodo/mgn_lodo_v2/mgn_lodo-4_seed42.yaml
+  scientific_sha256: 18a75f1ca50eee0b8e919c1498d589fd367b811619b7da20458c3476dbe26330
+  max_optimizer_calls_aggregate_all_children: 3
+  max_worker_seconds: 600
+  max_attempts: 3
+  precision: float32_tensors_amp_disabled
+  convolution_tf32_permission: true
+  required_workers: 0
+  P: 16
+  K: 4
+  batch_size: 64
+  status: NOT_EXECUTED
+  recovery_scope: bounded_fixture_requires_explicit_equivalence_review
+aggregate_initial_optimizer_call_limit: 24
+official_training_authorized: false
+benchmark_evaluation_authorized: false
+no_full_real_epoch_recovery_claim: true
+synthetic_target_plumbing: CPU tests only; no benchmark result

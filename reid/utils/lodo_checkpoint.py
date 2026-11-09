@@ -23,7 +23,7 @@ from reid.data.index_observation import ObservedTrainLoader
 from reid.data.multi_source import canonical_json
 from reid.data.samplers import PKBatchSampler
 from reid.engine.update_control import UpdateProgress, UpdateEpochResult, validate_update_mode
-from reid.utils.lodo_protocol import configuration_identity, scientific_configuration
+from reid.utils.lodo_dispatch import configuration_identity, scientific_configuration
 
 SCHEMA_VERSION = 1  # historical original/CPU payloads remain v1
 SUPPORTED_SCHEMA_VERSIONS = (1, 2)
@@ -115,9 +115,13 @@ def make_identity(cfg, loader, model, criterion, optimizer, auxiliary, scheduler
     dim = scientific['architecture_contract']['embedding_dim']
     if declaration['embedding_dim'] != dim or declaration['model_name'] != cfg['model']['name'] or declaration['variant'] != cfg['model'].get('variant'):
         raise ValueError('Model architecture/feature dimension disagrees with protocol')
-    heads = [model.classifier] if architecture == 'resnet50' else list(model.classifiers.fc_list)
+    heads = ([model.classifier] if architecture == 'resnet50' else
+             list(model.classifiers.heads) if architecture == 'mgn' else list(model.classifiers.fc_list))
     if len(heads) != scientific['architecture_contract']['classifier_heads'] or any(head.out_features != ds.num_classes for head in heads):
         raise ValueError('Actual classifier dimensions disagree with source class count')
+    if architecture == 'mgn' and any(head.in_features != (2048 if i < 3 else 256) or head.bias is not None
+                                      for i, head in enumerate(heads)):
+        raise ValueError('MGN global/local classifier topology mismatch')
     from reid.utils.lodo_device import validate_placement
     placement_cfg = copy.deepcopy(cfg) if cpu_inspection else cfg
     if cpu_inspection:
@@ -153,7 +157,10 @@ def make_identity(cfg, loader, model, criterion, optimizer, auxiliary, scheduler
         if not isinstance(auxiliary, torch.optim.SGD) or any(g['lr'] != .5 or g['momentum'] != 0 or g['weight_decay'] != 0 for g in auxiliary.param_groups):
             raise ValueError('Center optimizer convention mismatch')
     schedule = scheduler.state_dict(); schedule.pop('completed_updates')
-    return dict(schema_version=checkpoint_schema(cfg), protocol=cfg['protocol'],
+    arithmetic = (dict(numerical_policy=dict(tensor_dtype='float32', amp=False,
+                     convolution_tf32_permitted=True, matmul_tf32_permitted=False,
+                     full_fp32_arithmetic_guaranteed=False)) if architecture=='mgn' else {})
+    return dict(**arithmetic, schema_version=checkpoint_schema(cfg), protocol=cfg['protocol'],
                 sources=list(ds.sources), target=ds.target, num_classes=ds.num_classes,
                 feature_dim=dim, reconstruction=declaration, map_digest=ds.mapping_digest,
                 mapping=mapping, sidecar_digest=digest(sidecar), data_digest=digest(provenance),

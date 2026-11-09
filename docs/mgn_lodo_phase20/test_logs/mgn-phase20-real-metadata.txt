@@ -1,0 +1,41 @@
+[Dataset] name=multi_source role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: virtual
+split: virtual_train
+num images: 54135
+num identities: 2510
+num cameras: unknown
+num query images: n/a
+num gallery images: n/a
+1 2510 764
+[Dataset] name=multi_source role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: virtual
+split: virtual_train
+num images: 50549
+num identities: 2559
+num cameras: unknown
+num query images: n/a
+num gallery images: n/a
+2 2559 716
+[Dataset] name=multi_source role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: virtual
+split: virtual_train
+num images: 59706
+num identities: 2494
+num cameras: unknown
+num query images: n/a
+num gallery images: n/a
+3 2494 858
+[Dataset] name=multi_source role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: virtual
+split: virtual_train
+num images: 36823
+num identities: 2220
+num cameras: unknown
+num query images: n/a
+num gallery images: n/a
+4 2220 505
+PASS all4 actual virtual loaders, no images/model/CUDA.

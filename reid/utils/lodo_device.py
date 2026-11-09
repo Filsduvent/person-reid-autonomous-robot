@@ -130,6 +130,13 @@ def select_lodo_device(cfg):
     if policy_contract(cfg) is not None:
         validate_runtime(cfg)
         evidence['execution_policy'] = policy_contract(cfg)
+    from reid.utils.mgn_lodo_protocol import is_mgn_lodo
+    if is_mgn_lodo(cfg):
+        evidence.update(tensor_precision='float32', amp=False,
+                        convolution_tf32_permitted=torch.backends.cudnn.allow_tf32,
+                        hardware_compute_capability=[properties.major, properties.minor],
+                        convolution_tf32_hardware_capable=properties.major >= 8,
+                        actual_tf32_kernel_use_measured=False)
     return torch.device('cuda:0'), recheck, evidence
 
 

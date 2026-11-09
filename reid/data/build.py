@@ -9,7 +9,7 @@ from reid.data.msmt17 import MSMT17RawTest, MSMT17RawTrain
 from reid.data.protocol import validate_eval_dataset, validate_train_dataset
 from reid.data.samplers import PKBatchSampler
 from reid.data.transforms import build_train_tf, build_test_tf
-from reid.utils.lodo_protocol import has_lodo_protocol, require_explicit_lodo, validate_lodo_config
+from reid.utils.lodo_dispatch import has_lodo_protocol, require_explicit_lodo, validate_lodo_config
 
 
 DATASET_DISPLAY_NAMES = {

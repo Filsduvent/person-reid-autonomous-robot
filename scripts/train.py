@@ -368,7 +368,7 @@ def run_lodo_training(cfg):
     import shutil
     import time
     from reid.engine.update_control import UpdateProgress
-    from reid.utils.lodo_protocol import validate_output_path
+    from reid.utils.lodo_dispatch import validate_output_path
     from reid.utils.lodo_checkpoint import (atomic_write, canonical_json, loader_contract,
         make_identity, save_lodo_checkpoint, restore_lodo_checkpoint, validate_resume_path, read_checkpoint)
     from reid.utils.lodo_device import authorization_uuid, select_lodo_device
@@ -376,6 +376,11 @@ def run_lodo_training(cfg):
                                          recovery_event_environment)
 
     cfg = copy.deepcopy(cfg)
+    from reid.utils.mgn_lodo_protocol import is_mgn_lodo
+    mgn_admission = None
+    if is_mgn_lodo(cfg):
+        from reid.utils.mgn_lodo_operational import validate_training_session
+        mgn_admission = validate_training_session(cfg)
     authorization_uuid(cfg)
     activate_policy(cfg)  # opt-in only, before device discovery, seeding or loaders
     policy = recovery_policy(cfg)
@@ -434,18 +439,63 @@ def run_lodo_training(cfg):
             _, proof = read_checkpoint(path)
             event.update(recovery_event_environment(cfg),checkpoint_sha256=proof['checkpoint_sha256'],
                          invalid_generations=fallback, cuda_admission=device_evidence)
+        if is_mgn_lodo(cfg):
+            previous = events[-1] if events else {}
+            known = previous if (previous.get('event')=='interruption_rollback_required'
+                                 and previous.get('recover_from')==str(path) and not fallback) else None
+            event.update(discarded_work_event_index=len(events)-1 if known is not None else None,
+                         discarded_physical_work_observation='observed' if known is not None else 'unknown_after_unobserved_termination_or_fallback',
+                         known_discarded_attempted_batches=None if known is None else known['discarded_attempted_batches'],
+                         known_discarded_source_presentations=None if known is None else known['discarded_source_presentations'])
         events.append(event)
         atomic_write(event_path, lambda stream: stream.write(canonical_json(events)))
     else:
         run_dir.parent.mkdir(parents=True, exist_ok=True)
         run_dir.mkdir(exist_ok=False)
         checkpoint_dir.mkdir()
+        if mgn_admission is not None:
+            atomic_write(run_dir/'operational_admission.json',lambda stream:stream.write(canonical_json(
+                dict(scope=mgn_admission,configuration=cfg,command=list(sys.argv)))))
         if device_evidence is not None:
             atomic_write(run_dir / 'cuda_admission.json',
                          lambda stream: stream.write(canonical_json(device_evidence)))
         progress = UpdateProgress(cfg['train']['max_updates'], auxiliary=auxiliary is not None)
         progress.bind(loader)
         epoch = 1
+
+    def save_work_accounting(status):
+        if not is_mgn_lodo(cfg):
+            return
+        from collections import Counter
+        discarded = {phase: Counter() for phase in progress.exposure.phases}
+        known = 0
+        applied = {e['discarded_work_event_index'] for e in events if e.get('event')=='rollback_resume'
+                   and type(e.get('discarded_work_event_index')) is int}
+        for index in applied:
+            item = events[index]
+            known += item['discarded_successful_updates']
+            for phase, counts in item['discarded_source_presentations'].items():
+                discarded[phase].update(counts)
+        unknown = [i for i,e in enumerate(events) if e.get('event')=='rollback_resume'
+                   and e.get('discarded_physical_work_observation')!='observed']
+        record = dict(schema_version=1, status=status,
+            completed_primary_updates=progress.completed_primary_updates,
+            main_steps_returned=progress.main_steps_returned,attempted_batches=progress.attempted_batches,
+            current_in_memory_exposure=progress.exposure.summary(),
+            current_state_is_persisted_boundary_or_terminal=status in ('boundary','terminal'),
+            rollback_boundary_primary_updates=progress.completed_primary_updates if status in ('boundary','terminal') else boundary_updates,
+            known_discarded_completed_primary_updates=known,
+            confirmed_discarded_work_event_indices=sorted(applied),
+            pending_interruption_event_indices=[i for i,e in enumerate(events)
+                if e.get('event')=='interruption_rollback_required' and i not in applied],
+            known_discarded_source_presentations={phase:dict(counts) for phase,counts in discarded.items()},
+            unknown_discarded_work_resume_events=unknown,
+            physical_work_totals_complete=status in ('boundary','terminal') and not unknown
+                and all(e.get('consistent',True) for e in events)
+                and all(i in applied for i,e in enumerate(events) if e.get('event')=='interruption_rollback_required'),
+            scope='Observed batch/forward/backward/optimizer boundaries; decode-only or abrupt unobserved work is not invented.',
+            accepted_update_budget=cfg['train']['max_updates'], epoch_cap=None)
+        atomic_write(run_dir/'work_accounting.json',lambda stream:stream.write(canonical_json(record)))
 
     def save_boundary(destination, *, terminal_snapshot=False, cursor=0):
         started = time.perf_counter()
@@ -465,6 +515,7 @@ def run_lodo_training(cfg):
                                 bytes=actual.stat().st_size,disk_free_bytes=shutil.disk_usage(run_dir).free,
                                 checkpoint_sha256=proof['checkpoint_sha256']))
             atomic_write(metrics_path,lambda stream:stream.write(canonical_json(metrics)))
+        save_work_accounting('terminal' if terminal_snapshot else 'boundary')
         return actual
 
     if not resume:
@@ -500,8 +551,12 @@ def run_lodo_training(cfg):
                      consistent=progress.consistent, reason=str(error), recover_from=str(last) if recoverable else None)
         if policy is not None:
             event.update(recovery_event_environment(cfg),source_boundary_updates=boundary_updates)
+        if is_mgn_lodo(cfg):
+            event['discarded_main_steps_returned'] = progress.main_steps_returned-boundary_updates
+            event['partial_update_observation'] = 'inconsistent_partial_step_possible' if not progress.consistent else 'no_partial_step_observed'
         events.append(event)
         atomic_write(event_path, lambda stream: stream.write(canonical_json(events)))
+        save_work_accounting('interrupted')
         raise
     return progress
 
@@ -515,7 +570,11 @@ def main():
         print(json.dumps({'training_preflight': preflight_receipt}, indent=2))
     from reid.utils.lodo_protocol import has_lodo_protocol
     if has_lodo_protocol(cfg):
-        from reid.utils.lodo_operational import validate_training_admission
+        from reid.utils.mgn_lodo_protocol import is_mgn_lodo
+        if is_mgn_lodo(cfg):
+            from reid.utils.mgn_lodo_operational import validate_training_admission
+        else:
+            from reid.utils.lodo_operational import validate_training_admission
         validate_training_admission(args.config, cfg, root=REPO_ROOT)
         validate_config(cfg)
         validate_reid_config(cfg)

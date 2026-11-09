@@ -1,0 +1,88 @@
+...............................................FF.                       [100%]
+=================================== FAILURES ===================================
+__________ test_mgn_source_heads_identity_recovery_and_terminal_noop ___________
+
+cpu_checkpoint_scope = PosixPath('/tmp/pytest-of-addirakoze/pytest-7/test_mgn_source_heads_identity0')
+
+    def test_mgn_source_heads_identity_recovery_and_terminal_noop(cpu_checkpoint_scope):
+        cfg=config(root=cpu_checkpoint_scope);cfg['system']['device']='cpu';cfg['repro']['cuda_policy']='original_cuda_v1';cfg['train']['max_updates']=3
+>       objects=parts(cfg);p=UpdateProgress(3)
+                ^^^^^^^^^^
+
+tests/test_mgn_lodo_v2.py:171: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_mgn_lodo_v2.py:103: in parts
+    optimizer=build_optimizer(cfg,model);scheduler=build_scheduler(cfg,optimizer)
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+reid/optim/build.py:102: in build_scheduler
+    validate_lodo_config(cfg)
+reid/utils/lodo_dispatch.py:12: in validate_lodo_config
+    return backend(cfg).validate_lodo_config(cfg,project_root=project_root)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+reid/utils/mgn_lodo_protocol.py:131: in validate_lodo_config
+    contract(cfg);validate_output_path(cfg,project_root=project_root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cfg = {'data': {'num_workers': 0, 'pin_memory': True, 'root': '/home/addirakoze/nobackup/Projects/Dataset', 'test': {'aug': ...orboard': True, 'to_file': True, 'wandb': {'enabled': False, 'entity': None, 'project': 'reid', 'tags': ['mgn']}}, ...}
+
+    def validate_output_path(cfg, *, project_root=None):
+        project=Path(project_root or Path(__file__).resolve().parents[2]).resolve()
+        value=_at(cfg,'experiment.output_dir')
+        _keys(_at(cfg,'experiment'),{'name','output_dir','notes'},'experiment')
+        if not isinstance(value,str) or not value or value!=value.strip() or '\0' in value:
+            raise ValueError('Invalid MGN LODO output path')
+        p=Path(value).expanduser()
+        if '..' in p.parts:raise ValueError('Output traversal prohibited')
+        p=p if p.is_absolute() else project/p
+        root=project/'exp'/'lodo'/SCIENTIFIC_PROTOCOL/'mgn'/cfg['protocol']['fold']/'seed42'
+        if p.parent!=root or not re.fullmatch('[A-Za-z0-9][A-Za-z0-9._-]*',p.name) or p.resolve()!=p or root.resolve()!=root:
+>           raise ValueError('Use fresh exp/lodo/mgn_lodo_v2/mgn/<fold>/seed42/<run-id> without aliases')
+E           ValueError: Use fresh exp/lodo/mgn_lodo_v2/mgn/<fold>/seed42/<run-id> without aliases
+
+reid/utils/mgn_lodo_protocol.py:121: ValueError
+______________ test_bad_head_source_c_rejected_before_checkpoint _______________
+
+cpu_checkpoint_scope = PosixPath('/tmp/pytest-of-addirakoze/pytest-7/test_bad_head_source_c_rejecte0')
+
+    def test_bad_head_source_c_rejected_before_checkpoint(cpu_checkpoint_scope):
+        cfg=config(root=cpu_checkpoint_scope);cfg['system']['device']='cpu';cfg['repro']['cuda_policy']='original_cuda_v1';cfg['train']['max_updates']=3
+>       objects=parts(cfg);objects['model'].classifiers.heads[0]=nn.Linear(2048,7,bias=False)
+                ^^^^^^^^^^
+
+tests/test_mgn_lodo_v2.py:198: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_mgn_lodo_v2.py:103: in parts
+    optimizer=build_optimizer(cfg,model);scheduler=build_scheduler(cfg,optimizer)
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+reid/optim/build.py:102: in build_scheduler
+    validate_lodo_config(cfg)
+reid/utils/lodo_dispatch.py:12: in validate_lodo_config
+    return backend(cfg).validate_lodo_config(cfg,project_root=project_root)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+reid/utils/mgn_lodo_protocol.py:131: in validate_lodo_config
+    contract(cfg);validate_output_path(cfg,project_root=project_root)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cfg = {'data': {'num_workers': 0, 'pin_memory': True, 'root': '/home/addirakoze/nobackup/Projects/Dataset', 'test': {'aug': ...orboard': True, 'to_file': True, 'wandb': {'enabled': False, 'entity': None, 'project': 'reid', 'tags': ['mgn']}}, ...}
+
+    def validate_output_path(cfg, *, project_root=None):
+        project=Path(project_root or Path(__file__).resolve().parents[2]).resolve()
+        value=_at(cfg,'experiment.output_dir')
+        _keys(_at(cfg,'experiment'),{'name','output_dir','notes'},'experiment')
+        if not isinstance(value,str) or not value or value!=value.strip() or '\0' in value:
+            raise ValueError('Invalid MGN LODO output path')
+        p=Path(value).expanduser()
+        if '..' in p.parts:raise ValueError('Output traversal prohibited')
+        p=p if p.is_absolute() else project/p
+        root=project/'exp'/'lodo'/SCIENTIFIC_PROTOCOL/'mgn'/cfg['protocol']['fold']/'seed42'
+        if p.parent!=root or not re.fullmatch('[A-Za-z0-9][A-Za-z0-9._-]*',p.name) or p.resolve()!=p or root.resolve()!=root:
+>           raise ValueError('Use fresh exp/lodo/mgn_lodo_v2/mgn/<fold>/seed42/<run-id> without aliases')
+E           ValueError: Use fresh exp/lodo/mgn_lodo_v2/mgn/<fold>/seed42/<run-id> without aliases
+
+reid/utils/mgn_lodo_protocol.py:121: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_mgn_lodo_v2.py::test_mgn_source_heads_identity_recovery_and_terminal_noop
+FAILED tests/test_mgn_lodo_v2.py::test_bad_head_source_c_rejected_before_checkpoint
+2 failed, 48 passed in 3.96s

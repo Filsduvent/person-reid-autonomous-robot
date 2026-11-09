@@ -1,0 +1,97 @@
+status: CPU_METADATA_LOADER_CONSTRUCTION_PASS
+image_batches_iterated: 0
+models_constructed: 0
+cuda_initialized: false
+folds:
+  LODO-1:
+    num_classes: 2510
+    images: 54135
+    ordered_sources:
+    - duke
+    - cuhk03
+    - msmt17
+    excluded_target: market1501
+    source_statistics:
+      duke:
+        images: 16522
+        identities: 702
+      cuhk03:
+        images: 7365
+        identities: 767
+      msmt17:
+        images: 30248
+        identities: 1041
+    map_sha256: e090e49fde838001a11fd7b41b8b23238bf38df34a36feeb601881082fcd312b
+    map_equals_historical_bytes: true
+    sidecar_sha256: b534fd4d9443ab65b1b17d8fd88c1af97125c7147bc894dffa4240258144a5da
+    scientific_sha256: 07c58e20d53118a35b76ccd05803ab83664d1868bb5e54d8816e256af0e39dd4
+    initial_epoch_batches: 764
+  LODO-2:
+    num_classes: 2559
+    images: 50549
+    ordered_sources:
+    - market1501
+    - cuhk03
+    - msmt17
+    excluded_target: duke
+    source_statistics:
+      market1501:
+        images: 12936
+        identities: 751
+      cuhk03:
+        images: 7365
+        identities: 767
+      msmt17:
+        images: 30248
+        identities: 1041
+    map_sha256: 13f82a58afe58a9df499126a53f6aa0ae48633c8bd036992f66fdc7c41ed2b15
+    map_equals_historical_bytes: true
+    sidecar_sha256: 74ba82602c13a74913ef3c6722249625d32fa12970782f93d940ecf7d9515cb2
+    scientific_sha256: bbdc5b944771d1d4f6fa6db5268fe8462b3224aa4bd1312a0feaabd75b137f33
+    initial_epoch_batches: 716
+  LODO-3:
+    num_classes: 2494
+    images: 59706
+    ordered_sources:
+    - market1501
+    - duke
+    - msmt17
+    excluded_target: cuhk03
+    source_statistics:
+      market1501:
+        images: 12936
+        identities: 751
+      duke:
+        images: 16522
+        identities: 702
+      msmt17:
+        images: 30248
+        identities: 1041
+    map_sha256: 5caf9706605d6626d557637713e794cf959f54cd2c8d9a6eebeb3c95a5b44970
+    map_equals_historical_bytes: true
+    sidecar_sha256: aea9bfb4e286e1dc7c8f5127aed56f0a6a25b39a17259942e5624be8e94cc7e6
+    scientific_sha256: 9677e645cce68df7e5ccd0fa38b4a7567d727b9bbda672e18569b77bedc3b443
+    initial_epoch_batches: 858
+  LODO-4:
+    num_classes: 2220
+    images: 36823
+    ordered_sources:
+    - market1501
+    - duke
+    - cuhk03
+    excluded_target: msmt17
+    source_statistics:
+      market1501:
+        images: 12936
+        identities: 751
+      duke:
+        images: 16522
+        identities: 702
+      cuhk03:
+        images: 7365
+        identities: 767
+    map_sha256: 332f999102894db105360a2765483b23a4653c52fec41443a7f5ff5a7b3618ff
+    map_equals_historical_bytes: true
+    sidecar_sha256: ce762c3bc7ad466db89cc9b9e78e00825e21c7f21db4b3ec34def68ede176a5f
+    scientific_sha256: 18a75f1ca50eee0b8e919c1498d589fd367b811619b7da20458c3476dbe26330
+    initial_epoch_batches: 505

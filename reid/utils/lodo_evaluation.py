@@ -45,21 +45,28 @@ def validate_request(request):
 
 
 def validate_terminal(request):
-    """No model construction/loading or target loader is permitted in this gate."""
-    validate_request(request)
+    """Historical v1-only public gate; MGN remains rejected here."""
+    return _validate_terminal(request)
+
+
+def _validate_terminal(request, *, request_validator=None, science_function=None, identity_function=None):
+    """Shared integrity/math checks, after the explicit version's request validator."""
+    (request_validator or validate_request)(request)
+    science_function = science_function or scientific_configuration
+    identity_function = identity_function or configuration_identity
     path=Path(request['checkpoint']).expanduser().absolute()
     _require(path.name=='ckpt_terminal.pth' and path.resolve()==path, 'A canonical terminal checkpoint is required')
     _require(path.with_suffix('.json').resolve()==path.with_suffix('.json'), 'Terminal sidecar alias prohibited')
     payload,manifest=read_checkpoint(path)  # Phase 6 reader/schema, unchanged
     _require(payload['kind']=='terminal' and manifest['completion_reason']=='budget_completed', 'Not a completed terminal artifact')
-    identity=payload['identity'];cfg=payload['cfg'];science=scientific_configuration(cfg)
-    architecture=request['architecture'];budget=85200 if architecture=='resnet50' else 94200
+    identity=payload['identity'];cfg=payload['cfg'];science=science_function(cfg)
+    architecture=request['architecture'];budget=85200 if architecture in ('resnet50','mgn') else 94200
     auxiliary=budget if architecture=='resnet50' else 0
     validate_fold(request['fold'],identity['sources'],request['target'])
     _require(identity['protocol']==cfg['protocol']==science['protocol'] and
              cfg['protocol']['fold']==request['fold'] and cfg['protocol']['architecture']==architecture and
              identity['target']==request['target'], 'Requested fold/target/architecture mismatch')
-    _require(identity['scientific_config']==science and identity['config_digest']==configuration_identity(cfg), 'Frozen training config mismatch')
+    _require(identity['scientific_config']==science and identity['config_digest']==identity_function(cfg), 'Frozen training config mismatch')
     for key,value in request['expected'].items():
         _require(identity[key]==value, f'Expected {key} mismatch')
     _require(identity['precision']=='fp32' and type(identity['schema_version']) is int and identity['schema_version']==payload['lodo_schema_version'] and identity['schema_version'] in (1,2), 'Unsupported precision/identity schema')
@@ -77,7 +84,7 @@ def validate_terminal(request):
                  sorted(r['local_label'] for r in selected)==list(range(count)), 'Mapping source/local labels mismatch')
         position+=count
     _require(position==classes, 'Mapping contains unknown sources')
-    dim=2048 if architecture=='resnet50' else 1536
+    dim=science['architecture_contract']['embedding_dim']
     declaration=make_reconstruction_metadata(cfg,classes,dim)
     _require(identity['feature_dim']==dim and identity['reconstruction']==payload['reconstruction']==declaration, 'Reconstruction C/D/variant mismatch')
     p=payload['progress']
@@ -98,9 +105,14 @@ def validate_terminal(request):
         for source in identity['sources']:
             _require(source_counts.get(source,0)==sum(n for label,n in id_counts.items() if identities[label]['source_key']==source), 'Source/identity exposure mismatch')
     state=normalized_model_state(payload)
-    keys=['classifier.weight'] if architecture=='resnet50' else [f'classifiers.fc_list.{i}.weight' for i in range(6)]
-    for key in keys:
-        _require(key in state and tuple(state[key].shape)==(classes,2048 if architecture=='resnet50' else 256), 'Classifier must retain combined source C')
+    keys=(['classifier.weight'] if architecture=='resnet50' else
+          [f'classifiers.heads.{i}.weight' for i in range(8)] if architecture=='mgn' else
+          [f'classifiers.fc_list.{i}.weight' for i in range(6)])
+    for i,key in enumerate(keys):
+        width=2048 if architecture=='resnet50' or (architecture=='mgn' and i<3) else 256
+        _require(key in state and tuple(state[key].shape)==(classes,width), 'Classifier must retain combined source C')
+    if architecture=='mgn':
+        _require(not any(k.startswith('classifiers.') and k.endswith('.bias') for k in state), 'MGN classifier bias prohibited')
     _require(all(not t.is_floating_point() or t.dtype==torch.float32 for t in state.values()) and
              all(torch.isfinite(t).all() for t in state.values()), 'Invalid/nonfinite model tensors')
     if architecture=='resnet50':
@@ -119,7 +131,7 @@ def validate_terminal(request):
     return payload,manifest,path
 
 
-def target_metadata(cfg,identity,root):
+def target_metadata(cfg,identity,root, *, science_function=None):
     """Only original target split metadata is read, never images/source loaders."""
     target=identity['target'];root=Path(root).expanduser().resolve(strict=True)
     base='cuhk03/detected' if target=='cuhk03' else target
@@ -135,7 +147,7 @@ def target_metadata(cfg,identity,root):
         target_hash=digest(dict(schema_version=1,ordered_lists=[dict(name=Path(name).name,sha256=value) for name,value in hashes.items()]))
     else: target_hash=next(iter(hashes.values()))
     _require(frozen['descriptor_metadata_hashes']['target']==target_hash, 'Target descriptor hash mismatch')
-    return dict(dataset=copy.deepcopy(scientific_configuration(cfg)['target']),metadata_hashes=hashes,
+    return dict(dataset=copy.deepcopy((science_function or scientific_configuration)(cfg)['target']),metadata_hashes=hashes,
                 descriptor_digest=target_hash,query='list_query.txt' if target=='msmt17' else 'test_marks == 0',
                 gallery='list_gallery.txt' if target=='msmt17' else 'test_marks == 1')
 
@@ -193,30 +205,47 @@ def read_result(path):
 
 
 def evaluate_lodo(request,*,project_root=None):
-    payload,manifest,checkpoint=validate_terminal(request)
-    output=evaluation_output(request,project_root)
+    return _evaluate_lodo(request,project_root=project_root)
+
+
+def _evaluate_lodo(request,*,project_root=None,terminal_validator=None,output_validator=None,
+                   metadata_reader=None,retrieval_reader=None,device_selector=None,
+                   execution_reader=None,evaluation_function=None,comparison_function=None,
+                   protocol='lodo_v1',protocol_version=1,execution_receipt=None):
+    payload,manifest,checkpoint=(terminal_validator or validate_terminal)(request)
+    output=(output_validator or evaluation_output)(request,project_root)
     cfg=payload['cfg'];identity=payload['identity'];root=request.get('data_root',cfg['data']['root'])
-    metadata=target_metadata(cfg,identity,root)
+    metadata=(metadata_reader or target_metadata)(cfg,identity,root)
     from reid.utils.lodo_evaluation_device import select_device, execution_spec, EvaluationProgress
-    device, guard, device_evidence = select_device(request, cfg, output)
+    device, guard, device_evidence = (device_selector or select_device)(request, cfg, output)
     progress = EvaluationProgress(device, guard)
     print(f'[Evaluation] device={device} precision=fp32 ranking=cpu checkpoint={checkpoint}', flush=True)
     runtime=dict(data=dict(root=str(Path(root).resolve()),test=dict(dataset=metadata['dataset'],batch=dict(size=request.get('batch_size',32))),
                            num_workers=request.get('num_workers',0),pin_memory=False),system=dict(device=device.type,gpu_id=0))
     evaluation=build_evaluation_config(cfg,runtime,output)
-    contract=retrieval_contract(cfg)
+    contract=(retrieval_reader or retrieval_contract)(cfg)
     eval_identity=dict(schema_version=1,target=metadata,representation=contract,batch_size=request.get('batch_size',32),precision='fp32')
     if device.type == 'cuda':
-        eval_identity['execution'] = execution_spec(request)
+        eval_identity['execution'] = (execution_reader or execution_spec)(request)
+    if protocol=='mgn_lodo_v2':
+        eval_identity.update(precision='float32_tensors_amp_disabled', convolution_tf32_permitted=True,
+                             full_fp32_arithmetic_guaranteed=False,
+                             scientific_protocol=protocol, training_config_digest=identity['config_digest'],
+                             terminal_sha256=manifest['checkpoint_sha256'], map_digest=identity['map_digest'])
+    if execution_receipt is not None:
+        from reid.utils.mgn_lodo_operational import retrieval_code_identity
+        eval_identity.update(evaluation_release=execution_receipt['release_commit'],
+            implementation_source_sha256=execution_receipt['source_sha256'],
+            retrieval_code_sha256=retrieval_code_identity(execution_receipt['source_sha256']))
     # Reconstruction uses ONLY the embedded source cfg and source C.
     model=reconstruct_model(payload).to(device)
     loader=build_test_loader(evaluation)
-    scores=evaluate_reid(evaluation,model,loader,device,progress=progress,before_batch=progress.before_batch)
+    scores=(evaluation_function or evaluate_reid)(evaluation,model,loader,device,progress=progress,before_batch=progress.before_batch)
     if guard is not None:
         guard()
     print('[Evaluation] metrics=' + json.dumps(metric_vector(scores)), flush=True)
     _require(not any(k.startswith('rerank') for k in scores), 'Unexpected reranking result')
-    record=dict(schema_version=RESULT_VERSION,record_type='lodo_held_out_result',protocol='lodo_v1',protocol_version=1,
+    record=dict(schema_version=RESULT_VERSION,record_type='lodo_held_out_result',protocol=protocol,protocol_version=protocol_version,
                 architecture=request['architecture'],variant=cfg['model'].get('variant'),fold=request['fold'],
                 sources=identity['sources'],target=request['target'],seed=42,synthetic=request['synthetic'],
                 authoritative=not request['synthetic'],training=dict(config_digest=identity['config_digest'],map_digest=identity['map_digest'],
@@ -227,13 +256,15 @@ def evaluate_lodo(request,*,project_root=None):
                 artifacts=dict(result=str(output/'lodo_result.json'),comparison=str(output/'comparison.json')),
                 caveats=['Complete training strategies; differences do not isolate domain diversity.']+
                     (['CUHK03 detected processed_partition; official-new provenance remains unverified.'] if 'cuhk03' in identity['sources']+[identity['target']] else []))
+    if execution_receipt is not None:
+        record['execution_scope'] = execution_receipt
     if device_evidence is not None:
         record['environment']['cuda_admission'] = device_evidence
     from reid.utils.lodo_comparison import compare_stage_a
-    comparison=compare_stage_a(record,request.get('stage_a_records',[]))
+    comparison=(comparison_function or compare_stage_a)(record,request.get('stage_a_records',[]))
     # Recheck immutable input integrity before publishing; no terminal writes.
     _require(file_digest(checkpoint)==manifest['checkpoint_sha256'], 'Terminal changed during evaluation')
-    _require(target_metadata(cfg,identity,root)==metadata, 'Target metadata changed during evaluation')
+    _require((metadata_reader or target_metadata)(cfg,identity,root)==metadata, 'Target metadata changed during evaluation')
     output.parent.mkdir(parents=True,exist_ok=True);output.mkdir(exist_ok=False)
     atomic_write(output/'comparison.json',lambda stream:stream.write(canonical_json(comparison)))
     record['artifacts']['comparison_sha256']=file_digest(output/'comparison.json')

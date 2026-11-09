@@ -1,0 +1,137 @@
+status: PHASE20_CPU_IMPLEMENTATION_CHECKS_PASS_NOT_CUDA_QUALIFICATION
+date: '2026-11-09'
+command: CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1
+  PYTHONPATH=.:scripts:tests timeout 540 /home/addirakoze/environments/Reid/bin/python
+  -m pytest -q tests/test_mgn_lodo_v2.py tests/test_mgn_lodo_admission.py tests/test_mgn_lodo_evaluation.py
+  tests/test_lodo_config.py tests/test_multi_source_dataset.py tests/test_lodo_updates.py
+  tests/test_lodo_checkpoint.py tests/test_lodo_cuda_recovery.py tests/test_lodo_cuda_policy.py
+  tests/test_lodo_device.py tests/test_lodo_evaluation.py tests/test_lodo_gpu_evaluation.py
+  tests/test_lodo_operational.py tests/test_cross_domain_config.py tests/test_checkpoint_reconstruction.py
+  tests/test_training_preflight.py tests/test_mgn_config.py tests/test_mgn_model.py
+execution: Host process for existing DataLoader shared-memory requirements; CUDA hidden.
+exit_code: 0
+result: 972 passed in 67.56s (0:01:07)
+final_log: docs/mgn_lodo_phase20/test_logs/mgn-phase20-release-broad-cpu.txt
+tested_source_snapshot: docs/mgn_lodo_phase20/tested_source_snapshot.yaml
+tested_source_snapshot_sha256: 9fc772c0ac58dcf0111be50c1cbe9a088a22ad1b2ac040f1f888be424c33f165
+all_snapshot_files_unchanged_after_tests: true
+focused_final_result: 102 passed in 10.72s
+phase19_reconciliation:
+  command_receipt: docs/mgn_lodo_phase19/validation-commands.yaml
+  pytest_cases_first_command: 4
+  pytest_cases_second_command: 2
+  total_cases: 6
+  legacy_vectors_assertions: 8
+  frozen_config_identity_assertions: 8
+failed_attempts_disclosure:
+- Initial sandbox DataLoader regression attempt timed out124; rerun on host with CUDA
+  hidden passed.
+- Initial focused fixture namespace expectation:2 failed/48 passed; corrected test
+  fixtures then passed.
+- Evaluation focused run initially had8 fixture-import errors; corrected import then30
+  passed.
+- 'First broad command referenced nonexistent test_lodo_recovery.py: collection failed
+  exit4; corrected to test_lodo_cuda_recovery.py.'
+limits:
+- No GPU execution or Oneiros MGN qualification.
+- Synthetic completed-terminal metadata is plumbing evidence, not a trained result.
+- No full training, benchmark, ONNX/runtime, push or merge.
+preserved_attempt_logs:
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-broad-cpu-corrected.txt
+  sha256: a5b6658ec7b431cddc4861646eb839589606535350042db0d7aad6ca22224759
+  last_lines:
+  - '........................................................................ [ 96%]'
+  - '................................                                         [100%]'
+  - 968 passed in 66.08s (0:01:06)
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-broad-cpu.txt
+  sha256: fb3c664a03eeface8d305ccca2ba93a2939c850b7a99b633c78802a4642df18f
+  last_lines:
+  - ''
+  - ''
+  - no tests ran in 0.00s
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-eval-focused.txt
+  sha256: 6954713d57303bfdb1235310fd513a74537ab0ddf56986d207dced9ee01c511c
+  last_lines:
+  - '......................                                                   [100%]'
+  - 22 passed in 2.31s
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-eval-focused2.txt
+  sha256: 092818a8c9161950bbd7c01c07f27b9843a82bc3807b60c1056c90fe23f0185c
+  last_lines:
+  - ERROR tests/test_mgn_lodo_evaluation.py::test_bad_terminal_refused_before_target_loader[pk_slots]
+  - ERROR tests/test_mgn_lodo_evaluation.py::test_bad_terminal_refused_before_target_loader[source_c]
+  - 22 passed, 8 errors in 2.66s
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-eval-focused3.txt
+  sha256: f5875d80818a98e9b1ba30de8c9b9685045f7f716228e247a844599eca57c946
+  last_lines:
+  - '..............................                                           [100%]'
+  - 30 passed in 2.92s
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-final-broad-cpu.txt
+  sha256: 3a0f28ffc56b0ee72b7fedc642a102d8e60b26fd68e03394182d7f9e23f9bfd4
+  last_lines:
+  - '........................................................................ [ 96%]'
+  - '...................................                                      [100%]'
+  - 971 passed in 67.76s (0:01:07)
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-final-focused-runtime.txt
+  sha256: d6e92e463693bfecc22578f17383fb9e9bdc461ea543fa90e9ffeb42a534c089
+  last_lines:
+  - '........................................................................ [ 70%]'
+  - '..............................                                           [100%]'
+  - 102 passed in 10.72s
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-final-focused.txt
+  sha256: 5af86ab859b7a0858e5e3d85e5fef3ce051d11d6623740b0f7a8f891bb1827b5
+  last_lines:
+  - '........................................................................ [ 75%]'
+  - '........................                                                 [100%]'
+  - 96 passed in 10.19s
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-final-focused2.txt
+  sha256: a448f07301259d17b063477c9461463babdfb4b9e027838f73373a865fe5b28d
+  last_lines:
+  - '........................................................................ [ 73%]'
+  - '..........................                                               [100%]'
+  - 98 passed in 10.35s
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-focused-accounting.txt
+  sha256: 3a73da6754e37db5d22ceab1e1117d05be4529ed2ad088be9fdf32af54dd8173
+  last_lines:
+  - '........................................................................ [ 71%]'
+  - '.............................                                            [100%]'
+  - 101 passed in 10.61s
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-focused.txt
+  sha256: 7b4a462edb04f008457ea5627ee46907bf4ad17a8458c57d1538a4ab2857fb26
+  last_lines:
+  - FAILED tests/test_mgn_lodo_v2.py::test_mgn_source_heads_identity_recovery_and_terminal_noop
+  - FAILED tests/test_mgn_lodo_v2.py::test_bad_head_source_c_rejected_before_checkpoint
+  - 2 failed, 48 passed in 3.96s
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-focused2.txt
+  sha256: ad8fb010ad55647889522aeb2442ff4717626b716249cb7f860403cef68d477a
+  last_lines:
+  - '..................................................                       [100%]'
+  - 50 passed in 4.06s
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-focused3.txt
+  sha256: 6449f27962848fad716ef9ed9b6983bee4197a1c775ae11dae9e426f8122b8bd
+  last_lines:
+  - '................................................................         [100%]'
+  - 64 passed in 4.27s
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-host-regressions.txt
+  sha256: 8075e148dcc6c114bc6523d59edfd05b314f7541f7cf41cc527a8bc8a056d3ff
+  last_lines:
+  - '........................................................................ [ 97%]'
+  - '........                                                                 [100%]'
+  - 368 passed in 13.02s
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-initial-tests.txt
+  sha256: a1a0016b774bc4d9eb288c4ed56da35996164d13884628e4bf2a3ec2f95d5dda
+  last_lines:
+  - '........................................................................ [ 23%]'
+  - '........................................................................ [ 46%]'
+  - '.......................................................................'
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-real-metadata.txt
+  sha256: c136da02b8bb616d054422d953877f725e38d6b468e39ef7ebcfb7c35b11aed7
+  last_lines:
+  - 'num gallery images: n/a'
+  - 4 2220 505
+  - PASS all4 actual virtual loaders, no images/model/CUDA.
+- path: docs/mgn_lodo_phase20/test_logs/mgn-phase20-release-broad-cpu.txt
+  sha256: 1b006e6be67881566155ff1b8f09549bf6e418adfe28372f936707238d7d0628
+  last_lines:
+  - '........................................................................ [ 96%]'
+  - '....................................                                     [100%]'
+  - 972 passed in 67.56s (0:01:07)

@@ -1,0 +1,192 @@
+# IMPLEMENTATION READY ONLY. No execution before fold-specific Phase21 admission.
+experiment:
+  name: mgn_lodo_v2_fold1_seed42
+  output_dir: exp/lodo/mgn_lodo_v2/mgn/LODO-1/seed42/phase20-prepared
+  notes: Approved science; NOT QUALIFIED TO LAUNCH. Phase21 fold/release/resource
+    admission required.
+system:
+  device: cuda
+  gpu_id: 0
+  amp: false
+  log_interval: 20
+repro:
+  seed: 42
+  deterministic: true
+  benchmark: false
+  cuda_policy: strict_cuda_deterministic_v1
+logging:
+  to_file: true
+  tensorboard: true
+  wandb:
+    enabled: false
+    project: reid
+    entity: null
+    tags:
+    - mgn
+data:
+  root: /home/addirakoze/nobackup/Projects/Dataset
+  num_workers: 0
+  pin_memory: true
+  train:
+    dataset:
+      name: multi_source
+      sources:
+      - name: duke
+        format: processed
+        split: trainval
+        metadata_sha256: 25929417e0a8780548924d4f58f4f644ee18098e957df41a571650eb05e6b638
+      - name: cuhk03
+        format: processed
+        split: trainval
+        image_type: detected
+        protocol: processed_partition
+        split_id: null
+        provenance:
+          intended_protocol: detected_new
+          verification: unverified
+        metadata_sha256: a1fd9a06748dd217325820b2ed5c5814de364a6b5e91cb7a93e1924915034f97
+      - name: msmt17
+        format: raw
+        split: train
+        lists:
+        - list_train.txt
+        image_subdir: msmt17/MSMT17_V2/mask_train_v2
+        metadata_sha256: 00930d5911e66ec6ac4d9b177e61b49433658758cc091231bf7cfcb83c70d0bf
+    images:
+      size:
+      - 384
+      - 128
+      batch_dims: NCHW
+      interpolation: bicubic
+    aug:
+      mean:
+      - 0.485
+      - 0.456
+      - 0.406
+      std:
+      - 0.229
+      - 0.224
+      - 0.225
+      mirror: random
+      padding:
+        enabled: false
+      random_crop:
+        enabled: false
+      random_erasing:
+        enabled: false
+    loader:
+      shuffle: true
+      final_batch: true
+    batch:
+      sampler: pk
+      P: 16
+      K: 4
+      batch_size: 64
+  test:
+    dataset:
+      name: market1501
+      format: processed
+      split: test
+      metadata_sha256: 3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab
+    images:
+      size:
+      - 384
+      - 128
+      batch_dims: NCHW
+      interpolation: bicubic
+    aug:
+      mean:
+      - 0.485
+      - 0.456
+      - 0.406
+      std:
+      - 0.229
+      - 0.224
+      - 0.225
+      mirror: none
+    loader:
+      shuffle: false
+      final_batch: true
+    batch:
+      size: 32
+model:
+  name: mgn
+  variant: paper_v3_global2048_independent_v1
+  pretrained: true
+  weights_path: /home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth
+  head:
+    classifier: true
+  initialization:
+    artifact_id: resnet50-19c8e357
+    sha256: 19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097
+    head_init_id: reference_a_384e820_bias_free_v1
+loss:
+  id:
+    enabled: true
+    weight: 1.0
+    label_smoothing: 0.0
+    head_aggregation: mean
+  triplet:
+    enabled: true
+    weight: 1.0
+    margin: 1.2
+    mining: batch_hard
+    feature_source: model
+    feature_aggregation: mean
+  center:
+    enabled: false
+optim:
+  name: sgd
+  lr: 0.01
+  momentum: 0.9
+  nesterov: false
+  weight_decay: 0.0005
+  bias_lr_factor: 1.0
+  weight_decay_bias: 0.0005
+sched:
+  name: warmup_multistep
+  unit: successful_primary_updates
+  milestones:
+  - 42600
+  - 63900
+  gamma: 0.1
+  warmup_iters: 0
+  warmup_factor: 1.0
+  warmup_method: linear
+train:
+  mode: successful_updates
+  max_updates: 85200
+  evaluate_during_training: false
+  checkpoint_selection: terminal
+  save:
+    save_best: false
+    save_last: true
+    save_terminal: true
+    resume: ''
+  recovery:
+    version: 1
+    policy: completed_epoch_boundary
+    every_epochs: 1
+    keep_generations: 2
+eval:
+  weight: ''
+  normalize_feat: true
+  distance: euclidean
+  topk:
+  - 1
+  - 5
+  - 10
+  rerank:
+    enabled: false
+    k1: 20
+    k2: 6
+    lambda_value: 0.3
+  export:
+    format:
+    - json
+  flip_aggregation: none
+protocol:
+  name: multi_source_lodo
+  version: 2
+  architecture: mgn
+  fold: LODO-1

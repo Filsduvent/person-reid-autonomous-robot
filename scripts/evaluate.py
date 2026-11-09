@@ -110,6 +110,16 @@ def main():
     from reid.utils.logger import setup_logger
 
     cfg = load_config(args.config, overrides=args.opts)
+    if cfg.get('mode') == 'mgn_single_source_reference':
+        if args.opts or args.weight:
+            raise ValueError('Supplementary reference evaluation requires the exact pinned request')
+        from reid.utils.mgn_lodo_reference import evaluate_reference
+        return evaluate_reference(cfg, request_path=args.config, project_root=REPO_ROOT)
+    if cfg.get('mode') == 'lodo_held_out' and cfg.get('version') == 2:
+        if args.opts or args.weight:
+            raise ValueError('MGN held-out evaluation requires the exact pinned request; overrides forbidden')
+        from reid.utils.mgn_lodo_evaluation import evaluate_mgn_lodo
+        return evaluate_mgn_lodo(cfg, request_path=args.config, project_root=REPO_ROOT)
     if cfg.get('mode') == 'lodo_held_out':
         if args.opts:
             raise ValueError('LODO evaluation requires the exact pinned request; overrides are forbidden')

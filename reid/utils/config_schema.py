@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from reid.utils.lodo_protocol import has_lodo_protocol, require_explicit_lodo, validate_lodo_config
+from reid.utils.lodo_dispatch import has_lodo_protocol, require_explicit_lodo, validate_lodo_config
 
 
 REQUIRED_TOP_LEVEL_SECTIONS = (

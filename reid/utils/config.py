@@ -8,7 +8,7 @@ import copy
 import yaml
 from typing import Any, Dict, List, Tuple
 
-from reid.utils.lodo_protocol import has_lodo_protocol, require_explicit_lodo, validate_lodo_config
+from reid.utils.lodo_dispatch import has_lodo_protocol, require_explicit_lodo, validate_lodo_config
 
 
 def _expect_choice(name: str, value: Any, allowed: set[str]) -> str:
