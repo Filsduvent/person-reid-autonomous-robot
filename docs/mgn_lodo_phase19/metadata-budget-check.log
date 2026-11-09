@@ -1,0 +1,44 @@
+[Dataset] name=Market1501 role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: trainval
+num images: 12936
+num identities: 751
+num cameras: 6
+num query images: n/a
+num gallery images: n/a
+[Dataset] name=DukeMTMC-ReID role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: trainval
+num images: 16522
+num identities: 702
+num cameras: 8
+num query images: n/a
+num gallery images: n/a
+[Dataset] name=CUHK03 role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: trainval
+image_type: detected
+protocol: processed_partition
+split_id: None
+num images: 7365
+num identities: 767
+num cameras: 2
+num query images: n/a
+num gallery images: n/a
+[Dataset] name=MSMT17 role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: raw
+split: train
+num images: 30248
+num identities: 1041
+num cameras: 15
+num query images: n/a
+num gallery images: n/a
+LODO-1 (('duke', 'cuhk03', 'msmt17'), 'market1501')
+LODO-2 (('market1501', 'cuhk03', 'msmt17'), 'duke')
+LODO-3 (('market1501', 'duke', 'msmt17'), 'cuhk03')
+LODO-4 (('market1501', 'duke', 'cuhk03'), 'msmt17')
+PASS mean120 reference 85247.25

@@ -1,0 +1,64 @@
+source: cuhk03
+target: cuhk03
+checkpoint:
+  path: exp/mgn/cuhk03/checkpoints/ckpt_best.pth
+  bytes: 596962074
+  sha256: a936f3c48224225aa76a3216c0a2cc2c13609c0a51c14e12ad5893c44ad9b23a
+  epoch: 120
+  scheduler_completed_epochs: 120
+  selection_state:
+    schema_version: 1
+    metric: mAP
+    best_score: 0.4585919976234436
+    best_epoch: 120
+  reconstruction:
+    schema_version: 1
+    output_contract_version: 1
+    model_name: mgn
+    variant: paper_v3_global2048_independent_v1
+    num_classes: 767
+    embedding_dim: 2048
+  optimizer_state_present: true
+  configuration_matches_freeze_except_operational_output_and_resume: true
+command:
+- /home/addirakoze/environments/Reid/bin/python
+- -u
+- -B
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/docs/mgn_evaluation_20261106/gpu_entry.py
+- --audit
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/cuhk03_to_cuhk03
+- --entry
+- scripts/evaluate.py
+- --
+- --config
+- configs/mgn/cuhk03.yaml
+- --weight
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/cuhk03/checkpoints/ckpt_best.pth
+- --opts
+- experiment.output_dir=/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03
+common_entry_arguments:
+- /home/addirakoze/environments/Reid/bin/python
+- -u
+- -B
+- scripts/evaluate.py
+- --config
+- configs/mgn/cuhk03.yaml
+- --weight
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/cuhk03/checkpoints/ckpt_best.pth
+- --opts
+- experiment.output_dir=/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03
+gpu:
+  timestamp_utc: '2026-11-07T01:29:59.521848+00:00'
+  uuid: GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+  physical_index: 0
+  name: NVIDIA RTX A4000
+  driver: 590.44.01
+  total_mib: 16376
+  free_mib: 15967
+  utilization_percent: 0
+  compute_mode: Default
+  mig_mode: '[N/A]'
+  processes: []
+release: 7185a7667b2d21a5ad805538ace64326b2bfa28e
+output_fresh: true
+created_utc: '2026-11-07T01:29:59.522123+00:00'

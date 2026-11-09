@@ -1,0 +1,62 @@
+threshold_fraction: 1.0e-05
+threshold_unchanged: true
+cross_host_cause_proven: false
+cross_domain_executed: false
+review_status: PENDING_USER_RESPONSE_TO_EXCEPTION_DISPOSITION
+cells:
+- source: market1501
+  observed_metrics:
+    mAP: 0.70999675989151
+    mINP: 0.34993869066238403
+    Rank1: 0.8818289637565613
+    Rank5: 0.9483373165130615
+    Rank10: 0.9664489030838013
+  difference_from_training_fraction:
+    mAP: -1.1861324310302734e-05
+    mINP: -1.9341707229614258e-05
+    Rank1: 0.0
+    Rank5: 0.0
+    Rank10: 0.0
+  within_tolerance: false
+- source: duke
+  observed_metrics:
+    mAP: 0.6687320470809937
+    mINP: 0.27260103821754456
+    Rank1: 0.8168761134147644
+    Rank5: 0.9070915579795837
+    Rank10: 0.931328535079956
+  difference_from_training_fraction:
+    mAP: 3.24249267578125e-05
+    mINP: -9.834766387939453e-07
+    Rank1: 0.0004488229751586914
+    Rank5: -0.0004488229751586914
+    Rank10: -0.0004488229751586914
+  within_tolerance: false
+- source: cuhk03
+  observed_metrics:
+    mAP: 0.45847630500793457
+    mINP: 0.34446725249290466
+    Rank1: 0.46000000834465027
+    Rank5: 0.6600000262260437
+    Rank10: 0.7549999952316284
+  difference_from_training_fraction:
+    mAP: -0.0001156926155090332
+    mINP: -6.264448165893555e-05
+    Rank1: -0.0007142722606658936
+    Rank5: 0.0
+    Rank10: 0.0007143020629882812
+  within_tolerance: false
+- source: msmt17
+  observed_metrics:
+    mAP: 0.19670908153057098
+    mINP: 0.016590189188718796
+    Rank1: 0.43159791827201843
+    Rank5: 0.5941332578659058
+    Rank10: 0.6634359955787659
+  difference_from_training_fraction:
+    mAP: -6.154179573059082e-06
+    mINP: -6.070360541343689e-06
+    Rank1: 0.00025731325149536133
+    Rank5: 8.571147918701172e-05
+    Rank10: 0.0
+  within_tolerance: false

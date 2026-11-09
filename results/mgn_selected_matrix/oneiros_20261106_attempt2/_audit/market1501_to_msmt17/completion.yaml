@@ -1,0 +1,105 @@
+source: market1501
+target: msmt17
+setting: cross-domain
+epoch: 70
+checkpoint:
+  path: exp/mgn/market1501/checkpoints/ckpt_best.pth
+  bytes: 596011610
+  sha256: 5067cb70fb2e3fe7609ca7338487c44f62699596088852abe060c9672ebe8024
+  epoch: 70
+  scheduler_completed_epochs: 70
+  selection_state:
+    schema_version: 1
+    metric: mAP
+    best_score: 0.7100086212158203
+    best_epoch: 70
+  reconstruction:
+    schema_version: 1
+    output_contract_version: 1
+    model_name: mgn
+    variant: paper_v3_global2048_independent_v1
+    num_classes: 751
+    embedding_dim: 2048
+  optimizer_state_present: true
+  configuration_matches_freeze_except_operational_output_and_resume: true
+metrics:
+  mAP: 0.02808622643351555
+  mINP: 0.0016502134967595339
+  Rank1: 0.08868685364723206
+  Rank5: 0.15438717603683472
+  Rank10: 0.19478514790534973
+exit_code: 0
+command:
+- /home/addirakoze/environments/Reid/bin/python
+- -u
+- -B
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/docs/mgn_evaluation_20261106/gpu_entry.py
+- --audit
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/market1501_to_msmt17
+- --entry
+- scripts/evaluate_cross_domain.py
+- --
+- --config
+- configs/mgn/msmt17.yaml
+- --checkpoint
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/market1501/checkpoints/ckpt_best.pth
+- --source-dataset
+- market1501
+- --target-dataset
+- msmt17
+- --output-dir
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_msmt17
+output: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_msmt17
+gpu_execution:
+  device: cuda:0
+  fp32: true
+  amp: false
+  forwards: 5864
+  batches: 2932
+  cudnn_benchmark: true
+  cudnn_deterministic: false
+  peak_allocated_bytes: 1695880704
+  peak_reserved_bytes: 1746927616
+  gpu:
+    timestamp_utc: '2026-11-07T01:56:36.709014+00:00'
+    uuid: GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+    physical_index: 0
+    name: NVIDIA RTX A4000
+    driver: 590.44.01
+    total_mib: 16376
+    free_mib: 15083
+    utilization_percent: 0
+    compute_mode: Default
+    mig_mode: '[N/A]'
+    processes:
+    - - GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+      - '1597813'
+      - /home/addirakoze/environments/Reid/bin/python
+      - '878'
+completed_utc: '2026-11-07T01:56:38.005431+00:00'
+artifacts:
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_msmt17/config.resolved.yaml
+  bytes: 3007
+  sha256: a7bdda6fbafa2a83fbc274003915aaa99c9532c9fd3023a7a3b856627175dd91
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_msmt17/cross_dataset.json
+  bytes: 5123
+  sha256: db5cfe7f1dbabd360b4fb9d2eba90b70438942d0e74d13219f429bb8c99a3d4f
+audit_artifacts:
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/market1501_to_msmt17/admission.yaml
+  bytes: 2307
+  sha256: 1164b49980f76503b515e13364abfb5a736c02c81413f3ab6f33414f34045cd7
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/market1501_to_msmt17/gpu-completion.json
+  bytes: 759
+  sha256: 27058cfef843260188d8f52c09bdd3e43d96b7a166525f42be79988f2b825cd7
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/market1501_to_msmt17/gpu-observed.jsonl
+  bytes: 6731
+  sha256: d1a8517c3a2eafee725621cf0d425837aedf42f1afa3289f7fe5f9f95e5705d7
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/market1501_to_msmt17/gpu-start.json
+  bytes: 719
+  sha256: 1950fce1b961b676d048c2277714a2231111bf38e1b7a9724b5ea76beeb6d5c2
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/market1501_to_msmt17/progress.jsonl
+  bytes: 319528
+  sha256: 70685abeea312d329777cb16f124474aa34a41eefefc819a65bc01914cd8b46f
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/market1501_to_msmt17/terminal.log
+  bytes: 4140
+  sha256: ac01a476b03fbda3713c57e1a4ebfa77ad99f8faecd25bbd7ae61fa3468af49a

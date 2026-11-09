@@ -1,0 +1,87 @@
+[Dataset] name=Market1501 role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: trainval
+num images: 12936
+num identities: 751
+num cameras: 6
+num query images: n/a
+num gallery images: n/a
+[Dataset] name=Market1501 role=test
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: test
+num images: 31969
+num identities: 751
+num cameras: 6
+num query images: 3368
+num gallery images: 15913
+[Dataset] name=DukeMTMC-ReID role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: trainval
+num images: 16522
+num identities: 702
+num cameras: 8
+num query images: n/a
+num gallery images: n/a
+[Dataset] name=DukeMTMC-ReID role=test
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: test
+num images: 19889
+num identities: 1110
+num cameras: 8
+num query images: 2228
+num gallery images: 17661
+[Dataset] name=CUHK03 role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: trainval
+image_type: detected
+protocol: processed_partition
+split_id: None
+num images: 7365
+num identities: 767
+num cameras: 2
+num query images: n/a
+num gallery images: n/a
+[Dataset] name=CUHK03 role=test
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: test
+image_type: detected
+protocol: processed_partition
+split_id: None
+num images: 6732
+num identities: 700
+num cameras: 2
+num query images: 1400
+num gallery images: 5332
+[Dataset] name=MSMT17 role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: raw
+split: train
+num images: 30248
+num identities: 1041
+num cameras: 15
+num query images: n/a
+num gallery images: n/a
+[Dataset] name=MSMT17 role=test
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: raw
+split: test
+num images: 93820
+num identities: 3060
+num cameras: 15
+num query images: 11659
+num gallery images: 82161
+START market1501_to_market1501
+COMPLETE market1501_to_market1501 {"mAP": 0.70999675989151, "mINP": 0.34993869066238403, "Rank1": 0.8818289637565613, "Rank5": 0.9483373165130615, "Rank10": 0.9664489030838013}
+Traceback (most recent call last):
+  File "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/docs/mgn_evaluation_20261106/run_matrix.py", line 180, in <module>
+    main()
+  File "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/docs/mgn_evaluation_20261106/run_matrix.py", line 165, in main
+    if diagonal and not result['within_tolerance']:raise RuntimeError('Diagonal exceeds preapproved tolerance; investigate without reselection or retrospective tolerance change')
+                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Diagonal exceeds preapproved tolerance; investigate without reselection or retrospective tolerance change

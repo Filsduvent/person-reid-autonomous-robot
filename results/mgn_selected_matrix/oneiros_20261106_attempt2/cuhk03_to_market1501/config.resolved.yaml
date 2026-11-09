@@ -1,0 +1,159 @@
+experiment:
+  name: mgn_cuhk03
+  output_dir: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_market1501
+  notes: MGN v3/project FP32 recipe. Periodic source test mAP selects best; no independent
+    validation split.
+system:
+  device: cuda
+  gpu_id: 0
+  amp: false
+  log_interval: 20
+repro:
+  seed: 42
+  deterministic: false
+  benchmark: true
+logging:
+  to_file: true
+  tensorboard: true
+  wandb:
+    enabled: false
+    project: reid
+    entity: null
+    tags:
+    - mgn
+data:
+  root: /home/addirakoze/nobackup/Projects/Dataset
+  num_workers: 4
+  pin_memory: true
+  train:
+    dataset:
+      name: cuhk03
+      split: trainval
+      format: processed
+      image_type: detected
+      protocol: processed_partition
+      split_id: null
+    images:
+      size:
+      - 384
+      - 128
+      batch_dims: NCHW
+      interpolation: bicubic
+    aug:
+      mean:
+      - 0.485
+      - 0.456
+      - 0.406
+      std:
+      - 0.229
+      - 0.224
+      - 0.225
+      mirror: random
+      padding:
+        enabled: false
+      random_crop:
+        enabled: false
+      random_erasing:
+        enabled: false
+    loader:
+      shuffle: true
+      final_batch: true
+    batch:
+      sampler: pk
+      P: 16
+      K: 4
+      batch_size: 64
+  test:
+    dataset:
+      name: market1501
+      split: test
+      format: processed
+    images:
+      size:
+      - 384
+      - 128
+      batch_dims: NCHW
+      interpolation: bicubic
+    aug:
+      mean:
+      - 0.485
+      - 0.456
+      - 0.406
+      std:
+      - 0.229
+      - 0.224
+      - 0.225
+      mirror: none
+    loader:
+      shuffle: false
+      final_batch: true
+    batch:
+      size: 32
+model:
+  name: mgn
+  variant: paper_v3_global2048_independent_v1
+  pretrained: true
+  weights_path: /home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth
+  head:
+    classifier: true
+  initialization:
+    artifact_id: resnet50-19c8e357
+    sha256: 19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097
+    head_init_id: reference_a_384e820_bias_free_v1
+loss:
+  id:
+    enabled: true
+    weight: 1.0
+    label_smoothing: 0.0
+    head_aggregation: mean
+  triplet:
+    enabled: true
+    weight: 1.0
+    margin: 1.2
+    mining: batch_hard
+    feature_source: model
+    feature_aggregation: mean
+  center:
+    enabled: false
+optim:
+  name: sgd
+  lr: 0.01
+  momentum: 0.9
+  nesterov: false
+  weight_decay: 0.0005
+  bias_lr_factor: 1.0
+  weight_decay_bias: 0.0005
+sched:
+  name: epoch_multistep
+  milestones:
+  - 60
+  - 90
+  gamma: 0.1
+train:
+  preflight:
+    name: mgn_offline_v1
+  epochs: 120
+  eval_interval: 10
+  save:
+    metric: mAP
+    save_best: true
+    save_last: true
+    resume: ''
+    require_selection_state_on_resume: true
+eval:
+  weight: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/cuhk03/checkpoints/ckpt_best.pth
+  normalize_feat: true
+  distance: euclidean
+  topk:
+  - 1
+  - 5
+  - 10
+  rerank:
+    enabled: false
+    k1: 20
+    k2: 6
+    lambda_value: 0.3
+  export:
+    format:
+    - json
+  flip_aggregation: mean

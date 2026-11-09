@@ -10,7 +10,7 @@ export CUDA_VISIBLE_DEVICES=GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
 export LODO_AUTHORIZED_GPU_UUID="$CUDA_VISIBLE_DEVICES"
 export CUBLAS_WORKSPACE_CONFIG=:4096:8
 export OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONUNBUFFERED=1
-mgn_launch=".local/mgn_lodo_launch/LODO-${mgn_fold}/official-20261109"
+mgn_launch=".local/mgn_lodo_launch/LODO-${mgn_fold}/${MGN_RUN_ID:-official-20261109-published}"
 test -f "${mgn_launch}/config.yaml"
 test -f "${mgn_launch}/execution.json"
 export MGN_LODO_ADMISSION_RECEIPT="${PWD}/${mgn_launch}/execution.json"

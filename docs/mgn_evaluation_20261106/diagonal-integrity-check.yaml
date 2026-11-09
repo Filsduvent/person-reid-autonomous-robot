@@ -1,0 +1,20 @@
+status: ARTIFACT_INTEGRITY_PASS
+unique_cells: 4
+standalone_diagonals: 4
+off_diagonals: 0
+numerical_consistency_exceptions:
+- market1501
+- duke
+- cuhk03
+- msmt17
+numerical_exception_disposition: REVIEW_PENDING; threshold unchanged
+fixed_original_checkpoint_per_source: true
+source_owned_preprocessing_and_retrieval_preserved: true
+target_owned_dataset_definitions_preserved: true
+all_recorded_artifact_hashes_match: true
+cuda_fp32_original_flip_forward_placement_verified: true
+diagonal_maximum_difference_fraction: 0.0007143020629882812
+csv_arithmetic_and_units_verified: true
+registry_sha256: a0279e4cb9f1d3bd48276c6d9e4aa04e8fd9099a6fa182bca3115d271a007a74
+verifier_sha256: 9b25510f300040501dc50652f38eeb42e902e09546291186ccb4141d74665b34
+

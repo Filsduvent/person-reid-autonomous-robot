@@ -1,0 +1,49 @@
+evaluation_code_commit: 3b015c964b99bfe8ad4b7842bd174d3bc58af607
+source_checkpoint_epoch: 80
+source_checkpoint_sha256: 05d33f32793568313ce22d404b213620009b72a17ed0025fb34222173186078a
+cells:
+  market1501:
+    artifact: results/pcb_selected_matrix/cuhk03_to_market1501/cross_dataset.json
+    artifact_sha256: 15146e18cc1c8cfe59e8a401b83e285344cc27dbab219fa03d75aaf290a17aa2
+    timestamp_utc: '2026-10-26T21:07:15.968055+00:00'
+    mAP: 0.2545703053474426
+    mINP: 0.03502219542860985
+    Rank1: 0.4979216158390045
+    Rank5: 0.6615201830863953
+    Rank10: 0.7220902442932129
+  duke:
+    artifact: results/pcb_selected_matrix/cuhk03_to_duke/cross_dataset.json
+    artifact_sha256: 6324f9777448b59055a1739a00c814e238cc35853284ea48731226ccad827a52
+    timestamp_utc: '2026-10-26T21:08:38.064535+00:00'
+    mAP: 0.1580810546875
+    mINP: 0.016392262652516365
+    Rank1: 0.29084381461143494
+    Rank5: 0.4223518967628479
+    Rank10: 0.479353666305542
+  cuhk03:
+    artifact: results/pcb_selected_matrix/cuhk03_to_cuhk03/cross_dataset.json
+    artifact_sha256: 033527643b581497f6767e0796fe01f67f39d3406b4c41c23291ae01e69c0b3e
+    timestamp_utc: '2026-10-26T21:05:16.853626+00:00'
+    mAP: 0.5966132283210754
+    mINP: 0.46582379937171936
+    Rank1: 0.633571445941925
+    Rank5: 0.7864285707473755
+    Rank10: 0.8528571724891663
+  msmt17:
+    artifact: results/pcb_selected_matrix/cuhk03_to_msmt17/cross_dataset.json
+    artifact_sha256: 68cec866688ac2b7d9b1abdf0a5a17dd5a0b49ba110727116f3fcc31ca844680
+    timestamp_utc: '2026-10-26T21:24:10.449139+00:00'
+    mAP: 0.0236876979470253
+    mINP: 0.0007570638554170728
+    Rank1: 0.08294022083282471
+    Rank5: 0.14255082607269287
+    Rank10: 0.17582982778549194
+diagonal_difference_vs_training:
+  mAP: 0.0
+  mINP: 0.0
+  Rank1: 0.0
+  Rank5: 0.0
+  Rank10: 0.0
+provenance_note: Post-run checkpoint and supplied snapshot hashes verified; original
+  evaluator does not embed execution-time code/checkpoint hashes. Original training-commit
+  exception retained.

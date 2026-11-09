@@ -1,0 +1,50 @@
+evaluation_code_commit: 3b015c964b99bfe8ad4b7842bd174d3bc58af607
+source_checkpoint_epoch: 50
+source_checkpoint_sha256: 8ad7c820a31bb8adc9cebafb48d5e25cb6c042401d44fdbe8084ee587317fd38
+cells:
+  market1501:
+    artifact: results/pcb_selected_matrix/market1501_to_market1501/cross_dataset.json
+    artifact_sha256: 5614c92d2851e5f083aa395a5e20236fa486b30128e4554e4da716df100ce4a6
+    timestamp_utc: '2026-10-26T20:03:08.344207+00:00'
+    mAP: 0.7954114079475403
+    mINP: 0.4238659739494324
+    Rank1: 0.91923987865448
+    Rank5: 0.9720902442932129
+    Rank10: 0.9827790856361389
+  duke:
+    artifact: results/pcb_selected_matrix/market1501_to_duke/cross_dataset.json
+    artifact_sha256: 9182d68c08c959719eaf715cfacfe9d847f6f98306d53aa2423f2526a58f503e
+    timestamp_utc: '2026-10-26T20:08:08.335426+00:00'
+    mAP: 0.22625446319580078
+    mINP: 0.03334216773509979
+    Rank1: 0.3954218924045563
+    Rank5: 0.5480251312255859
+    Rank10: 0.6108617782592773
+  cuhk03:
+    artifact: results/pcb_selected_matrix/market1501_to_cuhk03/cross_dataset.json
+    artifact_sha256: c4c887c926fcca7c9ea7842ee4a709bd9a43c9470c0ff3e1a031a3285073e6c3
+    timestamp_utc: '2026-10-26T20:08:52.346348+00:00'
+    mAP: 0.07121404260396957
+    mINP: 0.03497500717639923
+    Rank1: 0.06357143074274063
+    Rank5: 0.15928570926189423
+    Rank10: 0.2150000035762787
+  msmt17:
+    artifact: results/pcb_selected_matrix/market1501_to_msmt17/cross_dataset.json
+    artifact_sha256: 6fa6ccf2625261b1bc43382854a8418aa8cc1f1c55a2f710e20a404e2ed5ddfe
+    timestamp_utc: '2026-10-26T20:28:48.701768+00:00'
+    mAP: 0.03322696313261986
+    mINP: 0.0015874166274443269
+    Rank1: 0.10695599764585495
+    Rank5: 0.1774594783782959
+    Rank10: 0.21777167916297913
+diagonal_difference_vs_training:
+  mAP: 6.556510925292969e-07
+  mINP: -1.0728836059570312e-06
+  Rank1: 0.0
+  Rank5: 0.0
+  Rank10: 0.0
+provenance_note: All cells name the same registered checkpoint; current checkpoint
+  and supplied code snapshot hashes verified. Original evaluator does not embed execution-time
+  code/checkpoint hashes; this is a post-run verification record. Original training-commit
+  exception remains documented.

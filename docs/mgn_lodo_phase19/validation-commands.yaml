@@ -1,0 +1,21 @@
+metadata_index_audit:
+  actual_command: OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 /home/addirakoze/environments/Reid/bin/python -B /tmp/mgn_phase19_audit.py
+  retained_identical_script: docs/mgn_lodo_phase19/verify_metadata_budget.py
+  log: docs/mgn_lodo_phase19/metadata-budget-check.log
+  result: PASS;4 historical maps byte-identical;120-epoch and85200-update index-only examples
+historical_identity_and_policy_tests:
+  command: timeout 90s env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:scripts:tests /home/addirakoze/environments/Reid/bin/python -B -m pytest -p no:cacheprovider -q tests/test_lodo_config.py -k 'historical_scientific_identities or rejects_execution_changing_flip'
+  result: 4 passed,209 deselected in0.85s
+  log: docs/mgn_lodo_phase19/v1-regression.log
+v1_mgn_rejection_tests:
+  command: timeout 60s env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:scripts:tests /home/addirakoze/environments/Reid/bin/python -B -m pytest -p no:cacheprovider -q tests/test_lodo_config.py -k 'common_contract_rejections and mgn'
+  result: 2 passed,211 deselected in0.05s
+  log: docs/mgn_lodo_phase19/v1-mgn-rejection.log
+official_v1_identity_check:
+  method: configuration_identity(load_config(config)) for all8 historical candidate-index entries; exact comparison with scientific_sha256
+  evidence: docs/mgn_lodo_phase19/official-v1-identity-preservation.yaml
+  result: 8 unchanged
+proposal_validation:
+  method: Independent budget sums/rounding/image exposure/schedule fractions;4 disjoint canonical folds and map ranges;5 canonical identity-sensitivity examples;YAML parsing;570 existing file hashes and roadmap prefix preservation
+  gpu_execution: false
+  model_training: false

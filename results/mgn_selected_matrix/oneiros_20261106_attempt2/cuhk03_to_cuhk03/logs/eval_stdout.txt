@@ -1,0 +1,240 @@
+2026-11-06 22:30:01,915 reid.evaluate INFO: Config path: configs/mgn/cuhk03.yaml
+2026-11-06 22:30:01,915 reid.evaluate INFO: Device: cuda:0 | NVIDIA RTX A4000 | capability=(8, 6)
+2026-11-06 22:30:01,915 reid.evaluate INFO: Resolved config saved to: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/config.resolved.yaml
+2026-11-06 22:30:01,915 reid.evaluate INFO: Command saved to: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/artifacts/command.txt
+2026-11-06 22:30:01,916 reid.evaluate INFO: Environment saved to: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/artifacts/environment.txt
+2026-11-06 22:30:01,916 reid.evaluate INFO: Git commit saved to: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/artifacts/git_commit.txt
+2026-11-06 22:30:01,916 reid.evaluate INFO: Raw eval stdout saved to: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/logs/eval_stdout.txt
+2026-11-06 22:30:01,916 reid.evaluate INFO: Raw eval stderr saved to: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/logs/eval_stderr.txt
+2026-11-06 22:30:01,916 reid.evaluate INFO: Evaluation checkpoint: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/cuhk03/checkpoints/ckpt_best.pth
+[Dataset] name=CUHK03 role=test
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: test
+image_type: detected
+protocol: processed_partition
+split_id: None
+num images: 6732
+num identities: 700
+num cameras: 2
+num query images: 1400
+num gallery images: 5332
+2026-11-06 22:30:02,613 reid.evaluate INFO: Test dataset: cuhk03
+2026-11-06 22:30:02,613 reid.evaluate INFO: Resolved config:
+{
+  "experiment": {
+    "name": "mgn_cuhk03",
+    "output_dir": "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03",
+    "notes": "MGN v3/project FP32 recipe. Periodic source test mAP selects best; no independent validation split."
+  },
+  "system": {
+    "device": "cuda",
+    "gpu_id": 0,
+    "amp": false,
+    "log_interval": 20
+  },
+  "repro": {
+    "seed": 42,
+    "deterministic": false,
+    "benchmark": true
+  },
+  "logging": {
+    "to_file": true,
+    "tensorboard": true,
+    "wandb": {
+      "enabled": false,
+      "project": "reid",
+      "entity": null,
+      "tags": [
+        "mgn"
+      ]
+    }
+  },
+  "data": {
+    "root": "/home/addirakoze/nobackup/Projects/Dataset",
+    "num_workers": 4,
+    "pin_memory": true,
+    "train": {
+      "dataset": {
+        "name": "cuhk03",
+        "split": "trainval",
+        "format": "processed",
+        "image_type": "detected",
+        "protocol": "processed_partition",
+        "split_id": null
+      },
+      "images": {
+        "size": [
+          384,
+          128
+        ],
+        "batch_dims": "NCHW",
+        "interpolation": "bicubic"
+      },
+      "aug": {
+        "mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "std": [
+          0.229,
+          0.224,
+          0.225
+        ],
+        "mirror": "random",
+        "padding": {
+          "enabled": false
+        },
+        "random_crop": {
+          "enabled": false
+        },
+        "random_erasing": {
+          "enabled": false
+        }
+      },
+      "loader": {
+        "shuffle": true,
+        "final_batch": true
+      },
+      "batch": {
+        "sampler": "pk",
+        "P": 16,
+        "K": 4,
+        "batch_size": 64
+      }
+    },
+    "test": {
+      "dataset": {
+        "name": "cuhk03",
+        "split": "test",
+        "format": "processed",
+        "image_type": "detected",
+        "protocol": "processed_partition",
+        "split_id": null
+      },
+      "images": {
+        "size": [
+          384,
+          128
+        ],
+        "batch_dims": "NCHW",
+        "interpolation": "bicubic"
+      },
+      "aug": {
+        "mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "std": [
+          0.229,
+          0.224,
+          0.225
+        ],
+        "mirror": "none"
+      },
+      "loader": {
+        "shuffle": false,
+        "final_batch": true
+      },
+      "batch": {
+        "size": 32
+      }
+    }
+  },
+  "model": {
+    "name": "mgn",
+    "variant": "paper_v3_global2048_independent_v1",
+    "pretrained": true,
+    "weights_path": "/home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth",
+    "head": {
+      "classifier": true
+    },
+    "initialization": {
+      "artifact_id": "resnet50-19c8e357",
+      "sha256": "19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097",
+      "head_init_id": "reference_a_384e820_bias_free_v1"
+    }
+  },
+  "loss": {
+    "id": {
+      "enabled": true,
+      "weight": 1.0,
+      "label_smoothing": 0.0,
+      "head_aggregation": "mean"
+    },
+    "triplet": {
+      "enabled": true,
+      "weight": 1.0,
+      "margin": 1.2,
+      "mining": "batch_hard",
+      "feature_source": "model",
+      "feature_aggregation": "mean"
+    },
+    "center": {
+      "enabled": false
+    }
+  },
+  "optim": {
+    "name": "sgd",
+    "lr": 0.01,
+    "momentum": 0.9,
+    "nesterov": false,
+    "weight_decay": 0.0005,
+    "bias_lr_factor": 1.0,
+    "weight_decay_bias": 0.0005
+  },
+  "sched": {
+    "name": "epoch_multistep",
+    "milestones": [
+      60,
+      90
+    ],
+    "gamma": 0.1
+  },
+  "train": {
+    "preflight": {
+      "name": "mgn_offline_v1"
+    },
+    "epochs": 120,
+    "eval_interval": 10,
+    "save": {
+      "metric": "mAP",
+      "save_best": true,
+      "save_last": true,
+      "resume": "",
+      "require_selection_state_on_resume": true
+    }
+  },
+  "eval": {
+    "weight": "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/cuhk03/checkpoints/ckpt_best.pth",
+    "normalize_feat": true,
+    "distance": "euclidean",
+    "topk": [
+      1,
+      5,
+      10
+    ],
+    "rerank": {
+      "enabled": false,
+      "k1": 20,
+      "k2": 6,
+      "lambda_value": 0.3
+    },
+    "export": {
+      "format": [
+        "json"
+      ]
+    },
+    "flip_aggregation": "mean"
+  }
+}
+[MGN progress] {"phase": "features", "batch": 100, "batches": 211, "images": 3200, "elapsed_seconds": 16.595435556024313}
+[MGN progress] {"phase": "features", "batch": 200, "batches": 211, "images": 6400, "elapsed_seconds": 32.10708994511515}
+[MGN progress] {"phase": "distance_cpu"}
+[MGN progress] {"phase": "mAP_cpu"}
+[MGN progress] {"phase": "CMC_cpu"}
+[MGN progress] {"phase": "mINP_cpu"}
+2026-11-06 22:30:37,962 reid.evaluate INFO: mAP=0.4585 mINP=0.3445 Rank1=0.4600 Rank5=0.6600 Rank10=0.7550
+2026-11-06 22:30:37,964 reid.evaluate INFO: Saved metrics to: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/metrics/eval_ckpt_best.json

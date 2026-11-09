@@ -1,0 +1,49 @@
+evaluation_code_commit: 3b015c964b99bfe8ad4b7842bd174d3bc58af607
+source_checkpoint_epoch: 50
+source_checkpoint_sha256: 5657281a3750b63f1335d63e1bdde387a82c6d8bc5708c60d9ef20a81efc6914
+cells:
+  market1501:
+    artifact: results/pcb_selected_matrix/msmt17_to_market1501/cross_dataset.json
+    artifact_sha256: 51b88d149874b783c2108a436008b37868183935818a3f173b200a19deaf92fd
+    timestamp_utc: '2026-10-26T21:51:28.219251+00:00'
+    mAP: 0.26933884620666504
+    mINP: 0.04231422021985054
+    Rank1: 0.5267220735549927
+    Rank5: 0.7111045122146606
+    Rank10: 0.7725653052330017
+  duke:
+    artifact: results/pcb_selected_matrix/msmt17_to_duke/cross_dataset.json
+    artifact_sha256: f6d5242e408bb47b001ea384d21e43a39685eb401d53ecca4362b283062898fa
+    timestamp_utc: '2026-10-26T21:53:02.605252+00:00'
+    mAP: 0.3446248173713684
+    mINP: 0.06232426315546036
+    Rank1: 0.5408437848091125
+    Rank5: 0.6921005249023438
+    Rank10: 0.7477558255195618
+  cuhk03:
+    artifact: results/pcb_selected_matrix/msmt17_to_cuhk03/cross_dataset.json
+    artifact_sha256: 52c5762d62be1e24355b67a1e194fc74f19f529d932009dbff871124809a80fe
+    timestamp_utc: '2026-10-26T21:54:05.031753+00:00'
+    mAP: 0.11661786586046219
+    mINP: 0.06400956958532333
+    Rank1: 0.11642856895923615
+    Rank5: 0.2199999988079071
+    Rank10: 0.2849999964237213
+  msmt17:
+    artifact: results/pcb_selected_matrix/msmt17_to_msmt17/cross_dataset.json
+    artifact_sha256: 04c07b08a21e99fc8f946ddfb323e0ba4ce11fa8ea155cd5fc193b7b89c5526a
+    timestamp_utc: '2026-10-26T21:47:01.173697+00:00'
+    mAP: 0.43399664759635925
+    mINP: 0.06835141032934189
+    Rank1: 0.705635130405426
+    Rank5: 0.826228678226471
+    Rank10: 0.8670554757118225
+diagonal_difference_vs_training:
+  mAP: 5.960464477539063e-08
+  mINP: 0.0
+  Rank1: 0.0
+  Rank5: 0.0
+  Rank10: 0.0
+provenance_note: Post-run checkpoint and supplied snapshot hashes verified; original
+  evaluator does not embed execution-time code/checkpoint hashes. Original training-commit
+  exception retained.

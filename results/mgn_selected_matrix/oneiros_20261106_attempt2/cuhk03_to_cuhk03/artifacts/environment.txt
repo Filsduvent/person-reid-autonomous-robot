@@ -1,0 +1,10 @@
+python: 3.11.2 | packaged by conda-forge | (main, Mar 31 2023, 17:51:05) [GCC 11.3.0]
+executable: /home/addirakoze/environments/Reid/bin/python
+platform: Linux-6.8.0-138-generic-x86_64-with-glibc2.35
+cwd: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot
+torch: 2.7.1+cu126
+cuda_available: True
+cuda_version: 12.6
+cudnn_version: 90501
+cuda_device_count: 1
+cuda_device_0: NVIDIA RTX A4000

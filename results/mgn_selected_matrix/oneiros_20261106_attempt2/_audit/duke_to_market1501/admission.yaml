@@ -1,0 +1,72 @@
+source: duke
+target: market1501
+checkpoint:
+  path: exp/mgn/duke/checkpoints/ckpt_best.pth
+  bytes: 593101338
+  sha256: 97b7b674d85806f32f14d76d1a3136b05b7083bc4833eb3579db453139df1641
+  epoch: 40
+  scheduler_completed_epochs: 40
+  selection_state:
+    schema_version: 1
+    metric: mAP
+    best_score: 0.6686996221542358
+    best_epoch: 40
+  reconstruction:
+    schema_version: 1
+    output_contract_version: 1
+    model_name: mgn
+    variant: paper_v3_global2048_independent_v1
+    num_classes: 702
+    embedding_dim: 2048
+  optimizer_state_present: true
+  configuration_matches_freeze_except_operational_output_and_resume: true
+command:
+- /home/addirakoze/environments/Reid/bin/python
+- -u
+- -B
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/docs/mgn_evaluation_20261106/gpu_entry.py
+- --audit
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/duke_to_market1501
+- --entry
+- scripts/evaluate_cross_domain.py
+- --
+- --config
+- configs/mgn/market1501.yaml
+- --checkpoint
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/duke/checkpoints/ckpt_best.pth
+- --source-dataset
+- duke
+- --target-dataset
+- market1501
+- --output-dir
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_market1501
+common_entry_arguments:
+- /home/addirakoze/environments/Reid/bin/python
+- -u
+- -B
+- scripts/evaluate_cross_domain.py
+- --config
+- configs/mgn/market1501.yaml
+- --checkpoint
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/duke/checkpoints/ckpt_best.pth
+- --source-dataset
+- duke
+- --target-dataset
+- market1501
+- --output-dir
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_market1501
+gpu:
+  timestamp_utc: '2026-11-07T01:56:38.512743+00:00'
+  uuid: GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+  physical_index: 0
+  name: NVIDIA RTX A4000
+  driver: 590.44.01
+  total_mib: 16376
+  free_mib: 15967
+  utilization_percent: 0
+  compute_mode: Default
+  mig_mode: '[N/A]'
+  processes: []
+release: 7185a7667b2d21a5ad805538ace64326b2bfa28e
+output_fresh: true
+created_utc: '2026-11-07T01:56:38.513003+00:00'

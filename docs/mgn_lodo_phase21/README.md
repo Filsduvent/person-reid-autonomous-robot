@@ -14,14 +14,14 @@ bash docs/mgn_lodo_phase21/official_training_commands.sh 4
 
 Each wrapper invokes the existing `scripts/train.py --config <pinned YAML>` with its separate private execution receipt, a single visible full GPU UUID and the strict workspace setting before Python imports. It does not choose a source recipe or change the successful-update budget. Each fold initializes freshly from the pinned ImageNet artifact and trains to85,200 successful primary updates. The folds hold out Market1501/Duke/CUHK03/MSMT17 respectively.
 
-Console logs append to `.local/mgn_lodo_launch/LODO-<n>/official-20261109/train.log`. For example, in another terminal:
+Console logs append to `.local/mgn_lodo_launch/LODO-<n>/official-20261109-published/train.log`. For example, in another terminal:
 
 ```bash
-tail -f .local/mgn_lodo_launch/LODO-1/official-20261109/train.log
+tail -f .local/mgn_lodo_launch/LODO-1/official-20261109-published/train.log
 ```
 
-Training artifacts use `exp/lodo/mgn_lodo_v2/mgn/LODO-<n>/seed42/official-20261109/`. The selected result is only `checkpoints/ckpt_terminal.pth` after the exact successful-update budget. Source exposure, discarded/unknown work, recovery events, checkpoints and actual runtime evidence are recorded by the common framework. No target evaluation or target BN adaptation occurs during training.
+Training artifacts use `exp/lodo/mgn_lodo_v2/mgn/LODO-<n>/seed42/official-20261109-published/`. The selected result is only `checkpoints/ckpt_terminal.pth` after the exact successful-update budget. Source exposure, discarded/unknown work, recovery events, checkpoints and actual runtime evidence are recorded by the common framework. No target evaluation or target BN adaptation occurs during training.
 
 The prepared launch scope pins the exact current commit, runtime/config/data and qualification evidence. Do not edit runtime/config/receipt bytes to bypass a refusal. A changed release, dataset, GPU/runtime or existing output requires corresponding validation and an explicit new or resume scope. Repeating the fresh command after an interrupted run does not silently resume or overwrite it.
 
-The private qualification and execution files under `.local/mgn_lodo_launch/` are local0600 operational records; they are not committed, institutional authentication, or evidence of retrieval quality. `launch_preparation_receipt.yaml` records only their hashes and paths after actual successful admission, with zero official launches. Documentation-only promotion from the executed runtime commit must preserve every runtime/config byte and the tested harness identity; any runtime edit requires requalification rather than a copied PASS.
+The private qualification and execution files under `.local/mgn_lodo_launch/` are local0600 operational records; they are not committed, institutional authentication, or evidence of retrieval quality. The original `launch_preparation_receipt.yaml` is historical evidence for release532bb32. Current preparation receipts are stored privately under `.local/mgn_lodo_launch/handoffs/<release>/preparation_receipt.yaml` after successful admission, with zero official launches. Publication refreshes Oneiros scopes only when runtime and configuration bytes still match the executed qualification; older records remain preserved. Documentation-only promotion from the executed runtime commit must preserve every runtime/config byte and the tested harness identity; any runtime edit requires requalification rather than a copied PASS.

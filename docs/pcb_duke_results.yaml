@@ -1,0 +1,226 @@
+registered_date: '2026-10-08'
+actual_commit: 3b015c964b99bfe8ad4b7842bd174d3bc58af607
+frozen_commit: 66ea88d06ba0f79c298b19abe1652ae892d69fdd
+config_matches_freeze: true
+final_best:
+  dataset: duke
+  split: test
+  model: pcb
+  epoch: 50
+  checkpoint: ckpt_best.pth
+  mAP: 0.7012202143669128
+  mINP: 0.29280707240104675
+  Rank1: 0.8473967909812927
+  Rank5: 0.9201077222824097
+  Rank10: 0.9394075274467468
+final_last:
+  dataset: duke
+  split: test
+  model: pcb
+  epoch: 120
+  checkpoint: ckpt_last.pth
+  mAP: 0.6941034197807312
+  mINP: 0.28643935918807983
+  Rank1: 0.8420107960700989
+  Rank5: 0.9187611937522888
+  Rank10: 0.9389587044715881
+periodic_evaluations:
+- dataset: duke
+  split: test
+  model: pcb
+  epoch: 10
+  checkpoint: ckpt_last.pth
+  mAP: 0.657721757888794
+  mINP: 0.23957405984401703
+  Rank1: 0.8070017695426941
+  Rank5: 0.8945242166519165
+  Rank10: 0.921005368232727
+- dataset: duke
+  split: test
+  model: pcb
+  epoch: 20
+  checkpoint: ckpt_last.pth
+  mAP: 0.6856691837310791
+  mINP: 0.2686101198196411
+  Rank1: 0.8213644623756409
+  Rank5: 0.9075403809547424
+  Rank10: 0.9304308891296387
+- dataset: duke
+  split: test
+  model: pcb
+  epoch: 30
+  checkpoint: ckpt_last.pth
+  mAP: 0.6614557504653931
+  mINP: 0.24786876142024994
+  Rank1: 0.8155296444892883
+  Rank5: 0.9017055630683899
+  Rank10: 0.9259425401687622
+- dataset: duke
+  split: test
+  model: pcb
+  epoch: 40
+  checkpoint: ckpt_last.pth
+  mAP: 0.684867262840271
+  mINP: 0.2658824622631073
+  Rank1: 0.8294434547424316
+  Rank5: 0.9120287299156189
+  Rank10: 0.9367145299911499
+- dataset: duke
+  split: test
+  model: pcb
+  epoch: 50
+  checkpoint: ckpt_last.pth
+  mAP: 0.7012202143669128
+  mINP: 0.29280707240104675
+  Rank1: 0.8473967909812927
+  Rank5: 0.9201077222824097
+  Rank10: 0.9394075274467468
+- dataset: duke
+  split: test
+  model: pcb
+  epoch: 60
+  checkpoint: ckpt_last.pth
+  mAP: 0.7010881304740906
+  mINP: 0.29281166195869446
+  Rank1: 0.8442549109458923
+  Rank5: 0.9219030737876892
+  Rank10: 0.9394075274467468
+- dataset: duke
+  split: test
+  model: pcb
+  epoch: 70
+  checkpoint: ckpt_last.pth
+  mAP: 0.6993370652198792
+  mINP: 0.2901644706726074
+  Rank1: 0.8429084420204163
+  Rank5: 0.9214541912078857
+  Rank10: 0.9394075274467468
+- dataset: duke
+  split: test
+  model: pcb
+  epoch: 80
+  checkpoint: ckpt_last.pth
+  mAP: 0.698514461517334
+  mINP: 0.28967756032943726
+  Rank1: 0.8442549109458923
+  Rank5: 0.9174147248268127
+  Rank10: 0.9385098814964294
+- dataset: duke
+  split: test
+  model: pcb
+  epoch: 90
+  checkpoint: ckpt_last.pth
+  mAP: 0.6970841884613037
+  mINP: 0.288979172706604
+  Rank1: 0.8411130905151367
+  Rank5: 0.9183123707771301
+  Rank10: 0.9380610585212708
+- dataset: duke
+  split: test
+  model: pcb
+  epoch: 100
+  checkpoint: ckpt_last.pth
+  mAP: 0.6967651844024658
+  mINP: 0.2883272171020508
+  Rank1: 0.8438060879707336
+  Rank5: 0.9183123707771301
+  Rank10: 0.940305233001709
+- dataset: duke
+  split: test
+  model: pcb
+  epoch: 110
+  checkpoint: ckpt_last.pth
+  mAP: 0.6958096623420715
+  mINP: 0.28767266869544983
+  Rank1: 0.8442549109458923
+  Rank5: 0.9178635478019714
+  Rank10: 0.9412028789520264
+- dataset: duke
+  split: test
+  model: pcb
+  epoch: 120
+  checkpoint: ckpt_last.pth
+  mAP: 0.6941034197807312
+  mINP: 0.28643935918807983
+  Rank1: 0.8420107960700989
+  Rank5: 0.9187611937522888
+  Rank10: 0.9389587044715881
+checkpoints:
+  best:
+    sha256: 53df33756029ad8a0213852de53afb28758322657d2781083cb43731249e57c3
+    bytes: 222388875
+    epoch: 50
+    scheduler_updates: 12900
+    metadata:
+      schema_version: 1
+      output_contract_version: 1
+      model_name: pcb
+      variant: independent_part_reduction
+      num_classes: 702
+      embedding_dim: 1536
+    optimizer_state_tensors: 195
+  last:
+    sha256: b040a2decba55d99d538d1a6e0a772bcaf912a5c3ff5383db31db17c073750f0
+    bytes: 222388875
+    epoch: 120
+    scheduler_updates: 30960
+    metadata:
+      schema_version: 1
+      output_contract_version: 1
+      model_name: pcb
+      variant: independent_part_reduction
+      num_classes: 702
+      embedding_dim: 1536
+    optimizer_state_tensors: 195
+logged_start: 2026-10-08 15:04:05,714
+logged_end: 2026-10-08 19:02:38,545
+code_diff:
+- docs/pcb_environment_freeze.txt
+- docs/pcb_experiment_manifest.yaml
+- docs/pcb_experiment_protocol.md
+- plan.md
+reference_metrics:
+  dataset: duke
+  split: test
+  model: resnet50_baseline
+  epoch: 120
+  checkpoint: ckpt_best.pth
+  mAP: 0.7696855068206787
+  mINP: 0.41036295890808105
+  Rank1: 0.8698384165763855
+  Rank5: 0.9452423453330994
+  Rank10: 0.9658886790275574
+delta_percentage_points:
+  mAP: -6.846529245376587
+  mINP: -11.75558865070343
+  Rank1: -2.2441625595092773
+  Rank5: -2.5134623050689697
+  Rank10: -2.6481151580810547
+status: training_complete_artifacts_verified_commit_exception_pending_review
+source: duke
+run_dir: /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/pcb/duke
+command: scripts/train.py --config configs/pcb/duke.yaml
+config_path: configs/pcb/duke.yaml
+config_sha256: a30afbcec6b55f874923bab36dc6fba99114dd24947cabd3b8fb1170c6448f85
+completion_checks:
+  epochs: 120
+  steps_per_epoch: 258
+  periodic_evaluations: 12
+  last_optimizer_updates: 30960
+  best_is_first_periodic_maximum: true
+  checkpoint_model_and_momentum_tensors_finite: true
+  logged_epoch_losses_finite: true
+  strict_config_matches_frozen_resolved_config: true
+  logged_gpu: NVIDIA TITAN Xp cuda:0
+  phase22_independent_evaluation_performed: false
+provenance_limitations:
+- Same recorded commit as Market, 3b015c9; original freeze specified 66ea88d. Committed production code and presets
+  are identical, with documentation-only differences. The previously requested exception decision remains unresolved.
+- Saved environment lists two visible GPUs; log confirms TITAN Xp cuda:0. UUID-only visibility, shell exports and
+  launch-time dirty state cannot be retrospectively certified.
+- Current Duke/CUHK preset and data-provenance hashes and historical weight hash match the freeze; a full image
+  audit was not repeated.
+- Periodic checkpoint selection uses test query/gallery mAP, not an independent validation split.
+- Metrics are trainer-produced selected-best/final-state evaluations; Phase22 remains pending.
+- Reference ResNet50 comparison is contextual; it is not an otherwise matched architecture-only control.
+elapsed_log_seconds: 14312.831

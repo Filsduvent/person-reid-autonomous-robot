@@ -1,0 +1,200 @@
+status: ILLUSTRATIVE_PROPOSED_SCHEMA_NOT_A_LAUNCH_OR_CHECKPOINT_IDENTITY
+payload:
+  identity_schema_version: 1
+  scientific_protocol: mgn_lodo_v2
+  protocol:
+    name: multi_source_lodo
+    version: 2
+    architecture: mgn
+    fold: LODO-4
+  ordered_sources:
+  - dataset:
+      name: market1501
+      split: trainval
+      format: processed
+    metadata_sha256:
+      partitions.pkl: 3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab
+    records_sha256: 0ef4f954090f6f569f941b426b1d9ae0011b9a973c69eb955f728b2e53283ab2
+    source_key: market1501
+  - dataset:
+      name: duke
+      split: trainval
+      format: processed
+    metadata_sha256:
+      partitions.pkl: 25929417e0a8780548924d4f58f4f644ee18098e957df41a571650eb05e6b638
+    records_sha256: 01c0e9610ea0e20fe070200446c947e3f94c85b038f1db69fdb485f9710d981d
+    source_key: duke
+  - dataset:
+      name: cuhk03
+      split: trainval
+      format: processed
+      image_type: detected
+      protocol: processed_partition
+      split_id: null
+    metadata_sha256:
+      partitions.pkl: a1fd9a06748dd217325820b2ed5c5814de364a6b5e91cb7a93e1924915034f97
+    records_sha256: 06a37539d39406b95eaca4f52e3ab38b3dd0eab0bd1b91e22fbb19705bdaab56
+    source_key: cuhk03
+  held_out_target:
+    dataset:
+      name: msmt17
+      split: test
+      format: raw
+    metadata_sha256:
+      list_query.txt: 46b568a56e6e7567175c3350f74362f522d3b898242e0c6d4f87e27ee71cab03
+      list_gallery.txt: fccd30161c9185bc05f4ee5fa86af5768aab256799b526f87dc5f3a1900288fd
+    records_sha256: dbca9269935bc1bd557935f3b837098595085156dce93f08dc3993140b827d40
+  seed: 42
+  logical_output_namespace: exp/lodo/mgn_lodo_v2/mgn/LODO-4/seed42
+  source_identity:
+    num_classes: 2220
+    map_sha256: 332f999102894db105360a2765483b23a4653c52fec41443a7f5ff5a7b3618ff
+    source_class_counts:
+      market1501: 751
+      duke: 702
+      cuhk03: 767
+  model:
+    name: mgn
+    variant: paper_v3_global2048_independent_v1
+    pretrained: true
+    head:
+      classifier: true
+    initialization:
+      artifact_id: resnet50-19c8e357
+      sha256: 19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097
+      head_init_id: reference_a_384e820_bias_free_v1
+  model_output_contract:
+    embedding_dim: 2048
+    classifier_heads: 8
+    global_classifier_input_dims:
+    - 2048
+    - 2048
+    - 2048
+    local_classifier_input_dims:
+    - 256
+    - 256
+    - 256
+    - 256
+    - 256
+    classifier_bias: false
+    metric_features: 3
+  loss:
+    id:
+      enabled: true
+      weight: 1.0
+      label_smoothing: 0.0
+      head_aggregation: mean
+    triplet:
+      enabled: true
+      weight: 1.0
+      margin: 1.2
+      mining: batch_hard
+      feature_source: model
+      feature_aggregation: mean
+    center:
+      enabled: false
+  optim:
+    name: sgd
+    lr: 0.01
+    momentum: 0.9
+    nesterov: false
+    weight_decay: 0.0005
+    bias_lr_factor: 1.0
+    weight_decay_bias: 0.0005
+  sampling:
+    sampler: pk
+    P: 16
+    K: 4
+    batch_size: 64
+  budget:
+    unit: successful_primary_updates
+    primary: 85200
+    auxiliary: 0
+    image_draws_per_fold: 5452800
+  scheduler:
+    unit: successful_primary_updates
+    milestones:
+    - 42600
+    - 63900
+    gamma: 0.1
+    warmup: false
+  transforms:
+    train:
+      images:
+        size:
+        - 384
+        - 128
+        batch_dims: NCHW
+        interpolation: bicubic
+      aug:
+        mean:
+        - 0.485
+        - 0.456
+        - 0.406
+        std:
+        - 0.229
+        - 0.224
+        - 0.225
+        mirror: random
+        padding:
+          enabled: false
+        random_crop:
+          enabled: false
+        random_erasing:
+          enabled: false
+    test:
+      images:
+        size:
+        - 384
+        - 128
+        batch_dims: NCHW
+        interpolation: bicubic
+      aug:
+        mean:
+        - 0.485
+        - 0.456
+        - 0.406
+        std:
+        - 0.229
+        - 0.224
+        - 0.225
+        mirror: none
+  retrieval:
+    flip_aggregation: none
+    normalize_feat: true
+    distance: euclidean
+    rerank:
+      enabled: false
+    topk:
+    - 1
+    - 5
+    - 10
+    camera_filter: exclude_same_pid_same_camera
+  checkpoint_selection: terminal_budget_completed_no_target_selection
+  evaluate_during_training: false
+  execution:
+    seed: 42
+    amp: false
+    tensor_precision: fp32
+    policy: strict_cuda_deterministic_v1
+    workers: 0
+    benchmark: false
+    deterministic: true
+    deterministic_algorithms: true
+    warn_only: false
+    CUBLAS_WORKSPACE_CONFIG: :4096:8
+    matmul_allow_tf32: false
+    cudnn_allow_tf32: true
+  recovery:
+    policy: completed_epoch_boundary
+    every_epochs: 1
+    keep_generations: 2
+    terminal: distinct_complete_only
+  accounting: accepted_successful_updates_and_exposure_separate_from_attempted_discarded_work
+canonical_sha256: 628f4f67ce0664d3d1af3faaf5d1ab7c187e8c3df4f5e4504fc25dd26503f878
+sensitivity:
+  flip: 2bef7ffabbddc9f7eb3b1ed0f7c462fe4b60481b17f6579182b9ce2f07cd6644
+  budget: 9ea928c29634e5eea50062e73e6487ae3ebddeb4143ca64219fd047ee35222db
+  schedule: 06e160e62a1b2827ae481072cc5b4ef6403c4c101374fcccc67be778fac0e17f
+  source_order: a5de01c49f3bb3bc892e1efa5326735053eb238c0244ca6218d0ff51775d27b6
+  protocol: 0bcf3d092f18b57ab38c624024672c0694e0f44fe28ce1dcdd7afffaf26af057

@@ -1,0 +1,23 @@
+status: ARTIFACT_INTEGRITY_PASS
+unique_cells: 16
+standalone_diagonals: 4
+off_diagonals: 12
+numerical_consistency_exceptions:
+- market1501
+- duke
+- cuhk03
+- msmt17
+numerical_exception_disposition: User approved continuing the full matrix with flagged
+  cross-host numerical exceptions; strict1e-5 threshold remains unchanged.
+fixed_original_checkpoint_per_source: true
+source_owned_preprocessing_and_retrieval_preserved: true
+target_owned_dataset_definitions_preserved: true
+all_recorded_artifact_hashes_match: true
+cuda_fp32_original_flip_forward_placement_verified: true
+diagonal_maximum_difference_fraction: 0.0007143020629882812
+csv_arithmetic_and_units_verified: true
+registry_sha256: aed87d230612d08291ed140e2f37eb48d0c80b647b9a620d79a64bd300906d8c
+verifier_sha256: 9b25510f300040501dc50652f38eeb42e902e09546291186ccb4141d74665b34
+
+
+Four immutable row verification receipts and five metric tables registered.

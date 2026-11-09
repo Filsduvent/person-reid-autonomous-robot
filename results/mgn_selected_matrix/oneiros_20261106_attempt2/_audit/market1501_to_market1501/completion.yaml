@@ -1,0 +1,144 @@
+source: market1501
+target: market1501
+setting: within-domain
+epoch: 70
+checkpoint:
+  path: exp/mgn/market1501/checkpoints/ckpt_best.pth
+  bytes: 596011610
+  sha256: 5067cb70fb2e3fe7609ca7338487c44f62699596088852abe060c9672ebe8024
+  epoch: 70
+  scheduler_completed_epochs: 70
+  selection_state:
+    schema_version: 1
+    metric: mAP
+    best_score: 0.7100086212158203
+    best_epoch: 70
+  reconstruction:
+    schema_version: 1
+    output_contract_version: 1
+    model_name: mgn
+    variant: paper_v3_global2048_independent_v1
+    num_classes: 751
+    embedding_dim: 2048
+  optimizer_state_present: true
+  configuration_matches_freeze_except_operational_output_and_resume: true
+metrics:
+  mAP: 0.70999675989151
+  mINP: 0.34993869066238403
+  Rank1: 0.8818289637565613
+  Rank5: 0.9483373165130615
+  Rank10: 0.9664489030838013
+exit_code: 0
+command:
+- /home/addirakoze/environments/Reid/bin/python
+- -u
+- -B
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/docs/mgn_evaluation_20261106/gpu_entry.py
+- --audit
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/market1501_to_market1501
+- --entry
+- scripts/evaluate.py
+- --
+- --config
+- configs/mgn/market1501.yaml
+- --weight
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/market1501/checkpoints/ckpt_best.pth
+- --opts
+- experiment.output_dir=/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501
+output: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501
+gpu_execution:
+  device: cuda:0
+  fp32: true
+  amp: false
+  forwards: 2000
+  batches: 1000
+  cudnn_benchmark: true
+  cudnn_deterministic: false
+  peak_allocated_bytes: 1695880704
+  peak_reserved_bytes: 1746927616
+  gpu:
+    timestamp_utc: '2026-11-07T01:26:19.351854+00:00'
+    uuid: GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+    physical_index: 0
+    name: NVIDIA RTX A4000
+    driver: 590.44.01
+    total_mib: 16376
+    free_mib: 15431
+    utilization_percent: 0
+    compute_mode: Default
+    mig_mode: '[N/A]'
+    processes:
+    - - GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+      - '1595635'
+      - /home/addirakoze/environments/Reid/bin/python
+      - '530'
+completed_utc: '2026-11-07T01:26:20.487177+00:00'
+artifacts:
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501/artifacts/command.txt
+  bytes: 411
+  sha256: f3a1f874c8bd2e0e5078985ac06b522bb19a34f607d901920349dc679d95408b
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501/artifacts/environment.txt
+  bytes: 402
+  sha256: 4ac0626b2a9eade79756b14691c4bb6d3bcd66b9c52d64e9e4aa8bff8f13e66c
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501/artifacts/git_commit.txt
+  bytes: 41
+  sha256: 31dca311043f0b5aba7e4df7aba19f86e937c815ef7352d7be2d89d3d0df2961
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501/command.txt
+  bytes: 411
+  sha256: f3a1f874c8bd2e0e5078985ac06b522bb19a34f607d901920349dc679d95408b
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501/config.resolved.yaml
+  bytes: 3021
+  sha256: 5aef0e058cbeb08dc940637de223c7b809cc2d16d4cfbf8d702ec1d852c294fc
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501/config.yaml
+  bytes: 3021
+  sha256: 5aef0e058cbeb08dc940637de223c7b809cc2d16d4cfbf8d702ec1d852c294fc
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501/cross_dataset.json
+  bytes: 5137
+  sha256: dc0bb059ea2d999b940b3ef263566e7a0cf77eac526331ef02420b693e2758fd
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501/environment.txt
+  bytes: 402
+  sha256: 4ac0626b2a9eade79756b14691c4bb6d3bcd66b9c52d64e9e4aa8bff8f13e66c
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501/evaluate.log
+  bytes: 6411
+  sha256: bd04bbbec79e35e16919b7a9eede6c09731486bf0ea9d272ea6ddd66eb504ed2
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501/git_commit.txt
+  bytes: 41
+  sha256: 31dca311043f0b5aba7e4df7aba19f86e937c815ef7352d7be2d89d3d0df2961
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501/logs/eval_stderr.txt
+  bytes: 0
+  sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501/logs/eval_stdout.txt
+  bytes: 8006
+  sha256: fba8be72a3ce720e6e5bfb8b6518494ec3cbf4e1014a1e4d74e0a01ac67d1445
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501/metrics/eval_ckpt_best.json
+  bytes: 266
+  sha256: cd3b1060964501e794fd6064f5cae7b749ed85879b12f98e142ea65a7775f8e4
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501/metrics/final_test.json
+  bytes: 266
+  sha256: cd3b1060964501e794fd6064f5cae7b749ed85879b12f98e142ea65a7775f8e4
+audit_artifacts:
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/market1501_to_market1501/admission.yaml
+  bytes: 2209
+  sha256: 5e0700bbf638794994661fb962e15bdeb6c76fc4a36c3f5bfe65eba7c36c6e4e
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/market1501_to_market1501/gpu-completion.json
+  bytes: 759
+  sha256: cfb9b9cdf7631f56a8a1478f5733cbb554b5352a7203b3fbf5e6999f19927a02
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/market1501_to_market1501/gpu-observed.jsonl
+  bytes: 2522
+  sha256: e171757dc2704a3ec6ced3c790b55d759f9ebc64ef7815bfb2f2013e1d1e515a
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/market1501_to_market1501/gpu-start.json
+  bytes: 719
+  sha256: 0d06ce3df6f7ca908669081830ff991319afd7804669e4d7de50158fef6f7297
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/market1501_to_market1501/progress.jsonl
+  bytes: 108036
+  sha256: dac46f359ffb79f3fe2288439e4d8e5364c26ced4577bd8d52ed9db26e0036b9
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/market1501_to_market1501/terminal.log
+  bytes: 8006
+  sha256: fba8be72a3ce720e6e5bfb8b6518494ec3cbf4e1014a1e4d74e0a01ac67d1445
+difference_from_training_fraction:
+  mAP: -1.1861324310302734e-05
+  mINP: -1.9341707229614258e-05
+  Rank1: 0.0
+  Rank5: 0.0
+  Rank10: 0.0
+within_tolerance: false

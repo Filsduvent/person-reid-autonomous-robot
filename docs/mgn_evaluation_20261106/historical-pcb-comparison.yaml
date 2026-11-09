@@ -1,0 +1,406 @@
+status: DESCRIPTIVE_RECIPE_COMPARISON_ONLY
+mgn_cells_available: 16
+pcb_cells_hash_verified: 16
+pcb_checkpoints_hash_verified: 4
+historical_verification:
+- source: market1501
+  receipt: results/pcb_selected_matrix/market1501_row_verification.yaml
+  receipt_sha256: a38bc8f04eeab40e51cacf3c98d70e4d213e401490907ced573c0136f4eae3cb
+  checkpoint_sha256: 8ad7c820a31bb8adc9cebafb48d5e25cb6c042401d44fdbe8084ee587317fd38
+  checkpoint_current_bytes_match: true
+- source: duke
+  receipt: results/pcb_selected_matrix/duke_row_verification.yaml
+  receipt_sha256: e7ad3ca711c5d4d2a9cb9cdbf9e74e2e20cb9da9d80f627f9d3b443ca91e8091
+  checkpoint_sha256: 53df33756029ad8a0213852de53afb28758322657d2781083cb43731249e57c3
+  checkpoint_current_bytes_match: true
+- source: cuhk03
+  receipt: results/pcb_selected_matrix/cuhk03_row_verification.yaml
+  receipt_sha256: b05e8ed089366e9636d277dca45ddfa699a78e5ae79572b270b14dbd5fd37abe
+  checkpoint_sha256: 05d33f32793568313ce22d404b213620009b72a17ed0025fb34222173186078a
+  checkpoint_current_bytes_match: true
+- source: msmt17
+  receipt: results/pcb_selected_matrix/msmt17_row_verification.yaml
+  receipt_sha256: 31c89a146b434cded85d3e5ab764698c9a1629c95b9d48fc3a22016a60765e75
+  checkpoint_sha256: 5657281a3750b63f1335d63e1bdde387a82c6d8bc5708c60d9ef20a81efc6914
+  checkpoint_current_bytes_match: true
+caveats:
+- MGN flip=mean versus historical PCB flip=none; different normalization/training
+  recipes and hardware. Not a matched architecture-only ablation or protocol-matched
+  accuracy ranking.
+- Declared target selectors match; CUHK03 detected/processed_partition semantic new/classic
+  correspondence remains unverified despite historical documentation labels.
+- Historical PCB bytes/results preserved. No supplementary evaluation or baseline/PCB
+  rerun.
+- ResNet50 comparison not recomputed here; existing historical comparison remains
+  at docs/resnet50_pcb_comparison_matrix.md.
+- MGN diagonal cross-host numerical differences remain flagged; user authorized Phase18
+  continuation without changing thresholds or source weights.
+cells:
+- source: market1501
+  target: market1501
+  setting: within-domain
+  mgn:
+    mAP: 0.70999675989151
+    mINP: 0.34993869066238403
+    Rank1: 0.8818289637565613
+    Rank5: 0.9483373165130615
+    Rank10: 0.9664489030838013
+  pcb:
+    mAP: 0.7954114079475403
+    mINP: 0.4238659739494324
+    Rank1: 0.91923987865448
+    Rank5: 0.9720902442932129
+    Rank10: 0.9827790856361389
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -8.541464805603027
+    mINP: -7.392728328704834
+    Rank1: -3.74109148979187
+    Rank5: -2.3752927780151367
+    Rank10: -1.6330182552337646
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/market1501_to_market1501/cross_dataset.json
+- source: duke
+  target: duke
+  setting: within-domain
+  mgn:
+    mAP: 0.6687320470809937
+    mINP: 0.27260103821754456
+    Rank1: 0.8168761134147644
+    Rank5: 0.9070915579795837
+    Rank10: 0.931328535079956
+  pcb:
+    mAP: 0.70121830701828
+    mINP: 0.2928077280521393
+    Rank1: 0.8473967909812927
+    Rank5: 0.9201077222824097
+    Rank10: 0.9394075274467468
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -3.2486259937286377
+    mINP: -2.0206689834594727
+    Rank1: -3.052067756652832
+    Rank5: -1.3016164302825928
+    Rank10: -0.8078992366790771
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/duke_to_duke/cross_dataset.json
+- source: cuhk03
+  target: cuhk03
+  setting: within-domain
+  mgn:
+    mAP: 0.45847630500793457
+    mINP: 0.34446725249290466
+    Rank1: 0.46000000834465027
+    Rank5: 0.6600000262260437
+    Rank10: 0.7549999952316284
+  pcb:
+    mAP: 0.5966132283210754
+    mINP: 0.46582379937171936
+    Rank1: 0.633571445941925
+    Rank5: 0.7864285707473755
+    Rank10: 0.8528571724891663
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -13.813692331314087
+    mINP: -12.13565468788147
+    Rank1: -17.357143759727478
+    Rank5: -12.642854452133179
+    Rank10: -9.785717725753784
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/cuhk03_to_cuhk03/cross_dataset.json
+- source: msmt17
+  target: msmt17
+  setting: within-domain
+  mgn:
+    mAP: 0.19670908153057098
+    mINP: 0.016590189188718796
+    Rank1: 0.43159791827201843
+    Rank5: 0.5941332578659058
+    Rank10: 0.6634359955787659
+  pcb:
+    mAP: 0.43399664759635925
+    mINP: 0.06835141032934189
+    Rank1: 0.705635130405426
+    Rank5: 0.826228678226471
+    Rank10: 0.8670554757118225
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -23.728756606578827
+    mINP: -5.176122114062309
+    Rank1: -27.40372121334076
+    Rank5: -23.20954203605652
+    Rank10: -20.361948013305664
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/msmt17_to_msmt17/cross_dataset.json
+- source: market1501
+  target: duke
+  setting: cross-domain
+  mgn:
+    mAP: 0.21347656846046448
+    mINP: 0.03156443312764168
+    Rank1: 0.37836626172065735
+    Rank5: 0.5237881541252136
+    Rank10: 0.5834829211235046
+  pcb:
+    mAP: 0.22625446319580078
+    mINP: 0.03334216773509979
+    Rank1: 0.3954218924045563
+    Rank5: 0.5480251312255859
+    Rank10: 0.6108617782592773
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -1.2777894735336304
+    mINP: -0.17777346074581146
+    Rank1: -1.7055630683898926
+    Rank5: -2.4236977100372314
+    Rank10: -2.7378857135772705
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/market1501_to_duke/cross_dataset.json
+- source: market1501
+  target: cuhk03
+  setting: cross-domain
+  mgn:
+    mAP: 0.07473015040159225
+    mINP: 0.03865763917565346
+    Rank1: 0.06785714626312256
+    Rank5: 0.1485714316368103
+    Rank10: 0.2028571367263794
+  pcb:
+    mAP: 0.07121404260396957
+    mINP: 0.03497500717639923
+    Rank1: 0.06357143074274063
+    Rank5: 0.15928570926189423
+    Rank10: 0.2150000035762787
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: 0.35161077976226807
+    mINP: 0.36826319992542267
+    Rank1: 0.42857155203819275
+    Rank5: -1.0714277625083923
+    Rank10: -1.2142866849899292
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/market1501_to_cuhk03/cross_dataset.json
+- source: market1501
+  target: msmt17
+  setting: cross-domain
+  mgn:
+    mAP: 0.02808622643351555
+    mINP: 0.0016502134967595339
+    Rank1: 0.08868685364723206
+    Rank5: 0.15438717603683472
+    Rank10: 0.19478514790534973
+  pcb:
+    mAP: 0.03322696313261986
+    mINP: 0.0015874166274443269
+    Rank1: 0.10695599764585495
+    Rank5: 0.1774594783782959
+    Rank10: 0.21777167916297913
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -0.5140736699104309
+    mINP: 0.0062796869315207005
+    Rank1: -1.8269143998622894
+    Rank5: -2.307230234146118
+    Rank10: -2.2986531257629395
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/market1501_to_msmt17/cross_dataset.json
+- source: duke
+  target: market1501
+  setting: cross-domain
+  mgn:
+    mAP: 0.26241829991340637
+    mINP: 0.03646603971719742
+    Rank1: 0.5341448783874512
+    Rank5: 0.7111045122146606
+    Rank10: 0.7731591463088989
+  pcb:
+    mAP: 0.27539700269699097
+    mINP: 0.033737532794475555
+    Rank1: 0.559382438659668
+    Rank5: 0.7152612805366516
+    Rank10: 0.7865201830863953
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -1.2978702783584595
+    mINP: 0.2728506922721863
+    Rank1: -2.5237560272216797
+    Rank5: -0.4156768321990967
+    Rank10: -1.3361036777496338
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/duke_to_market1501/cross_dataset.json
+- source: duke
+  target: cuhk03
+  setting: cross-domain
+  mgn:
+    mAP: 0.061164963990449905
+    mINP: 0.025883331894874573
+    Rank1: 0.059285715222358704
+    Rank5: 0.14142857491970062
+    Rank10: 0.19357143342494965
+  pcb:
+    mAP: 0.06461353600025177
+    mINP: 0.026953544467687607
+    Rank1: 0.06357143074274063
+    Rank5: 0.15357142686843872
+    Rank10: 0.207857146859169
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -0.34485720098018646
+    mINP: -0.1070212572813034
+    Rank1: -0.42857155203819275
+    Rank5: -1.2142851948738098
+    Rank10: -1.428571343421936
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/duke_to_cuhk03/cross_dataset.json
+- source: duke
+  target: msmt17
+  setting: cross-domain
+  mgn:
+    mAP: 0.04584735259413719
+    mINP: 0.0018210295820608735
+    Rank1: 0.15095634758472443
+    Rank5: 0.23964320123195648
+    Rank10: 0.28784629702568054
+  pcb:
+    mAP: 0.05276067182421684
+    mINP: 0.001556207425892353
+    Rank1: 0.16845355927944183
+    Rank5: 0.27086371183395386
+    Rank10: 0.3211252987384796
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -0.6913319230079651
+    mINP: 0.026482215616852045
+    Rank1: -1.7497211694717407
+    Rank5: -3.1220510601997375
+    Rank10: -3.3279001712799072
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/duke_to_msmt17/cross_dataset.json
+- source: cuhk03
+  target: market1501
+  setting: cross-domain
+  mgn:
+    mAP: 0.18915875256061554
+    mINP: 0.0209635142236948
+    Rank1: 0.42131829261779785
+    Rank5: 0.5899643898010254
+    Rank10: 0.6529097557067871
+  pcb:
+    mAP: 0.2545703053474426
+    mINP: 0.03502219542860985
+    Rank1: 0.4979216158390045
+    Rank5: 0.6615201830863953
+    Rank10: 0.7220902442932129
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -6.541155278682709
+    mINP: -1.4058681204915047
+    Rank1: -7.6603323221206665
+    Rank5: -7.155579328536987
+    Rank10: -6.918048858642578
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/cuhk03_to_market1501/cross_dataset.json
+- source: cuhk03
+  target: duke
+  setting: cross-domain
+  mgn:
+    mAP: 0.11550475656986237
+    mINP: 0.013322207145392895
+    Rank1: 0.21364451944828033
+    Rank5: 0.3586176037788391
+    Rank10: 0.41696590185165405
+  pcb:
+    mAP: 0.1580810546875
+    mINP: 0.016392262652516365
+    Rank1: 0.29084381461143494
+    Rank5: 0.4223518967628479
+    Rank10: 0.479353666305542
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -4.257629811763763
+    mINP: -0.30700555071234703
+    Rank1: -7.71992951631546
+    Rank5: -6.373429298400879
+    Rank10: -6.238776445388794
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/cuhk03_to_duke/cross_dataset.json
+- source: cuhk03
+  target: msmt17
+  setting: cross-domain
+  mgn:
+    mAP: 0.017064766958355904
+    mINP: 0.0007320698932744563
+    Rank1: 0.05840981379151344
+    Rank5: 0.10781370848417282
+    Rank10: 0.13508877158164978
+  pcb:
+    mAP: 0.0236876979470253
+    mINP: 0.0007570638554170728
+    Rank1: 0.08294022083282471
+    Rank5: 0.14255082607269287
+    Rank10: 0.17582982778549194
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -0.6622930988669395
+    mINP: -0.002499396214261651
+    Rank1: -2.4530407041311264
+    Rank5: -3.473711758852005
+    Rank10: -4.074105620384216
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/cuhk03_to_msmt17/cross_dataset.json
+- source: msmt17
+  target: market1501
+  setting: cross-domain
+  mgn:
+    mAP: 0.1900845766067505
+    mINP: 0.027454447001218796
+    Rank1: 0.4222090244293213
+    Rank5: 0.5991686582565308
+    Rank10: 0.66923987865448
+  pcb:
+    mAP: 0.26933884620666504
+    mINP: 0.04231422021985054
+    Rank1: 0.5267220735549927
+    Rank5: 0.7111045122146606
+    Rank10: 0.7725653052330017
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -7.925426959991455
+    mINP: -1.4859773218631744
+    Rank1: -10.451304912567139
+    Rank5: -11.193585395812988
+    Rank10: -10.332542657852173
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/msmt17_to_market1501/cross_dataset.json
+- source: msmt17
+  target: duke
+  setting: cross-domain
+  mgn:
+    mAP: 0.22183828055858612
+    mINP: 0.03084317035973072
+    Rank1: 0.40305206179618835
+    Rank5: 0.5511669516563416
+    Rank10: 0.6211849451065063
+  pcb:
+    mAP: 0.3446248173713684
+    mINP: 0.06232426315546036
+    Rank1: 0.5408437848091125
+    Rank5: 0.6921005249023438
+    Rank10: 0.7477558255195618
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -12.278653681278229
+    mINP: -3.1481092795729637
+    Rank1: -13.77917230129242
+    Rank5: -14.09335732460022
+    Rank10: -12.657088041305542
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/msmt17_to_duke/cross_dataset.json
+- source: msmt17
+  target: cuhk03
+  setting: cross-domain
+  mgn:
+    mAP: 0.09102621674537659
+    mINP: 0.05220896005630493
+    Rank1: 0.09071428328752518
+    Rank5: 0.17499999701976776
+    Rank10: 0.2264285683631897
+  pcb:
+    mAP: 0.11661786586046219
+    mINP: 0.06400956958532333
+    Rank1: 0.11642856895923615
+    Rank5: 0.2199999988079071
+    Rank10: 0.2849999964237213
+  difference_mgn_minus_pcb_percentage_points:
+    mAP: -2.55916491150856
+    mINP: -1.1800609529018402
+    Rank1: -2.571428567171097
+    Rank5: -4.500000178813934
+    Rank10: -5.857142806053162
+  declared_target_selector_matches: true
+  pcb_artifact: results/pcb_selected_matrix/msmt17_to_cuhk03/cross_dataset.json

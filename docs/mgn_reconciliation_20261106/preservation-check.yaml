@@ -1,0 +1,9 @@
+status: PASS
+preexisting_files_hash_checked: 417
+preexisting_changes_excluding_append_only_roadmap: []
+roadmap_original_bytes_preserved_as_prefix: 150913
+new_yaml_documents_parsed: true
+evidence_reference_hashes_match: true
+runtime_configuration_original_registries_and_other_dirty_work_unchanged: true
+head_unchanged: true
+training_or_evaluation_launched: false

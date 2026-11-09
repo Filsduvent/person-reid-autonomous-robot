@@ -1,0 +1,258 @@
+2026-11-06 22:30:41,918 reid.evaluate INFO: Config path: configs/mgn/msmt17.yaml
+2026-11-06 22:30:41,919 reid.evaluate INFO: Device: cuda:0 | NVIDIA RTX A4000 | capability=(8, 6)
+2026-11-06 22:30:41,919 reid.evaluate INFO: Resolved config saved to: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/config.resolved.yaml
+2026-11-06 22:30:41,919 reid.evaluate INFO: Command saved to: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/artifacts/command.txt
+2026-11-06 22:30:41,919 reid.evaluate INFO: Environment saved to: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/artifacts/environment.txt
+2026-11-06 22:30:41,919 reid.evaluate INFO: Git commit saved to: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/artifacts/git_commit.txt
+2026-11-06 22:30:41,919 reid.evaluate INFO: Raw eval stdout saved to: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/logs/eval_stdout.txt
+2026-11-06 22:30:41,919 reid.evaluate INFO: Raw eval stderr saved to: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/logs/eval_stderr.txt
+2026-11-06 22:30:41,919 reid.evaluate INFO: Evaluation checkpoint: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/msmt17/checkpoints/ckpt_best.pth
+[Dataset] name=MSMT17 role=test
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: raw
+split: test
+num images: 93820
+num identities: 3060
+num cameras: 15
+num query images: 11659
+num gallery images: 82161
+2026-11-06 22:30:42,993 reid.evaluate INFO: Test dataset: msmt17
+2026-11-06 22:30:42,993 reid.evaluate INFO: Resolved config:
+{
+  "experiment": {
+    "name": "mgn_msmt17",
+    "output_dir": "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17",
+    "notes": "MGN v3/project FP32 recipe. Periodic source test mAP selects best; no independent validation split."
+  },
+  "system": {
+    "device": "cuda",
+    "gpu_id": 0,
+    "amp": false,
+    "log_interval": 20
+  },
+  "repro": {
+    "seed": 42,
+    "deterministic": false,
+    "benchmark": true
+  },
+  "logging": {
+    "to_file": true,
+    "tensorboard": true,
+    "wandb": {
+      "enabled": false,
+      "project": "reid",
+      "entity": null,
+      "tags": [
+        "mgn"
+      ]
+    }
+  },
+  "data": {
+    "root": "/home/addirakoze/nobackup/Projects/Dataset",
+    "num_workers": 4,
+    "pin_memory": true,
+    "train": {
+      "dataset": {
+        "name": "msmt17",
+        "split": "train",
+        "format": "raw"
+      },
+      "images": {
+        "size": [
+          384,
+          128
+        ],
+        "batch_dims": "NCHW",
+        "interpolation": "bicubic"
+      },
+      "aug": {
+        "mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "std": [
+          0.229,
+          0.224,
+          0.225
+        ],
+        "mirror": "random",
+        "padding": {
+          "enabled": false
+        },
+        "random_crop": {
+          "enabled": false
+        },
+        "random_erasing": {
+          "enabled": false
+        }
+      },
+      "loader": {
+        "shuffle": true,
+        "final_batch": true
+      },
+      "batch": {
+        "sampler": "pk",
+        "P": 16,
+        "K": 4,
+        "batch_size": 64
+      }
+    },
+    "test": {
+      "dataset": {
+        "name": "msmt17",
+        "split": "test",
+        "format": "raw"
+      },
+      "images": {
+        "size": [
+          384,
+          128
+        ],
+        "batch_dims": "NCHW",
+        "interpolation": "bicubic"
+      },
+      "aug": {
+        "mean": [
+          0.485,
+          0.456,
+          0.406
+        ],
+        "std": [
+          0.229,
+          0.224,
+          0.225
+        ],
+        "mirror": "none"
+      },
+      "loader": {
+        "shuffle": false,
+        "final_batch": true
+      },
+      "batch": {
+        "size": 32
+      }
+    }
+  },
+  "model": {
+    "name": "mgn",
+    "variant": "paper_v3_global2048_independent_v1",
+    "pretrained": true,
+    "weights_path": "/home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth",
+    "head": {
+      "classifier": true
+    },
+    "initialization": {
+      "artifact_id": "resnet50-19c8e357",
+      "sha256": "19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097",
+      "head_init_id": "reference_a_384e820_bias_free_v1"
+    }
+  },
+  "loss": {
+    "id": {
+      "enabled": true,
+      "weight": 1.0,
+      "label_smoothing": 0.0,
+      "head_aggregation": "mean"
+    },
+    "triplet": {
+      "enabled": true,
+      "weight": 1.0,
+      "margin": 1.2,
+      "mining": "batch_hard",
+      "feature_source": "model",
+      "feature_aggregation": "mean"
+    },
+    "center": {
+      "enabled": false
+    }
+  },
+  "optim": {
+    "name": "sgd",
+    "lr": 0.01,
+    "momentum": 0.9,
+    "nesterov": false,
+    "weight_decay": 0.0005,
+    "bias_lr_factor": 1.0,
+    "weight_decay_bias": 0.0005
+  },
+  "sched": {
+    "name": "epoch_multistep",
+    "milestones": [
+      60,
+      90
+    ],
+    "gamma": 0.1
+  },
+  "train": {
+    "preflight": {
+      "name": "mgn_offline_v1"
+    },
+    "epochs": 120,
+    "eval_interval": 10,
+    "save": {
+      "metric": "mAP",
+      "save_best": true,
+      "save_last": true,
+      "resume": "",
+      "require_selection_state_on_resume": true
+    }
+  },
+  "eval": {
+    "weight": "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/msmt17/checkpoints/ckpt_best.pth",
+    "normalize_feat": true,
+    "distance": "euclidean",
+    "topk": [
+      1,
+      5,
+      10
+    ],
+    "rerank": {
+      "enabled": false,
+      "k1": 20,
+      "k2": 6,
+      "lambda_value": 0.3
+    },
+    "export": {
+      "format": [
+        "json"
+      ]
+    },
+    "flip_aggregation": "mean"
+  }
+}
+[MGN progress] {"phase": "features", "batch": 100, "batches": 2932, "images": 3200, "elapsed_seconds": 16.772089486941695}
+[MGN progress] {"phase": "features", "batch": 200, "batches": 2932, "images": 6400, "elapsed_seconds": 32.28831062000245}
+[MGN progress] {"phase": "features", "batch": 300, "batches": 2932, "images": 9600, "elapsed_seconds": 47.807882422581315}
+[MGN progress] {"phase": "features", "batch": 400, "batches": 2932, "images": 12800, "elapsed_seconds": 63.3861914165318}
+[MGN progress] {"phase": "features", "batch": 500, "batches": 2932, "images": 16000, "elapsed_seconds": 78.93948073592037}
+[MGN progress] {"phase": "features", "batch": 600, "batches": 2932, "images": 19200, "elapsed_seconds": 94.54916561208665}
+[MGN progress] {"phase": "features", "batch": 700, "batches": 2932, "images": 22400, "elapsed_seconds": 110.11668327823281}
+[MGN progress] {"phase": "features", "batch": 800, "batches": 2932, "images": 25600, "elapsed_seconds": 125.7238692920655}
+[MGN progress] {"phase": "features", "batch": 900, "batches": 2932, "images": 28800, "elapsed_seconds": 141.29517278447747}
+[MGN progress] {"phase": "features", "batch": 1000, "batches": 2932, "images": 32000, "elapsed_seconds": 156.914369918406}
+[MGN progress] {"phase": "features", "batch": 1100, "batches": 2932, "images": 35200, "elapsed_seconds": 172.49315209966153}
+[MGN progress] {"phase": "features", "batch": 1200, "batches": 2932, "images": 38400, "elapsed_seconds": 188.11766887269914}
+[MGN progress] {"phase": "features", "batch": 1300, "batches": 2932, "images": 41600, "elapsed_seconds": 203.70664762705564}
+[MGN progress] {"phase": "features", "batch": 1400, "batches": 2932, "images": 44800, "elapsed_seconds": 219.33323232550174}
+[MGN progress] {"phase": "features", "batch": 1500, "batches": 2932, "images": 48000, "elapsed_seconds": 234.93029026780277}
+[MGN progress] {"phase": "features", "batch": 1600, "batches": 2932, "images": 51200, "elapsed_seconds": 250.5567979728803}
+[MGN progress] {"phase": "features", "batch": 1700, "batches": 2932, "images": 54400, "elapsed_seconds": 266.14432954695076}
+[MGN progress] {"phase": "features", "batch": 1800, "batches": 2932, "images": 57600, "elapsed_seconds": 281.76948602776974}
+[MGN progress] {"phase": "features", "batch": 1900, "batches": 2932, "images": 60800, "elapsed_seconds": 297.3590442566201}
+[MGN progress] {"phase": "features", "batch": 2000, "batches": 2932, "images": 64000, "elapsed_seconds": 312.98097029700875}
+[MGN progress] {"phase": "features", "batch": 2100, "batches": 2932, "images": 67200, "elapsed_seconds": 328.56115176249295}
+[MGN progress] {"phase": "features", "batch": 2200, "batches": 2932, "images": 70400, "elapsed_seconds": 344.18763928767294}
+[MGN progress] {"phase": "features", "batch": 2300, "batches": 2932, "images": 73600, "elapsed_seconds": 359.7671028599143}
+[MGN progress] {"phase": "features", "batch": 2400, "batches": 2932, "images": 76800, "elapsed_seconds": 375.38267716392875}
+[MGN progress] {"phase": "features", "batch": 2500, "batches": 2932, "images": 80000, "elapsed_seconds": 390.9554703608155}
+[MGN progress] {"phase": "features", "batch": 2600, "batches": 2932, "images": 83200, "elapsed_seconds": 406.5650084959343}
+[MGN progress] {"phase": "features", "batch": 2700, "batches": 2932, "images": 86400, "elapsed_seconds": 422.17100067436695}
+[MGN progress] {"phase": "features", "batch": 2800, "batches": 2932, "images": 89600, "elapsed_seconds": 437.74303776957095}
+[MGN progress] {"phase": "features", "batch": 2900, "batches": 2932, "images": 92800, "elapsed_seconds": 453.34398834966123}
+[MGN progress] {"phase": "distance_cpu"}
+[MGN progress] {"phase": "mAP_cpu"}
+[MGN progress] {"phase": "CMC_cpu"}
+[MGN progress] {"phase": "mINP_cpu"}
+2026-11-06 22:41:03,890 reid.evaluate INFO: mAP=0.1967 mINP=0.0166 Rank1=0.4316 Rank5=0.5941 Rank10=0.6634
+2026-11-06 22:41:03,892 reid.evaluate INFO: Saved metrics to: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/metrics/eval_ckpt_best.json

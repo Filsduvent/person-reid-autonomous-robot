@@ -1,0 +1,145 @@
+source: cuhk03
+target: cuhk03
+setting: within-domain
+epoch: 120
+checkpoint:
+  path: exp/mgn/cuhk03/checkpoints/ckpt_best.pth
+  bytes: 596962074
+  sha256: a936f3c48224225aa76a3216c0a2cc2c13609c0a51c14e12ad5893c44ad9b23a
+  epoch: 120
+  scheduler_completed_epochs: 120
+  selection_state:
+    schema_version: 1
+    metric: mAP
+    best_score: 0.4585919976234436
+    best_epoch: 120
+  reconstruction:
+    schema_version: 1
+    output_contract_version: 1
+    model_name: mgn
+    variant: paper_v3_global2048_independent_v1
+    num_classes: 767
+    embedding_dim: 2048
+  optimizer_state_present: true
+  configuration_matches_freeze_except_operational_output_and_resume: true
+metrics:
+  mAP: 0.45847630500793457
+  mINP: 0.34446725249290466
+  Rank1: 0.46000000834465027
+  Rank5: 0.6600000262260437
+  Rank10: 0.7549999952316284
+exit_code: 0
+command:
+- /home/addirakoze/environments/Reid/bin/python
+- -u
+- -B
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/docs/mgn_evaluation_20261106/gpu_entry.py
+- --audit
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/cuhk03_to_cuhk03
+- --entry
+- scripts/evaluate.py
+- --
+- --config
+- configs/mgn/cuhk03.yaml
+- --weight
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/cuhk03/checkpoints/ckpt_best.pth
+- --opts
+- experiment.output_dir=/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03
+output: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03
+gpu_execution:
+  device: cuda:0
+  fp32: true
+  amp: false
+  forwards: 422
+  batches: 211
+  cudnn_benchmark: true
+  cudnn_deterministic: false
+  peak_allocated_bytes: 1696355840
+  peak_reserved_bytes: 1746927616
+  gpu:
+    timestamp_utc: '2026-11-07T01:30:37.961963+00:00'
+    uuid: GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+    physical_index: 0
+    name: NVIDIA RTX A4000
+    driver: 590.44.01
+    total_mib: 16376
+    free_mib: 15289
+    utilization_percent: 0
+    compute_mode: Default
+    mig_mode: '[N/A]'
+    processes:
+    - - GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+      - '1596291'
+      - /home/addirakoze/environments/Reid/bin/python
+      - '672'
+completed_utc: '2026-11-07T01:30:39.063732+00:00'
+artifacts:
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/artifacts/command.txt
+  bytes: 395
+  sha256: ae1f65dcb9dd7cfa7c34937e58216a117686e67187a38354b8a4c98040c4f84b
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/artifacts/environment.txt
+  bytes: 402
+  sha256: 4ac0626b2a9eade79756b14691c4bb6d3bcd66b9c52d64e9e4aa8bff8f13e66c
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/artifacts/git_commit.txt
+  bytes: 41
+  sha256: 31dca311043f0b5aba7e4df7aba19f86e937c815ef7352d7be2d89d3d0df2961
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/command.txt
+  bytes: 395
+  sha256: ae1f65dcb9dd7cfa7c34937e58216a117686e67187a38354b8a4c98040c4f84b
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/config.resolved.yaml
+  bytes: 3165
+  sha256: 96d30873bd90ac93f1333af7106e10e9d874648cd5a2cecbd9ad939c4ef69df6
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/config.yaml
+  bytes: 3165
+  sha256: 96d30873bd90ac93f1333af7106e10e9d874648cd5a2cecbd9ad939c4ef69df6
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/cross_dataset.json
+  bytes: 5315
+  sha256: 23cde55e7cdbf1b9cd1b1df8931031027bc2e582822d152c3cbdadd78105ef4d
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/environment.txt
+  bytes: 402
+  sha256: 4ac0626b2a9eade79756b14691c4bb6d3bcd66b9c52d64e9e4aa8bff8f13e66c
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/evaluate.log
+  bytes: 6525
+  sha256: c33dab99e678e93f5250cb1a786675da9ad193d3842d03fda0f543897370d995
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/git_commit.txt
+  bytes: 41
+  sha256: 31dca311043f0b5aba7e4df7aba19f86e937c815ef7352d7be2d89d3d0df2961
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/logs/eval_stderr.txt
+  bytes: 0
+  sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/logs/eval_stdout.txt
+  bytes: 7195
+  sha256: ec096f5f9aa5c55c233a5c33e4485fbb25643a5b029ae91f4b0072708a23e5a2
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/metrics/eval_ckpt_best.json
+  bytes: 267
+  sha256: 70da8728304f60a3873c81416d858146e68f0aea44f3e0cbcfe242cba89c5830
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03/metrics/final_test.json
+  bytes: 267
+  sha256: 70da8728304f60a3873c81416d858146e68f0aea44f3e0cbcfe242cba89c5830
+audit_artifacts:
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/cuhk03_to_cuhk03/admission.yaml
+  bytes: 2160
+  sha256: feb9288819b4eb91138f524da9f4299444508061bf784d3fd5a8be3109b2b3f5
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/cuhk03_to_cuhk03/gpu-completion.json
+  bytes: 757
+  sha256: 9370566f73e7023fbdbb5de99227786009728f9bc18b68ac3cfe0f4d59df2394
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/cuhk03_to_cuhk03/gpu-observed.jsonl
+  bytes: 839
+  sha256: b60eedbe77127f17629c2a58e95193238f33f8abc3d7961548027ac7fb45848b
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/cuhk03_to_cuhk03/gpu-start.json
+  bytes: 719
+  sha256: 4af7d9b9b95bcd4aacc46c4ecda1b432f155a218d4117b4acf5b8c2edb884454
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/cuhk03_to_cuhk03/progress.jsonl
+  bytes: 22424
+  sha256: c081fc554df25c84df30077f2e3e2bffc1db4c7e555a95e6f7c2e1d3eda30bb2
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/cuhk03_to_cuhk03/terminal.log
+  bytes: 7195
+  sha256: ec096f5f9aa5c55c233a5c33e4485fbb25643a5b029ae91f4b0072708a23e5a2
+difference_from_training_fraction:
+  mAP: -0.0001156926155090332
+  mINP: -6.264448165893555e-05
+  Rank1: -0.0007142722606658936
+  Rank5: 0.0
+  Rank10: 0.0007143020629882812
+within_tolerance: false
+verification_status: FLAGGED_CROSS_HOST_NUMERICAL_DIFFERENCE

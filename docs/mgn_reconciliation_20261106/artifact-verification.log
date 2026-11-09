@@ -1,0 +1,88 @@
+Checking dataset market1501
+[Dataset] name=Market1501 role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: trainval
+num images: 12936
+num identities: 751
+num cameras: 6
+num query images: n/a
+num gallery images: n/a
+[Dataset] name=Market1501 role=test
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: test
+num images: 31969
+num identities: 751
+num cameras: 6
+num query images: 3368
+num gallery images: 15913
+Checking dataset duke
+[Dataset] name=DukeMTMC-ReID role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: trainval
+num images: 16522
+num identities: 702
+num cameras: 8
+num query images: n/a
+num gallery images: n/a
+[Dataset] name=DukeMTMC-ReID role=test
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: test
+num images: 19889
+num identities: 1110
+num cameras: 8
+num query images: 2228
+num gallery images: 17661
+Checking dataset cuhk03
+[Dataset] name=CUHK03 role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: trainval
+image_type: detected
+protocol: processed_partition
+split_id: None
+num images: 7365
+num identities: 767
+num cameras: 2
+num query images: n/a
+num gallery images: n/a
+[Dataset] name=CUHK03 role=test
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: test
+image_type: detected
+protocol: processed_partition
+split_id: None
+num images: 6732
+num identities: 700
+num cameras: 2
+num query images: 1400
+num gallery images: 5332
+Checking dataset msmt17
+[Dataset] name=MSMT17 role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: raw
+split: train
+num images: 30248
+num identities: 1041
+num cameras: 15
+num query images: n/a
+num gallery images: n/a
+[Dataset] name=MSMT17 role=test
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: raw
+split: test
+num images: 93820
+num identities: 3060
+num cameras: 15
+num query images: 11659
+num gallery images: 82161
+Checking original run market1501
+Checking original run duke
+Checking original run cuhk03
+Checking original run msmt17
+Checking schedule trial
+PASS {"market1501": 70, "duke": 40, "cuhk03": 120, "msmt17": 70}

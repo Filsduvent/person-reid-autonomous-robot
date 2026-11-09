@@ -1,0 +1,20 @@
+[Dataset] name=DukeMTMC-ReID role=test
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: test
+num images: 19889
+num identities: 1110
+num cameras: 8
+num query images: 2228
+num gallery images: 17661
+[MGN progress] {"phase": "features", "batch": 100, "batches": 622, "images": 3200, "elapsed_seconds": 16.215728007256985}
+[MGN progress] {"phase": "features", "batch": 200, "batches": 622, "images": 6400, "elapsed_seconds": 31.725535072386265}
+[MGN progress] {"phase": "features", "batch": 300, "batches": 622, "images": 9600, "elapsed_seconds": 47.23717489466071}
+[MGN progress] {"phase": "features", "batch": 400, "batches": 622, "images": 12800, "elapsed_seconds": 62.82879491150379}
+[MGN progress] {"phase": "features", "batch": 500, "batches": 622, "images": 16000, "elapsed_seconds": 78.39697251562029}
+[MGN progress] {"phase": "features", "batch": 600, "batches": 622, "images": 19200, "elapsed_seconds": 94.01237572729588}
+[MGN progress] {"phase": "distance_cpu"}
+[MGN progress] {"phase": "mAP_cpu"}
+[MGN progress] {"phase": "CMC_cpu"}
+[MGN progress] {"phase": "mINP_cpu"}
+Saved cross-domain result: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_duke/cross_dataset.json

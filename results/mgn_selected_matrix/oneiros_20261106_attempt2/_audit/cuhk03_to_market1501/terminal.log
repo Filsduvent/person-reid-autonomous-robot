@@ -1,0 +1,24 @@
+[Dataset] name=Market1501 role=test
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: test
+num images: 31969
+num identities: 751
+num cameras: 6
+num query images: 3368
+num gallery images: 15913
+[MGN progress] {"phase": "features", "batch": 100, "batches": 1000, "images": 3200, "elapsed_seconds": 15.905514791607857}
+[MGN progress] {"phase": "features", "batch": 200, "batches": 1000, "images": 6400, "elapsed_seconds": 31.207597721368074}
+[MGN progress] {"phase": "features", "batch": 300, "batches": 1000, "images": 9600, "elapsed_seconds": 46.604433516040444}
+[MGN progress] {"phase": "features", "batch": 400, "batches": 1000, "images": 12800, "elapsed_seconds": 62.11514591239393}
+[MGN progress] {"phase": "features", "batch": 500, "batches": 1000, "images": 16000, "elapsed_seconds": 77.6308798873797}
+[MGN progress] {"phase": "features", "batch": 600, "batches": 1000, "images": 19200, "elapsed_seconds": 93.21652409806848}
+[MGN progress] {"phase": "features", "batch": 700, "batches": 1000, "images": 22400, "elapsed_seconds": 108.77491351030767}
+[MGN progress] {"phase": "features", "batch": 800, "batches": 1000, "images": 25600, "elapsed_seconds": 124.38615571707487}
+[MGN progress] {"phase": "features", "batch": 900, "batches": 1000, "images": 28800, "elapsed_seconds": 139.95767976902425}
+[MGN progress] {"phase": "features", "batch": 1000, "batches": 1000, "images": 31969, "elapsed_seconds": 155.5399299710989}
+[MGN progress] {"phase": "distance_cpu"}
+[MGN progress] {"phase": "mAP_cpu"}
+[MGN progress] {"phase": "CMC_cpu"}
+[MGN progress] {"phase": "mINP_cpu"}
+Saved cross-domain result: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_market1501/cross_dataset.json

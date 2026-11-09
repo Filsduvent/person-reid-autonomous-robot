@@ -1,0 +1,43 @@
+[Dataset] name=MSMT17 role=test
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: raw
+split: test
+num images: 93820
+num identities: 3060
+num cameras: 15
+num query images: 11659
+num gallery images: 82161
+[MGN progress] {"phase": "features", "batch": 100, "batches": 2932, "images": 3200, "elapsed_seconds": 16.29217079281807}
+[MGN progress] {"phase": "features", "batch": 200, "batches": 2932, "images": 6400, "elapsed_seconds": 31.82907012477517}
+[MGN progress] {"phase": "features", "batch": 300, "batches": 2932, "images": 9600, "elapsed_seconds": 47.363816822879016}
+[MGN progress] {"phase": "features", "batch": 400, "batches": 2932, "images": 12800, "elapsed_seconds": 62.966094348579645}
+[MGN progress] {"phase": "features", "batch": 500, "batches": 2932, "images": 16000, "elapsed_seconds": 78.53775586932898}
+[MGN progress] {"phase": "features", "batch": 600, "batches": 2932, "images": 19200, "elapsed_seconds": 94.15918110869825}
+[MGN progress] {"phase": "features", "batch": 700, "batches": 2932, "images": 22400, "elapsed_seconds": 109.74490182101727}
+[MGN progress] {"phase": "features", "batch": 800, "batches": 2932, "images": 25600, "elapsed_seconds": 125.37588131520897}
+[MGN progress] {"phase": "features", "batch": 900, "batches": 2932, "images": 28800, "elapsed_seconds": 140.96781952492893}
+[MGN progress] {"phase": "features", "batch": 1000, "batches": 2932, "images": 32000, "elapsed_seconds": 156.59902362059802}
+[MGN progress] {"phase": "features", "batch": 1100, "batches": 2932, "images": 35200, "elapsed_seconds": 172.19320854078978}
+[MGN progress] {"phase": "features", "batch": 1200, "batches": 2932, "images": 38400, "elapsed_seconds": 187.8408736679703}
+[MGN progress] {"phase": "features", "batch": 1300, "batches": 2932, "images": 41600, "elapsed_seconds": 203.44476736988872}
+[MGN progress] {"phase": "features", "batch": 1400, "batches": 2932, "images": 44800, "elapsed_seconds": 219.10279652103782}
+[MGN progress] {"phase": "features", "batch": 1500, "batches": 2932, "images": 48000, "elapsed_seconds": 234.70625660195947}
+[MGN progress] {"phase": "features", "batch": 1600, "batches": 2932, "images": 51200, "elapsed_seconds": 250.35148556809872}
+[MGN progress] {"phase": "features", "batch": 1700, "batches": 2932, "images": 54400, "elapsed_seconds": 265.9425580948591}
+[MGN progress] {"phase": "features", "batch": 1800, "batches": 2932, "images": 57600, "elapsed_seconds": 281.56944867782295}
+[MGN progress] {"phase": "features", "batch": 1900, "batches": 2932, "images": 60800, "elapsed_seconds": 297.1512893922627}
+[MGN progress] {"phase": "features", "batch": 2000, "batches": 2932, "images": 64000, "elapsed_seconds": 312.772173631005}
+[MGN progress] {"phase": "features", "batch": 2100, "batches": 2932, "images": 67200, "elapsed_seconds": 328.35385767556727}
+[MGN progress] {"phase": "features", "batch": 2200, "batches": 2932, "images": 70400, "elapsed_seconds": 343.98752340022475}
+[MGN progress] {"phase": "features", "batch": 2300, "batches": 2932, "images": 73600, "elapsed_seconds": 359.57770537398756}
+[MGN progress] {"phase": "features", "batch": 2400, "batches": 2932, "images": 76800, "elapsed_seconds": 375.1838246798143}
+[MGN progress] {"phase": "features", "batch": 2500, "batches": 2932, "images": 80000, "elapsed_seconds": 390.7534447386861}
+[MGN progress] {"phase": "features", "batch": 2600, "batches": 2932, "images": 83200, "elapsed_seconds": 406.3551539359614}
+[MGN progress] {"phase": "features", "batch": 2700, "batches": 2932, "images": 86400, "elapsed_seconds": 421.95586360711604}
+[MGN progress] {"phase": "features", "batch": 2800, "batches": 2932, "images": 89600, "elapsed_seconds": 437.52025452349335}
+[MGN progress] {"phase": "features", "batch": 2900, "batches": 2932, "images": 92800, "elapsed_seconds": 453.12532432284206}
+[MGN progress] {"phase": "distance_cpu"}
+[MGN progress] {"phase": "mAP_cpu"}
+[MGN progress] {"phase": "CMC_cpu"}
+[MGN progress] {"phase": "mINP_cpu"}
+Saved cross-domain result: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_msmt17/cross_dataset.json

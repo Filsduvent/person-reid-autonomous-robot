@@ -1,0 +1,81 @@
+status: FOUR_CELLS_ARTIFACT_VERIFIED_REVIEW_PENDING
+source: cuhk03
+release_commit: 7185a7667b2d21a5ad805538ace64326b2bfa28e
+checkpoint:
+  path: exp/mgn/cuhk03/checkpoints/ckpt_best.pth
+  bytes: 596962074
+  sha256: a936f3c48224225aa76a3216c0a2cc2c13609c0a51c14e12ad5893c44ad9b23a
+  epoch: 120
+  scheduler_completed_epochs: 120
+  selection_state:
+    schema_version: 1
+    metric: mAP
+    best_score: 0.4585919976234436
+    best_epoch: 120
+  reconstruction:
+    schema_version: 1
+    output_contract_version: 1
+    model_name: mgn
+    variant: paper_v3_global2048_independent_v1
+    num_classes: 767
+    embedding_dim: 2048
+  optimizer_state_present: true
+  configuration_matches_freeze_except_operational_output_and_resume: true
+fixed_original_checkpoint_across_all_targets: true
+no_target_based_selection: true
+gpu_uuid: GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+cells:
+  cuhk03:
+    setting: within-domain
+    metrics:
+      mAP: 0.45847630500793457
+      mINP: 0.34446725249290466
+      Rank1: 0.46000000834465027
+      Rank5: 0.6600000262260437
+      Rank10: 0.7549999952316284
+    output: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_cuhk03
+    metric_record_sha256: 23cde55e7cdbf1b9cd1b1df8931031027bc2e582822d152c3cbdadd78105ef4d
+    completion_receipt_sha256: 24052e023fb7c1e4a10d711adc1788d5d5f321d1346bd30d00a0c9ec667f66f5
+  market1501:
+    setting: cross-domain
+    metrics:
+      mAP: 0.18915875256061554
+      mINP: 0.0209635142236948
+      Rank1: 0.42131829261779785
+      Rank5: 0.5899643898010254
+      Rank10: 0.6529097557067871
+    output: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_market1501
+    metric_record_sha256: 5b259948553839d2016986bafe9f889b1243fe6b430521ab216ce19e5fc83a7d
+    completion_receipt_sha256: 67a95216c46b297ad5fbefa8b128a56ebd2cca792546c9e515d37e003bd5b18c
+  duke:
+    setting: cross-domain
+    metrics:
+      mAP: 0.11550475656986237
+      mINP: 0.013322207145392895
+      Rank1: 0.21364451944828033
+      Rank5: 0.3586176037788391
+      Rank10: 0.41696590185165405
+    output: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_duke
+    metric_record_sha256: fd0c1a62519ee11adb0434cd6275fc9cf17e9cb0a768f27c7d3efc4f470ebe95
+    completion_receipt_sha256: b30d21fcc7913ceded71810179a5fe577fd4062f60a27debc044ad4a46e689bd
+  msmt17:
+    setting: cross-domain
+    metrics:
+      mAP: 0.017064766958355904
+      mINP: 0.0007320698932744563
+      Rank1: 0.05840981379151344
+      Rank5: 0.10781370848417282
+      Rank10: 0.13508877158164978
+    output: results/mgn_selected_matrix/oneiros_20261106_attempt2/cuhk03_to_msmt17
+    metric_record_sha256: e61af1616fab7c27ed26587783a8f136d645f0cce3b4f695eb4f0182e97aa2d8
+    completion_receipt_sha256: e1e0f02eb379e74d24720f8e977bd3c7df6d28fa5010bb9dc574a7993e8cfcb3
+diagonal_tolerance_exception:
+  mAP: -0.0001156926155090332
+  mINP: -6.264448165893555e-05
+  Rank1: -0.0007142722606658936
+  Rank5: 0.0
+  Rank10: 0.0007143020629882812
+numerical_exception_disposition: User approved continuing the full matrix with flagged
+  cross-host numerical exceptions; strict1e-5 threshold remains unchanged.
+protected_original_results: true
+training_performed: false

@@ -1,0 +1,145 @@
+source: msmt17
+target: msmt17
+setting: within-domain
+epoch: 70
+checkpoint:
+  path: exp/mgn/msmt17/checkpoints/ckpt_best.pth
+  bytes: 613235226
+  sha256: 01c96982d0aff8ada9c2a1286d8177a534e1800a44b213f1a6c5eb57ef72a345
+  epoch: 70
+  scheduler_completed_epochs: 70
+  selection_state:
+    schema_version: 1
+    metric: mAP
+    best_score: 0.19671525061130524
+    best_epoch: 70
+  reconstruction:
+    schema_version: 1
+    output_contract_version: 1
+    model_name: mgn
+    variant: paper_v3_global2048_independent_v1
+    num_classes: 1041
+    embedding_dim: 2048
+  optimizer_state_present: true
+  configuration_matches_freeze_except_operational_output_and_resume: true
+metrics:
+  mAP: 0.19670908153057098
+  mINP: 0.016590189188718796
+  Rank1: 0.43159791827201843
+  Rank5: 0.5941332578659058
+  Rank10: 0.6634359955787659
+exit_code: 0
+command:
+- /home/addirakoze/environments/Reid/bin/python
+- -u
+- -B
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/docs/mgn_evaluation_20261106/gpu_entry.py
+- --audit
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/msmt17_to_msmt17
+- --entry
+- scripts/evaluate.py
+- --
+- --config
+- configs/mgn/msmt17.yaml
+- --weight
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/msmt17/checkpoints/ckpt_best.pth
+- --opts
+- experiment.output_dir=/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17
+output: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17
+gpu_execution:
+  device: cuda:0
+  fp32: true
+  amp: false
+  forwards: 5864
+  batches: 2932
+  cudnn_benchmark: true
+  cudnn_deterministic: false
+  peak_allocated_bytes: 1705210368
+  peak_reserved_bytes: 1763704832
+  gpu:
+    timestamp_utc: '2026-11-07T01:41:03.890158+00:00'
+    uuid: GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+    physical_index: 0
+    name: NVIDIA RTX A4000
+    driver: 590.44.01
+    total_mib: 16376
+    free_mib: 15067
+    utilization_percent: 0
+    compute_mode: Default
+    mig_mode: '[N/A]'
+    processes:
+    - - GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+      - '1596417'
+      - /home/addirakoze/environments/Reid/bin/python
+      - '894'
+completed_utc: '2026-11-07T01:41:05.368453+00:00'
+artifacts:
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/artifacts/command.txt
+  bytes: 395
+  sha256: c2cc80020ccf1411ac5593d560bb3d06e10158153699c4987b19ade3fc528131
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/artifacts/environment.txt
+  bytes: 402
+  sha256: 4ac0626b2a9eade79756b14691c4bb6d3bcd66b9c52d64e9e4aa8bff8f13e66c
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/artifacts/git_commit.txt
+  bytes: 41
+  sha256: 31dca311043f0b5aba7e4df7aba19f86e937c815ef7352d7be2d89d3d0df2961
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/command.txt
+  bytes: 395
+  sha256: c2cc80020ccf1411ac5593d560bb3d06e10158153699c4987b19ade3fc528131
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/config.resolved.yaml
+  bytes: 2982
+  sha256: f26a74286300e4ef01d21fe7dfff4ba9a7b7bab9db2178093509e24e46cf2d02
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/config.yaml
+  bytes: 2982
+  sha256: f26a74286300e4ef01d21fe7dfff4ba9a7b7bab9db2178093509e24e46cf2d02
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/cross_dataset.json
+  bytes: 5083
+  sha256: 9db27cfd11bf1da889e4fc53c8226ae7005ee14413e8f9ad6ce97e7b2b77ea15
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/environment.txt
+  bytes: 402
+  sha256: 4ac0626b2a9eade79756b14691c4bb6d3bcd66b9c52d64e9e4aa8bff8f13e66c
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/evaluate.log
+  bytes: 6304
+  sha256: ec7a78e0cac35dbc1e449a8a327da60b3680e423d932b276bc1fc67764f7fc1e
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/git_commit.txt
+  bytes: 41
+  sha256: 31dca311043f0b5aba7e4df7aba19f86e937c815ef7352d7be2d89d3d0df2961
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/logs/eval_stderr.txt
+  bytes: 0
+  sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/logs/eval_stdout.txt
+  bytes: 10264
+  sha256: c89b11a7a89edd310396464fd4a8fe7c54838f904700fe33dfba89f22e388e94
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/metrics/eval_ckpt_best.json
+  bytes: 267
+  sha256: 3bb06e32e4b487d739e6cd69f26d7c560b399a97d97d432bb183835ed3466f47
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_msmt17/metrics/final_test.json
+  bytes: 267
+  sha256: 3bb06e32e4b487d739e6cd69f26d7c560b399a97d97d432bb183835ed3466f47
+audit_artifacts:
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/msmt17_to_msmt17/admission.yaml
+  bytes: 2159
+  sha256: a64cc696c6a6e2babfe120b92426c3603bef4fea2264f811af8b115f09acb986
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/msmt17_to_msmt17/gpu-completion.json
+  bytes: 759
+  sha256: 31131f1be5616fecfdd9eb947163421a86fe585ebbcb95466b2879fdd5ee42c9
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/msmt17_to_msmt17/gpu-observed.jsonl
+  bytes: 6730
+  sha256: 66c20e2770cab7cee907a54a54d28a4cea27c6a7d86c5b0c1b22754158b1ea0e
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/msmt17_to_msmt17/gpu-start.json
+  bytes: 719
+  sha256: 4a1070a4dabc2938d763ef1d1eada8240b17897c0312b0395d4892b0b0dea4dc
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/msmt17_to_msmt17/progress.jsonl
+  bytes: 319596
+  sha256: 3564d373cca97c3109ced1f680e8f7513ec863f76dada19e01513d266d98b8f1
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/msmt17_to_msmt17/terminal.log
+  bytes: 10264
+  sha256: c89b11a7a89edd310396464fd4a8fe7c54838f904700fe33dfba89f22e388e94
+difference_from_training_fraction:
+  mAP: -6.154179573059082e-06
+  mINP: -6.070360541343689e-06
+  Rank1: 0.00025731325149536133
+  Rank5: 8.571147918701172e-05
+  Rank10: 0.0
+within_tolerance: false
+verification_status: FLAGGED_CROSS_HOST_NUMERICAL_DIFFERENCE

@@ -1,0 +1,226 @@
+registered_date: '2026-10-08'
+actual_commit: 3b015c964b99bfe8ad4b7842bd174d3bc58af607
+frozen_commit: 66ea88d06ba0f79c298b19abe1652ae892d69fdd
+config_matches_freeze: true
+final_best:
+  dataset: market1501
+  split: test
+  model: pcb
+  epoch: 50
+  checkpoint: ckpt_best.pth
+  mAP: 0.7954107522964478
+  mINP: 0.42386704683303833
+  Rank1: 0.91923987865448
+  Rank5: 0.9720902442932129
+  Rank10: 0.9827790856361389
+final_last:
+  dataset: market1501
+  split: test
+  model: pcb
+  epoch: 120
+  checkpoint: ckpt_last.pth
+  mAP: 0.7855668067932129
+  mINP: 0.41416245698928833
+  Rank1: 0.9207244515419006
+  Rank5: 0.9700118899345398
+  Rank10: 0.980997622013092
+periodic_evaluations:
+- dataset: market1501
+  split: test
+  model: pcb
+  epoch: 10
+  checkpoint: ckpt_last.pth
+  mAP: 0.7333588600158691
+  mINP: 0.32288098335266113
+  Rank1: 0.8969715237617493
+  Rank5: 0.9622921347618103
+  Rank10: 0.9759501218795776
+- dataset: market1501
+  split: test
+  model: pcb
+  epoch: 20
+  checkpoint: ckpt_last.pth
+  mAP: 0.792964518070221
+  mINP: 0.4140412509441376
+  Rank1: 0.9245843291282654
+  Rank5: 0.9720902442932129
+  Rank10: 0.9815914630889893
+- dataset: market1501
+  split: test
+  model: pcb
+  epoch: 30
+  checkpoint: ckpt_last.pth
+  mAP: 0.7124861478805542
+  mINP: 0.28964337706565857
+  Rank1: 0.8871734142303467
+  Rank5: 0.9581353664398193
+  Rank10: 0.9720902442932129
+- dataset: market1501
+  split: test
+  model: pcb
+  epoch: 40
+  checkpoint: ckpt_last.pth
+  mAP: 0.7937105894088745
+  mINP: 0.41957539319992065
+  Rank1: 0.9228028655052185
+  Rank5: 0.9717933535575867
+  Rank10: 0.9830760359764099
+- dataset: market1501
+  split: test
+  model: pcb
+  epoch: 50
+  checkpoint: ckpt_last.pth
+  mAP: 0.7954107522964478
+  mINP: 0.42386704683303833
+  Rank1: 0.91923987865448
+  Rank5: 0.9720902442932129
+  Rank10: 0.9827790856361389
+- dataset: market1501
+  split: test
+  model: pcb
+  epoch: 60
+  checkpoint: ckpt_last.pth
+  mAP: 0.7947034239768982
+  mINP: 0.4229222238063812
+  Rank1: 0.9219121336936951
+  Rank5: 0.9714964628219604
+  Rank10: 0.9833729267120361
+- dataset: market1501
+  split: test
+  model: pcb
+  epoch: 70
+  checkpoint: ckpt_last.pth
+  mAP: 0.7931982278823853
+  mINP: 0.42157185077667236
+  Rank1: 0.9219121336936951
+  Rank5: 0.9682304263114929
+  Rank10: 0.9830760359764099
+- dataset: market1501
+  split: test
+  model: pcb
+  epoch: 80
+  checkpoint: ckpt_last.pth
+  mAP: 0.7918654680252075
+  mINP: 0.4206129312515259
+  Rank1: 0.9198337197303772
+  Rank5: 0.9700118899345398
+  Rank10: 0.9830760359764099
+- dataset: market1501
+  split: test
+  model: pcb
+  epoch: 90
+  checkpoint: ckpt_last.pth
+  mAP: 0.7903656959533691
+  mINP: 0.41878896951675415
+  Rank1: 0.9210214018821716
+  Rank5: 0.9682304263114929
+  Rank10: 0.9836698174476624
+- dataset: market1501
+  split: test
+  model: pcb
+  epoch: 100
+  checkpoint: ckpt_last.pth
+  mAP: 0.7895713448524475
+  mINP: 0.4188716411590576
+  Rank1: 0.9198337197303772
+  Rank5: 0.970308780670166
+  Rank10: 0.9836698174476624
+- dataset: market1501
+  split: test
+  model: pcb
+  epoch: 110
+  checkpoint: ckpt_last.pth
+  mAP: 0.7873642444610596
+  mINP: 0.4153299629688263
+  Rank1: 0.9207244515419006
+  Rank5: 0.9697149395942688
+  Rank10: 0.9836698174476624
+- dataset: market1501
+  split: test
+  model: pcb
+  epoch: 120
+  checkpoint: ckpt_last.pth
+  mAP: 0.7855668067932129
+  mINP: 0.41416245698928833
+  Rank1: 0.9207244515419006
+  Rank5: 0.9700118899345398
+  Rank10: 0.980997622013092
+checkpoints:
+  best:
+    sha256: 8ad7c820a31bb8adc9cebafb48d5e25cb6c042401d44fdbe8084ee587317fd38
+    bytes: 222993291
+    epoch: 50
+    scheduler_updates: 10100
+    metadata:
+      schema_version: 1
+      output_contract_version: 1
+      model_name: pcb
+      variant: independent_part_reduction
+      num_classes: 751
+      embedding_dim: 1536
+    optimizer_state_tensors: 195
+  last:
+    sha256: c82b325b7a7d5f0735b45da0c2d374f4cbd1b92cc8c8e01f42705b2ee1d0b9d6
+    bytes: 222993291
+    epoch: 120
+    scheduler_updates: 24240
+    metadata:
+      schema_version: 1
+      output_contract_version: 1
+      model_name: pcb
+      variant: independent_part_reduction
+      num_classes: 751
+      embedding_dim: 1536
+    optimizer_state_tensors: 195
+logged_start: 2026-10-07 16:41:38,704
+logged_end: 2026-10-07 19:52:55,338
+code_diff:
+- docs/pcb_environment_freeze.txt
+- docs/pcb_experiment_manifest.yaml
+- docs/pcb_experiment_protocol.md
+- plan.md
+reference_metrics:
+  dataset: market1501
+  split: test
+  model: resnet50_baseline
+  epoch: 110
+  checkpoint: ckpt_best.pth
+  mAP: 0.8578994274139404
+  mINP: 0.5906359553337097
+  Rank1: 0.9438835978507996
+  Rank5: 0.9824821949005127
+  Rank10: 0.9887173175811768
+delta_percentage_points:
+  mAP: -6.248867511749268
+  mINP: -16.67689085006714
+  Rank1: -2.464371919631958
+  Rank5: -1.0391950607299805
+  Rank10: -0.5938231945037842
+status: training_complete_artifacts_verified_commit_exception_pending_review
+source: market1501
+run_dir: /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/pcb/market1501
+command: scripts/train.py --config configs/pcb/market1501.yaml
+config_path: configs/pcb/market1501.yaml
+config_sha256: a0d689383e3e054a406d14172129072f1660da3852c8cab4177cbefccb746f77
+completion_checks:
+  epochs: 120
+  periodic_evaluations: 12
+  last_optimizer_updates: 24240
+  best_is_first_periodic_maximum: true
+  checkpoint_model_and_momentum_tensors_finite: true
+  logged_epoch_losses_finite: true
+  strict_config_matches_frozen_resolved_config: true
+  logged_gpu: NVIDIA TITAN Xp cuda:0
+  phase22_independent_evaluation_performed: false
+provenance_limitations:
+- Recorded Git SHA differs from original freeze; only documentation differs between committed trees. Acceptance
+  of this exception and next-run commit choice is pending.
+- Saved environment lists two visible CUDA devices; the frozen UUID-only visibility was not observed. The log confirms
+  actual training on TITAN Xp cuda:0. Shell exports and launch-time dirty state were not captured, so they cannot
+  be retrospectively certified.
+- Current preset, Market/Duke metadata and historical weight hashes match the freeze; image contents were not reaudited.
+- Metrics are trainer-produced selected-best and final-state evaluations; Phase22 independent evaluation is still
+  pending.
+- Checkpoint selection uses configured test query/gallery mAP, not independent validation.
+- The ResNet50 comparison uses the same dataset protocol but a different recipe, not a matched architecture-only
+  control.

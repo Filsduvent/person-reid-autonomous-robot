@@ -1,0 +1,31 @@
+{
+  "device": "cuda:0",
+  "fp32": true,
+  "amp": false,
+  "forwards": 5864,
+  "batches": 2932,
+  "cudnn_benchmark": true,
+  "cudnn_deterministic": false,
+  "peak_allocated_bytes": 1694425600,
+  "peak_reserved_bytes": 1746927616,
+  "gpu": {
+    "timestamp_utc": "2026-11-07T02:10:05.931074+00:00",
+    "uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+    "physical_index": 0,
+    "name": "NVIDIA RTX A4000",
+    "driver": "590.44.01",
+    "total_mib": 16376,
+    "free_mib": 15085,
+    "utilization_percent": 0,
+    "compute_mode": "Default",
+    "mig_mode": "[N/A]",
+    "processes": [
+      [
+        "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2",
+        "1598807",
+        "/home/addirakoze/environments/Reid/bin/python",
+        "876"
+      ]
+    ]
+  }
+}

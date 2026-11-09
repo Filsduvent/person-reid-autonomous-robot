@@ -1,0 +1,39 @@
+status: FOUR_USER_LAUNCH_SCOPES_PREPARED_NOT_EXECUTED
+reviewed_release: 532bb32969cbe7b419e45e4ebcae82c02c05c71a
+executed_runtime_release: 68c79db723f28bc6de51ede7368f0f4f29f978bd
+runtime_bytes_identical: true
+scope: Evidence review and handoff only; official training is launched by user.
+folds:
+- fold: LODO-1
+  qualification_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/.local/mgn_lodo_launch/qualifications/LODO-1.json
+  qualification_sha256: a1ae5b351c3317a2ec06db3d522da315c9439863b5e1d6b8f09a2cab79f3acdc
+  config_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/.local/mgn_lodo_launch/LODO-1/official-20261109/config.yaml
+  config_sha256: 6a301089181f69ea496508ac5b9d741bf77aeadf14cefc7e5649760d31009ca5
+  execution_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/.local/mgn_lodo_launch/LODO-1/official-20261109/execution.json
+  execution_sha256: 31b19feaedf8268f9272a79b98f19e622e793fb148b8f8a23aa2c99a9b1918ec
+  training_launched: false
+- fold: LODO-2
+  qualification_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/.local/mgn_lodo_launch/qualifications/LODO-2.json
+  qualification_sha256: 8b27ca3f5c55b931fe53c6c1b17b466ca644d3776552d1712acd7be9c81f8e99
+  config_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/.local/mgn_lodo_launch/LODO-2/official-20261109/config.yaml
+  config_sha256: b0a85b8f2d2a85acec4de3d441de42dd6c5bcff1471000d541015919dd7035de
+  execution_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/.local/mgn_lodo_launch/LODO-2/official-20261109/execution.json
+  execution_sha256: ac3b6dab8b4570b809ee6563bb66058275a47f3a2b0c3477097b8f462c88acb8
+  training_launched: false
+- fold: LODO-3
+  qualification_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/.local/mgn_lodo_launch/qualifications/LODO-3.json
+  qualification_sha256: 073c3e4336e5805909ac5a71d3665336c099caaf932ad8c3b1ecd54e256b34d6
+  config_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/.local/mgn_lodo_launch/LODO-3/official-20261109/config.yaml
+  config_sha256: 94076e69326aa10e2ca6609af96529d9dc41f823455787d1785d283b80d3e4d0
+  execution_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/.local/mgn_lodo_launch/LODO-3/official-20261109/execution.json
+  execution_sha256: 1ba7a66309177e31440749301ca62cfe3e86332bed350d082fbf79fe11582fd7
+  training_launched: false
+- fold: LODO-4
+  qualification_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/.local/mgn_lodo_launch/qualifications/LODO-4.json
+  qualification_sha256: f91e1b33d43226b20adc38df683eae29b18013fdbddd0308229fe1ab0a191975
+  config_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/.local/mgn_lodo_launch/LODO-4/official-20261109/config.yaml
+  config_sha256: 2b9aa5abbaf669af55c874490ff7bf60c3a4066884c27bcc0d10b0406138da89
+  execution_path: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/.local/mgn_lodo_launch/LODO-4/official-20261109/execution.json
+  execution_sha256: db87cb388cf8e74c2b9c1c52d1c106e99e1a5469a720c8c7fce908aae1c62914
+  training_launched: false
+official_training_launched: false

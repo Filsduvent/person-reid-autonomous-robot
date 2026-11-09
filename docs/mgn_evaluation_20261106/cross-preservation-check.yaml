@@ -1,0 +1,13 @@
+status: PASS
+protected_starting_files: 432
+unexpected_changes: []
+entire_preclosure_roadmap_preserved_as_prefix: true
+original_runtime_configs_training_results_trial_pcb_lodo_and_unrelated_work_unchanged: true
+gpu_released: true
+final_gpu_free_mib: 15967
+final_compute_processes: []
+head_unchanged: true
+registry_sha256: aed87d230612d08291ed140e2f37eb48d0c80b647b9a620d79a64bd300906d8c
+completed_cells: 16
+cross_domain_cells: 12
+all_evaluator_exit_codes_zero: true

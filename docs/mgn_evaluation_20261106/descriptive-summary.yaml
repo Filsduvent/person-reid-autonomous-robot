@@ -1,0 +1,16 @@
+within-domain:
+  cells: 4
+  unweighted_mean_metrics:
+    mAP: 0.5084785483777523
+    mINP: 0.245899292640388
+    Rank1: 0.6475757509469986
+    Rank5: 0.7773905396461487
+    Rank10: 0.8290533572435379
+cross-domain:
+  cells: 12
+  unweighted_mean_metrics:
+    mAP: 0.12586674264942607
+    mINP: 0.023463921306150343
+    Rank1: 0.2407204331830144
+    Rank5: 0.3583878632634878
+    Rank10: 0.4131266586482525

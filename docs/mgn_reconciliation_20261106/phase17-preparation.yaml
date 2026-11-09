@@ -1,0 +1,207 @@
+schema_version: 1
+status: PREPARED_NOT_APPROVED_NOT_EXECUTED
+release_commit: 7185a7667b2d21a5ad805538ace64326b2bfa28e
+first_proposed_unit: 17A market1501 only
+approval_required: Phase17 evaluation policy/cell/resource/execution scope per roadmap
+  amendment; original source evidence review and registry publication not inferred.
+proposed_comparison_tolerance_fraction: 1.0e-05
+tolerance_status: PROPOSED for user review before evaluation; absolute per metric
+  versus trainer final_best; larger deltas preserved and investigated, not used for
+  reselection.
+policy:
+  flip_aggregation: mean raw original/width-flipped descriptors before global L2
+  normalize_feat: true
+  distance: euclidean
+  rerank: false
+  precision: FP32
+  input: RGB384x128 bicubic; source ImageNet normalization
+  selection: original selected-best fixed by source-test periodic mAP, never target
+    scores
+units:
+  market1501:
+    status: CANDIDATE_ONLY
+    checkpoint:
+      path: exp/mgn/market1501/checkpoints/ckpt_best.pth
+      bytes: 596011610
+      sha256: 5067cb70fb2e3fe7609ca7338487c44f62699596088852abe060c9672ebe8024
+      epoch: 70
+      scheduler_completed_epochs: 70
+      milestones:
+      - 60
+      - 90
+      reconstruction:
+        schema_version: 1
+        output_contract_version: 1
+        model_name: mgn
+        variant: paper_v3_global2048_independent_v1
+        num_classes: 751
+        embedding_dim: 2048
+      selection_state:
+        schema_version: 1
+        metric: mAP
+        best_score: 0.7100086212158203
+        best_epoch: 70
+      finite_model_state: true
+      optimizer_state_present: true
+    config: configs/mgn/market1501.yaml
+    config_sha256: 8bdb58cde1f29827bf8e6d35acfcab78d6eb83e6af36efef36321c5b2fddf8a6
+    source_classes: 751
+    output: results/mgn_independent_within_domain/oneiros_20261106/market1501
+    fresh_output_verified: true
+    source_config_preparation_validated_cpu: true
+    expected_trainer_metrics:
+      dataset: market1501
+      split: test
+      model: mgn
+      epoch: 70
+      checkpoint: ckpt_best.pth
+      mAP: 0.7100086212158203
+      mINP: 0.34995803236961365
+      Rank1: 0.8818289637565613
+      Rank5: 0.9483373165130615
+      Rank10: 0.9664489030838013
+    command: /home/addirakoze/environments/Reid/bin/python -u -B scripts/evaluate.py
+      --config configs/mgn/market1501.yaml --weight exp/mgn/market1501/checkpoints/ckpt_best.pth
+      --opts experiment.output_dir=results/mgn_independent_within_domain/oneiros_20261106/market1501
+  duke:
+    status: CANDIDATE_ONLY
+    checkpoint:
+      path: exp/mgn/duke/checkpoints/ckpt_best.pth
+      bytes: 593101338
+      sha256: 97b7b674d85806f32f14d76d1a3136b05b7083bc4833eb3579db453139df1641
+      epoch: 40
+      scheduler_completed_epochs: 40
+      milestones:
+      - 60
+      - 90
+      reconstruction:
+        schema_version: 1
+        output_contract_version: 1
+        model_name: mgn
+        variant: paper_v3_global2048_independent_v1
+        num_classes: 702
+        embedding_dim: 2048
+      selection_state:
+        schema_version: 1
+        metric: mAP
+        best_score: 0.6686996221542358
+        best_epoch: 40
+      finite_model_state: true
+      optimizer_state_present: true
+    config: configs/mgn/duke.yaml
+    config_sha256: eddf3907418e8ade006c4b7bafa95110bac5be0a2762ee7a3f7f8685116649ee
+    source_classes: 702
+    output: results/mgn_independent_within_domain/oneiros_20261106/duke
+    fresh_output_verified: true
+    source_config_preparation_validated_cpu: true
+    expected_trainer_metrics:
+      dataset: duke
+      split: test
+      model: mgn
+      epoch: 40
+      checkpoint: ckpt_best.pth
+      mAP: 0.6686996221542358
+      mINP: 0.27260202169418335
+      Rank1: 0.8164272904396057
+      Rank5: 0.9075403809547424
+      Rank10: 0.9317773580551147
+    command: /home/addirakoze/environments/Reid/bin/python -u -B scripts/evaluate.py
+      --config configs/mgn/duke.yaml --weight exp/mgn/duke/checkpoints/ckpt_best.pth
+      --opts experiment.output_dir=results/mgn_independent_within_domain/oneiros_20261106/duke
+  cuhk03:
+    status: CANDIDATE_ONLY
+    checkpoint:
+      path: exp/mgn/cuhk03/checkpoints/ckpt_best.pth
+      bytes: 596962074
+      sha256: a936f3c48224225aa76a3216c0a2cc2c13609c0a51c14e12ad5893c44ad9b23a
+      epoch: 120
+      scheduler_completed_epochs: 120
+      milestones:
+      - 60
+      - 90
+      reconstruction:
+        schema_version: 1
+        output_contract_version: 1
+        model_name: mgn
+        variant: paper_v3_global2048_independent_v1
+        num_classes: 767
+        embedding_dim: 2048
+      selection_state:
+        schema_version: 1
+        metric: mAP
+        best_score: 0.4585919976234436
+        best_epoch: 120
+      finite_model_state: true
+      optimizer_state_present: true
+    config: configs/mgn/cuhk03.yaml
+    config_sha256: 15c03873aa56266fd3d8215a39908ed7ab98132116e7c16b7a7e1f03ec52c115
+    source_classes: 767
+    output: results/mgn_independent_within_domain/oneiros_20261106/cuhk03
+    fresh_output_verified: true
+    source_config_preparation_validated_cpu: true
+    expected_trainer_metrics:
+      dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 120
+      checkpoint: ckpt_best.pth
+      mAP: 0.4585919976234436
+      mINP: 0.3445298969745636
+      Rank1: 0.46071428060531616
+      Rank5: 0.6600000262260437
+      Rank10: 0.7542856931686401
+    command: /home/addirakoze/environments/Reid/bin/python -u -B scripts/evaluate.py
+      --config configs/mgn/cuhk03.yaml --weight exp/mgn/cuhk03/checkpoints/ckpt_best.pth
+      --opts experiment.output_dir=results/mgn_independent_within_domain/oneiros_20261106/cuhk03
+  msmt17:
+    status: CANDIDATE_ONLY
+    checkpoint:
+      path: exp/mgn/msmt17/checkpoints/ckpt_best.pth
+      bytes: 613235226
+      sha256: 01c96982d0aff8ada9c2a1286d8177a534e1800a44b213f1a6c5eb57ef72a345
+      epoch: 70
+      scheduler_completed_epochs: 70
+      milestones:
+      - 60
+      - 90
+      reconstruction:
+        schema_version: 1
+        output_contract_version: 1
+        model_name: mgn
+        variant: paper_v3_global2048_independent_v1
+        num_classes: 1041
+        embedding_dim: 2048
+      selection_state:
+        schema_version: 1
+        metric: mAP
+        best_score: 0.19671525061130524
+        best_epoch: 70
+      finite_model_state: true
+      optimizer_state_present: true
+    config: configs/mgn/msmt17.yaml
+    config_sha256: ef4fbaf2b45daf5622a3c853cf9dc843bde7030fc79a583e117a0a86e7dafe70
+    source_classes: 1041
+    output: results/mgn_independent_within_domain/oneiros_20261106/msmt17
+    fresh_output_verified: true
+    source_config_preparation_validated_cpu: true
+    expected_trainer_metrics:
+      dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 70
+      checkpoint: ckpt_best.pth
+      mAP: 0.19671523571014404
+      mINP: 0.01659625954926014
+      Rank1: 0.43134060502052307
+      Rank5: 0.5940475463867188
+      Rank10: 0.6634359955787659
+    command: /home/addirakoze/environments/Reid/bin/python -u -B scripts/evaluate.py
+      --config configs/mgn/msmt17.yaml --weight exp/mgn/msmt17/checkpoints/ckpt_best.pth
+      --opts experiment.output_dir=results/mgn_independent_within_domain/oneiros_20261106/msmt17
+resource_prerequisite: Fresh live audit and explicit approved execution scope on Oneiros
+  UUID GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2; single visible UUID, qualified runtime
+  controls; current free-memory snapshot is not authorization.
+output_guard: Standalone evaluate.py uses ensure_dir and can reuse output directories.
+  Before any approved invocation, separately refuse existing/symlink output, verify
+  exact checkpoint/config/release/data hashes and capture host/process/runtime receipts.
+  Do not point it at original training outputs.

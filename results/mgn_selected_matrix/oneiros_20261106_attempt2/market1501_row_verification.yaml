@@ -1,0 +1,81 @@
+status: FOUR_CELLS_ARTIFACT_VERIFIED_REVIEW_PENDING
+source: market1501
+release_commit: 7185a7667b2d21a5ad805538ace64326b2bfa28e
+checkpoint:
+  path: exp/mgn/market1501/checkpoints/ckpt_best.pth
+  bytes: 596011610
+  sha256: 5067cb70fb2e3fe7609ca7338487c44f62699596088852abe060c9672ebe8024
+  epoch: 70
+  scheduler_completed_epochs: 70
+  selection_state:
+    schema_version: 1
+    metric: mAP
+    best_score: 0.7100086212158203
+    best_epoch: 70
+  reconstruction:
+    schema_version: 1
+    output_contract_version: 1
+    model_name: mgn
+    variant: paper_v3_global2048_independent_v1
+    num_classes: 751
+    embedding_dim: 2048
+  optimizer_state_present: true
+  configuration_matches_freeze_except_operational_output_and_resume: true
+fixed_original_checkpoint_across_all_targets: true
+no_target_based_selection: true
+gpu_uuid: GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+cells:
+  market1501:
+    setting: within-domain
+    metrics:
+      mAP: 0.70999675989151
+      mINP: 0.34993869066238403
+      Rank1: 0.8818289637565613
+      Rank5: 0.9483373165130615
+      Rank10: 0.9664489030838013
+    output: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_market1501
+    metric_record_sha256: dc0bb059ea2d999b940b3ef263566e7a0cf77eac526331ef02420b693e2758fd
+    completion_receipt_sha256: 357b8bb25b6366a8087297af39cf22e7dfb9813bd47b5d4ac663d274b091cb01
+  duke:
+    setting: cross-domain
+    metrics:
+      mAP: 0.21347656846046448
+      mINP: 0.03156443312764168
+      Rank1: 0.37836626172065735
+      Rank5: 0.5237881541252136
+      Rank10: 0.5834829211235046
+    output: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_duke
+    metric_record_sha256: 40c08b3e18ee86be5a03ff285c8bb0007e436cc9e23bebccb230a06a12ada585
+    completion_receipt_sha256: 4573d7b5c0e98717ddf967264c1ebe974f7a6afa3ecaba7616fa895861c8fc5a
+  cuhk03:
+    setting: cross-domain
+    metrics:
+      mAP: 0.07473015040159225
+      mINP: 0.03865763917565346
+      Rank1: 0.06785714626312256
+      Rank5: 0.1485714316368103
+      Rank10: 0.2028571367263794
+    output: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_cuhk03
+    metric_record_sha256: ee4b8d49ca091b7cf0d471a679865e0545ae851be067e72cf68215b836c684e2
+    completion_receipt_sha256: c5291570622c9ed3c18b89071939556b521235ec818b38bc66e9de12c77b2752
+  msmt17:
+    setting: cross-domain
+    metrics:
+      mAP: 0.02808622643351555
+      mINP: 0.0016502134967595339
+      Rank1: 0.08868685364723206
+      Rank5: 0.15438717603683472
+      Rank10: 0.19478514790534973
+    output: results/mgn_selected_matrix/oneiros_20261106_attempt2/market1501_to_msmt17
+    metric_record_sha256: db5cfe7f1dbabd360b4fb9d2eba90b70438942d0e74d13219f429bb8c99a3d4f
+    completion_receipt_sha256: 6b8b0caf8bf0ddd4577cc21b5c7100828185014a4c3756469cc58cd77d714b0f
+diagonal_tolerance_exception:
+  mAP: -1.1861324310302734e-05
+  mINP: -1.9341707229614258e-05
+  Rank1: 0.0
+  Rank5: 0.0
+  Rank10: 0.0
+numerical_exception_disposition: User approved continuing the full matrix with flagged
+  cross-host numerical exceptions; strict1e-5 threshold remains unchanged.
+protected_original_results: true
+training_performed: false

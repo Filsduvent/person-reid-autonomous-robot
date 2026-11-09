@@ -1,0 +1,19 @@
+status: DOCUMENTATION_AND_CPU_EVIDENCE_PASS
+protected_existing_files_unchanged: 570
+historical_maps_byte_identical: 4
+historical_scientific_identity_vectors_checked: 8
+v1_focused_test_result: 4 passed,209 deselected
+proposed_budget_arithmetic_verified: true
+schedule_boundaries_verified: true
+identity_sensitivity_examples: 5
+source_target_disjoint_folds: 4
+scientific_approval: PENDING
+production_code_config_changes: false
+gpu_or_training_executed: false
+metadata_script_sha256: 28ef8439c30f3c385e3ab7f40b898b79802a437c614cee0e6ad52e3757ad880b
+proposal_sha256: 7602c49d6d980699b15905b71be271de79039e1d9c8001d8e9669b91d1f73654
+official_v1_scientific_identities_recomputed_unchanged: 8
+v1_mgn_rejection_test_result: 2 passed,211 deselected
+total_focused_test_cases_passed: 6
+entire_preexisting_roadmap_preserved_as_prefix: true
+unexpected_protected_file_changes: []

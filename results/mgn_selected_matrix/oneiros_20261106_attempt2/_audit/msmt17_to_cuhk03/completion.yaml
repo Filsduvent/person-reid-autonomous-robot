@@ -1,0 +1,105 @@
+source: msmt17
+target: cuhk03
+setting: cross-domain
+epoch: 70
+checkpoint:
+  path: exp/mgn/msmt17/checkpoints/ckpt_best.pth
+  bytes: 613235226
+  sha256: 01c96982d0aff8ada9c2a1286d8177a534e1800a44b213f1a6c5eb57ef72a345
+  epoch: 70
+  scheduler_completed_epochs: 70
+  selection_state:
+    schema_version: 1
+    metric: mAP
+    best_score: 0.19671525061130524
+    best_epoch: 70
+  reconstruction:
+    schema_version: 1
+    output_contract_version: 1
+    model_name: mgn
+    variant: paper_v3_global2048_independent_v1
+    num_classes: 1041
+    embedding_dim: 2048
+  optimizer_state_present: true
+  configuration_matches_freeze_except_operational_output_and_resume: true
+metrics:
+  mAP: 0.09102621674537659
+  mINP: 0.05220896005630493
+  Rank1: 0.09071428328752518
+  Rank5: 0.17499999701976776
+  Rank10: 0.2264285683631897
+exit_code: 0
+command:
+- /home/addirakoze/environments/Reid/bin/python
+- -u
+- -B
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/docs/mgn_evaluation_20261106/gpu_entry.py
+- --audit
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/msmt17_to_cuhk03
+- --entry
+- scripts/evaluate_cross_domain.py
+- --
+- --config
+- configs/mgn/cuhk03.yaml
+- --checkpoint
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/msmt17/checkpoints/ckpt_best.pth
+- --source-dataset
+- msmt17
+- --target-dataset
+- cuhk03
+- --output-dir
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_cuhk03
+output: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_cuhk03
+gpu_execution:
+  device: cuda:0
+  fp32: true
+  amp: false
+  forwards: 422
+  batches: 211
+  cudnn_benchmark: true
+  cudnn_deterministic: false
+  peak_allocated_bytes: 1705210368
+  peak_reserved_bytes: 1763704832
+  gpu:
+    timestamp_utc: '2026-11-07T02:29:58.082795+00:00'
+    uuid: GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+    physical_index: 0
+    name: NVIDIA RTX A4000
+    driver: 590.44.01
+    total_mib: 16376
+    free_mib: 15275
+    utilization_percent: 0
+    compute_mode: Default
+    mig_mode: '[N/A]'
+    processes:
+    - - GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+      - '1600586'
+      - /home/addirakoze/environments/Reid/bin/python
+      - '686'
+completed_utc: '2026-11-07T02:29:59.226732+00:00'
+artifacts:
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_cuhk03/config.resolved.yaml
+  bytes: 3072
+  sha256: dda9514c17f15536c31d0aa138a65583e1d7fc4b44ee661290f69097a86bd37c
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/msmt17_to_cuhk03/cross_dataset.json
+  bytes: 5198
+  sha256: 899cd61dcb418e079a146a0856f90e08635e755c33a21a2bd89702b92e44e684
+audit_artifacts:
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/msmt17_to_cuhk03/admission.yaml
+  bytes: 2273
+  sha256: 9ae52b4a318ddb2c02138075364971a2afb3d55f2bd9ff9f949afb70baafa26d
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/msmt17_to_cuhk03/gpu-completion.json
+  bytes: 757
+  sha256: 0c6bae69ae3eddb4e8b257a15b986604987f35be6dc68505f75383fc3e5f3bf5
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/msmt17_to_cuhk03/gpu-observed.jsonl
+  bytes: 840
+  sha256: 1ee71e16f8936d4713bfb865a54b7bd78a608aac5afe5c31a1c214d010c4090c
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/msmt17_to_cuhk03/gpu-start.json
+  bytes: 719
+  sha256: 186c28b397c516ef788f6c182aa1fdacbffd5d10df682eb448c5c0909f86317a
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/msmt17_to_cuhk03/progress.jsonl
+  bytes: 22416
+  sha256: e34ad43ef92c093833615ed7a38eee62cf233748fc01674c4b0f03f6559c033c
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/msmt17_to_cuhk03/terminal.log
+  bytes: 852
+  sha256: 5205703ad8a16027edf7cdbea5dd05b17ae14a34fd178917761b25751a29bdab

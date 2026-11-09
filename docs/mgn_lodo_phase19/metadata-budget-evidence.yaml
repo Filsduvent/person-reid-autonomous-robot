@@ -1,0 +1,688 @@
+status: PROPOSAL_CPU_METADATA_AND_INDEX_CHECKS_ONLY
+created_utc: '2026-11-09T17:07:00.545694+00:00'
+head: 7185a7667b2d21a5ad805538ace64326b2bfa28e
+folds:
+  LODO-1:
+    ordered_sources:
+    - duke
+    - cuhk03
+    - msmt17
+    target: market1501
+    images: 54135
+    classes: 2510
+    source_statistics:
+      duke:
+        images: 16522
+        identities: 702
+      cuhk03:
+        images: 7365
+        identities: 767
+      msmt17:
+        images: 30248
+        identities: 1041
+    label_ranges:
+      duke:
+        first_global_label: 0
+        last_global_label: 701
+      cuhk03:
+        first_global_label: 702
+        last_global_label: 1468
+      msmt17:
+        first_global_label: 1469
+        last_global_label: 2509
+    historical_identity_map_path: docs/lodo_phase10_evidence/maps/lodo-1.json
+    historical_map_sha256: e090e49fde838001a11fd7b41b8b23238bf38df34a36feeb601881082fcd312b
+    mapping_matches_historical_bytes: true
+    reference_first_120_epoch_batches:
+    - 764
+    - 762
+    - 763
+    - 764
+    - 764
+    - 764
+    - 765
+    - 762
+    - 764
+    - 764
+    - 764
+    - 764
+    - 764
+    - 765
+    - 763
+    - 764
+    - 764
+    - 765
+    - 766
+    - 764
+    - 764
+    - 764
+    - 764
+    - 765
+    - 763
+    - 762
+    - 764
+    - 761
+    - 763
+    - 764
+    - 764
+    - 767
+    - 764
+    - 764
+    - 764
+    - 764
+    - 762
+    - 766
+    - 764
+    - 764
+    - 765
+    - 764
+    - 761
+    - 765
+    - 765
+    - 765
+    - 765
+    - 764
+    - 763
+    - 765
+    - 764
+    - 764
+    - 763
+    - 762
+    - 764
+    - 763
+    - 763
+    - 765
+    - 765
+    - 764
+    - 764
+    - 765
+    - 763
+    - 763
+    - 764
+    - 763
+    - 764
+    - 765
+    - 763
+    - 763
+    - 762
+    - 762
+    - 762
+    - 763
+    - 763
+    - 763
+    - 763
+    - 764
+    - 765
+    - 766
+    - 764
+    - 765
+    - 765
+    - 761
+    - 763
+    - 761
+    - 765
+    - 764
+    - 762
+    - 764
+    - 766
+    - 765
+    - 765
+    - 765
+    - 766
+    - 764
+    - 761
+    - 762
+    - 764
+    - 764
+    - 766
+    - 761
+    - 765
+    - 765
+    - 765
+    - 764
+    - 764
+    - 765
+    - 764
+    - 765
+    - 764
+    - 763
+    - 765
+    - 766
+    - 765
+    - 765
+    - 763
+    - 765
+    - 765
+    - 764
+    reference_120_epoch_updates: 91670
+    proposed_terminal_epoch: 112
+    proposed_terminal_batch: 411
+    proposed_budget_image_draws: 5452800
+    index_only_source_exposure:
+      duke: 1655380
+      cuhk03: 667924
+      msmt17: 3129496
+    index_prefix_sha256: ab805f13edef39c68843c40d5bf22965e1ac560fe7cc195a12eb81464e848434
+    limitation: Metadata/index-only fresh seed42 simulation, no images decoded or
+      updates executed; exact replay only after qualified recovery. Reference120 epochs
+      is not the new stopping rule.
+  LODO-2:
+    ordered_sources:
+    - market1501
+    - cuhk03
+    - msmt17
+    target: duke
+    images: 50549
+    classes: 2559
+    source_statistics:
+      market1501:
+        images: 12936
+        identities: 751
+      cuhk03:
+        images: 7365
+        identities: 767
+      msmt17:
+        images: 30248
+        identities: 1041
+    label_ranges:
+      market1501:
+        first_global_label: 0
+        last_global_label: 750
+      cuhk03:
+        first_global_label: 751
+        last_global_label: 1517
+      msmt17:
+        first_global_label: 1518
+        last_global_label: 2558
+    historical_identity_map_path: docs/lodo_phase10_evidence/maps/lodo-2.json
+    historical_map_sha256: 13f82a58afe58a9df499126a53f6aa0ae48633c8bd036992f66fdc7c41ed2b15
+    mapping_matches_historical_bytes: true
+    reference_first_120_epoch_batches:
+    - 716
+    - 716
+    - 717
+    - 716
+    - 716
+    - 715
+    - 716
+    - 716
+    - 715
+    - 715
+    - 715
+    - 714
+    - 716
+    - 716
+    - 715
+    - 715
+    - 716
+    - 717
+    - 715
+    - 717
+    - 715
+    - 717
+    - 715
+    - 715
+    - 714
+    - 717
+    - 718
+    - 717
+    - 716
+    - 716
+    - 715
+    - 715
+    - 716
+    - 715
+    - 718
+    - 716
+    - 716
+    - 715
+    - 716
+    - 716
+    - 715
+    - 716
+    - 715
+    - 715
+    - 713
+    - 713
+    - 717
+    - 715
+    - 718
+    - 716
+    - 714
+    - 718
+    - 713
+    - 715
+    - 716
+    - 716
+    - 715
+    - 714
+    - 716
+    - 716
+    - 715
+    - 716
+    - 716
+    - 716
+    - 714
+    - 716
+    - 716
+    - 713
+    - 714
+    - 715
+    - 717
+    - 715
+    - 717
+    - 716
+    - 715
+    - 715
+    - 717
+    - 715
+    - 716
+    - 716
+    - 717
+    - 716
+    - 715
+    - 716
+    - 717
+    - 717
+    - 716
+    - 714
+    - 715
+    - 716
+    - 714
+    - 717
+    - 715
+    - 717
+    - 716
+    - 716
+    - 715
+    - 717
+    - 717
+    - 717
+    - 716
+    - 715
+    - 716
+    - 716
+    - 717
+    - 716
+    - 716
+    - 716
+    - 716
+    - 716
+    - 716
+    - 718
+    - 717
+    - 717
+    - 717
+    - 715
+    - 717
+    - 715
+    - 716
+    - 716
+    reference_120_epoch_updates: 85892
+    proposed_terminal_epoch: 120
+    proposed_terminal_batch: 24
+    proposed_budget_image_draws: 5452800
+    index_only_source_exposure:
+      market1501: 1413644
+      cuhk03: 710668
+      msmt17: 3328488
+    index_prefix_sha256: 099c035e0c40b7acd3463ee410a53028306faaaa14b68eb7a2d3ec39a57bef42
+    limitation: Metadata/index-only fresh seed42 simulation, no images decoded or
+      updates executed; exact replay only after qualified recovery. Reference120 epochs
+      is not the new stopping rule.
+  LODO-3:
+    ordered_sources:
+    - market1501
+    - duke
+    - msmt17
+    target: cuhk03
+    images: 59706
+    classes: 2494
+    source_statistics:
+      market1501:
+        images: 12936
+        identities: 751
+      duke:
+        images: 16522
+        identities: 702
+      msmt17:
+        images: 30248
+        identities: 1041
+    label_ranges:
+      market1501:
+        first_global_label: 0
+        last_global_label: 750
+      duke:
+        first_global_label: 751
+        last_global_label: 1452
+      msmt17:
+        first_global_label: 1453
+        last_global_label: 2493
+    historical_identity_map_path: docs/lodo_phase10_evidence/maps/lodo-3.json
+    historical_map_sha256: 5caf9706605d6626d557637713e794cf959f54cd2c8d9a6eebeb3c95a5b44970
+    mapping_matches_historical_bytes: true
+    reference_first_120_epoch_batches:
+    - 858
+    - 855
+    - 859
+    - 855
+    - 856
+    - 858
+    - 855
+    - 856
+    - 854
+    - 855
+    - 855
+    - 855
+    - 856
+    - 857
+    - 856
+    - 857
+    - 857
+    - 858
+    - 855
+    - 856
+    - 857
+    - 856
+    - 857
+    - 854
+    - 857
+    - 857
+    - 857
+    - 858
+    - 856
+    - 855
+    - 856
+    - 856
+    - 858
+    - 856
+    - 857
+    - 857
+    - 855
+    - 857
+    - 857
+    - 855
+    - 856
+    - 856
+    - 856
+    - 858
+    - 857
+    - 855
+    - 855
+    - 857
+    - 857
+    - 857
+    - 853
+    - 856
+    - 855
+    - 856
+    - 858
+    - 855
+    - 856
+    - 856
+    - 858
+    - 857
+    - 858
+    - 856
+    - 856
+    - 857
+    - 856
+    - 857
+    - 855
+    - 856
+    - 856
+    - 859
+    - 856
+    - 858
+    - 855
+    - 856
+    - 856
+    - 855
+    - 856
+    - 855
+    - 856
+    - 857
+    - 855
+    - 856
+    - 857
+    - 856
+    - 857
+    - 854
+    - 855
+    - 856
+    - 860
+    - 858
+    - 855
+    - 855
+    - 855
+    - 857
+    - 855
+    - 859
+    - 857
+    - 858
+    - 857
+    - 856
+    - 855
+    - 856
+    - 856
+    - 856
+    - 856
+    - 855
+    - 857
+    - 858
+    - 855
+    - 854
+    - 854
+    - 856
+    - 856
+    - 854
+    - 855
+    - 855
+    - 855
+    - 856
+    - 855
+    - 857
+    reference_120_epoch_updates: 102740
+    proposed_terminal_epoch: 100
+    proposed_terminal_batch: 427
+    proposed_budget_image_draws: 5452800
+    index_only_source_exposure:
+      market1501: 1182768
+      duke: 1477724
+      msmt17: 2792308
+    index_prefix_sha256: ce66876bb8a8e67e0b43faef13b717e547664e0403a1125488f0d778a7d053ae
+    limitation: Metadata/index-only fresh seed42 simulation, no images decoded or
+      updates executed; exact replay only after qualified recovery. Reference120 epochs
+      is not the new stopping rule.
+  LODO-4:
+    ordered_sources:
+    - market1501
+    - duke
+    - cuhk03
+    target: msmt17
+    images: 36823
+    classes: 2220
+    source_statistics:
+      market1501:
+        images: 12936
+        identities: 751
+      duke:
+        images: 16522
+        identities: 702
+      cuhk03:
+        images: 7365
+        identities: 767
+    label_ranges:
+      market1501:
+        first_global_label: 0
+        last_global_label: 750
+      duke:
+        first_global_label: 751
+        last_global_label: 1452
+      cuhk03:
+        first_global_label: 1453
+        last_global_label: 2219
+    historical_identity_map_path: docs/lodo_phase10_evidence/maps/lodo-4.json
+    historical_map_sha256: 332f999102894db105360a2765483b23a4653c52fec41443a7f5ff5a7b3618ff
+    mapping_matches_historical_bytes: true
+    reference_first_120_epoch_batches:
+    - 505
+    - 506
+    - 506
+    - 504
+    - 506
+    - 508
+    - 507
+    - 506
+    - 505
+    - 507
+    - 505
+    - 504
+    - 506
+    - 505
+    - 505
+    - 506
+    - 506
+    - 507
+    - 505
+    - 505
+    - 507
+    - 506
+    - 505
+    - 505
+    - 505
+    - 506
+    - 507
+    - 505
+    - 505
+    - 507
+    - 505
+    - 504
+    - 505
+    - 506
+    - 506
+    - 506
+    - 506
+    - 506
+    - 505
+    - 506
+    - 506
+    - 505
+    - 506
+    - 504
+    - 506
+    - 506
+    - 504
+    - 506
+    - 507
+    - 506
+    - 506
+    - 506
+    - 506
+    - 505
+    - 505
+    - 505
+    - 506
+    - 505
+    - 505
+    - 506
+    - 506
+    - 506
+    - 505
+    - 505
+    - 505
+    - 505
+    - 505
+    - 506
+    - 508
+    - 506
+    - 507
+    - 506
+    - 505
+    - 506
+    - 506
+    - 505
+    - 506
+    - 504
+    - 506
+    - 506
+    - 505
+    - 506
+    - 507
+    - 505
+    - 507
+    - 506
+    - 506
+    - 505
+    - 505
+    - 506
+    - 506
+    - 505
+    - 504
+    - 506
+    - 506
+    - 507
+    - 507
+    - 505
+    - 506
+    - 506
+    - 507
+    - 506
+    - 505
+    - 506
+    - 506
+    - 506
+    - 506
+    - 504
+    - 506
+    - 505
+    - 505
+    - 508
+    - 507
+    - 507
+    - 505
+    - 505
+    - 506
+    - 507
+    - 506
+    - 506
+    reference_120_epoch_updates: 60687
+    proposed_terminal_epoch: 169
+    proposed_terminal_batch: 249
+    proposed_budget_image_draws: 5452800
+    index_only_source_exposure:
+      market1501: 1996804
+      duke: 2448660
+      cuhk03: 1007336
+    index_prefix_sha256: 585b14097b8349aa3517f99907aff522058ee93a5c46426d793ea31c7028b494
+    limitation: Metadata/index-only fresh seed42 simulation, no images decoded or
+      updates executed; exact replay only after qualified recovery. Reference120 epochs
+      is not the new stopping rule.
+budget_proposal: 85200
+milestones_proposal:
+- 42600
+- 63900
+gpu_executed: false
+training_executed: false
+mean_reference_120_epoch_updates: 85247.25
+schedule_boundary_examples:
+- update: 1
+  completed_before: 0
+  learning_rate: 0.01
+- update: 42600
+  completed_before: 42599
+  learning_rate: 0.01
+- update: 42601
+  completed_before: 42600
+  learning_rate: 0.001
+- update: 63900
+  completed_before: 63899
+  learning_rate: 0.001
+- update: 63901
+  completed_before: 63900
+  learning_rate: 0.0001
+- update: 85200
+  completed_before: 85199
+  learning_rate: 0.0001
+budget_images_per_fold: 5452800
+budget_updates_four_folds: 340800

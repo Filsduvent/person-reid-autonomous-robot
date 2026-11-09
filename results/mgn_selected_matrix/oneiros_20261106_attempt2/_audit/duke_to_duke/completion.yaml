@@ -1,0 +1,145 @@
+source: duke
+target: duke
+setting: within-domain
+epoch: 40
+checkpoint:
+  path: exp/mgn/duke/checkpoints/ckpt_best.pth
+  bytes: 593101338
+  sha256: 97b7b674d85806f32f14d76d1a3136b05b7083bc4833eb3579db453139df1641
+  epoch: 40
+  scheduler_completed_epochs: 40
+  selection_state:
+    schema_version: 1
+    metric: mAP
+    best_score: 0.6686996221542358
+    best_epoch: 40
+  reconstruction:
+    schema_version: 1
+    output_contract_version: 1
+    model_name: mgn
+    variant: paper_v3_global2048_independent_v1
+    num_classes: 702
+    embedding_dim: 2048
+  optimizer_state_present: true
+  configuration_matches_freeze_except_operational_output_and_resume: true
+metrics:
+  mAP: 0.6687320470809937
+  mINP: 0.27260103821754456
+  Rank1: 0.8168761134147644
+  Rank5: 0.9070915579795837
+  Rank10: 0.931328535079956
+exit_code: 0
+command:
+- /home/addirakoze/environments/Reid/bin/python
+- -u
+- -B
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/docs/mgn_evaluation_20261106/gpu_entry.py
+- --audit
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/duke_to_duke
+- --entry
+- scripts/evaluate.py
+- --
+- --config
+- configs/mgn/duke.yaml
+- --weight
+- /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn/duke/checkpoints/ckpt_best.pth
+- --opts
+- experiment.output_dir=/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke
+output: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke
+gpu_execution:
+  device: cuda:0
+  fp32: true
+  amp: false
+  forwards: 1244
+  batches: 622
+  cudnn_benchmark: true
+  cudnn_deterministic: false
+  peak_allocated_bytes: 1694425600
+  peak_reserved_bytes: 1746927616
+  gpu:
+    timestamp_utc: '2026-11-07T01:29:57.945045+00:00'
+    uuid: GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+    physical_index: 0
+    name: NVIDIA RTX A4000
+    driver: 590.44.01
+    total_mib: 16376
+    free_mib: 15209
+    utilization_percent: 0
+    compute_mode: Default
+    mig_mode: '[N/A]'
+    processes:
+    - - GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+      - '1596063'
+      - /home/addirakoze/environments/Reid/bin/python
+      - '752'
+completed_utc: '2026-11-07T01:29:59.054691+00:00'
+artifacts:
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke/artifacts/command.txt
+  bytes: 387
+  sha256: 91e8afcdead2465585eb9e6f6ea0a7aab5e5ecb3f0e97b25bb3127aaab1032f8
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke/artifacts/environment.txt
+  bytes: 402
+  sha256: 4ac0626b2a9eade79756b14691c4bb6d3bcd66b9c52d64e9e4aa8bff8f13e66c
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke/artifacts/git_commit.txt
+  bytes: 41
+  sha256: 31dca311043f0b5aba7e4df7aba19f86e937c815ef7352d7be2d89d3d0df2961
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke/command.txt
+  bytes: 387
+  sha256: 91e8afcdead2465585eb9e6f6ea0a7aab5e5ecb3f0e97b25bb3127aaab1032f8
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke/config.resolved.yaml
+  bytes: 2985
+  sha256: c31d3a8426fda149935f96dba792d4eb96715749157853c28ac611d3ad35422d
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke/config.yaml
+  bytes: 2985
+  sha256: c31d3a8426fda149935f96dba792d4eb96715749157853c28ac611d3ad35422d
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke/cross_dataset.json
+  bytes: 5072
+  sha256: 2d95f8e79ba7c7a8e54716418e75b07ee7b9e1ffc826f06e5e51f9720e2e358f
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke/environment.txt
+  bytes: 402
+  sha256: 4ac0626b2a9eade79756b14691c4bb6d3bcd66b9c52d64e9e4aa8bff8f13e66c
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke/evaluate.log
+  bytes: 6273
+  sha256: 99823bf699afdd76f40b0441be412179df8738ecf9c6387ef7e53331c900f979
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke/git_commit.txt
+  bytes: 41
+  sha256: 31dca311043f0b5aba7e4df7aba19f86e937c815ef7352d7be2d89d3d0df2961
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke/logs/eval_stderr.txt
+  bytes: 0
+  sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke/logs/eval_stdout.txt
+  bytes: 7373
+  sha256: ddacad129808dccb5b5e56ed6bf3d8ad6950c0ac18a9ab3d4c209f801316262c
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke/metrics/eval_ckpt_best.json
+  bytes: 261
+  sha256: 59353b25553e243ae552616ec818239983ce7c3defef04d18694b21b37b3eded
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_duke/metrics/final_test.json
+  bytes: 261
+  sha256: 59353b25553e243ae552616ec818239983ce7c3defef04d18694b21b37b3eded
+audit_artifacts:
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/duke_to_duke/admission.yaml
+  bytes: 2131
+  sha256: aebfd1148ca00e6a23936a19875120b6c25c7f055fcbb84ae36a82ac9dbab76f
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/duke_to_duke/gpu-completion.json
+  bytes: 758
+  sha256: eb59105a614efbaad489ad22e535d5aea9299dac72b1510018cc6312df8449a0
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/duke_to_duke/gpu-observed.jsonl
+  bytes: 1680
+  sha256: 82c03b6f590bd69bbeb53e1c69dd5db853d00240aacb5c0a043bc9b1e56e93b6
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/duke_to_duke/gpu-start.json
+  bytes: 719
+  sha256: a5df6f9c82199463de35c071b01591ed2c0dd8b232063dafb1155de3ea5e9aa0
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/duke_to_duke/progress.jsonl
+  bytes: 66309
+  sha256: 9fd5a33317c38baf2cda0123467e4c2e2f17d549533a83b84123b4566042ac3c
+- path: results/mgn_selected_matrix/oneiros_20261106_attempt2/_audit/duke_to_duke/terminal.log
+  bytes: 7373
+  sha256: ddacad129808dccb5b5e56ed6bf3d8ad6950c0ac18a9ab3d4c209f801316262c
+difference_from_training_fraction:
+  mAP: 3.24249267578125e-05
+  mINP: -9.834766387939453e-07
+  Rank1: 0.0004488229751586914
+  Rank5: -0.0004488229751586914
+  Rank10: -0.0004488229751586914
+within_tolerance: false
+verification_status: FLAGGED_CROSS_HOST_NUMERICAL_DIFFERENCE

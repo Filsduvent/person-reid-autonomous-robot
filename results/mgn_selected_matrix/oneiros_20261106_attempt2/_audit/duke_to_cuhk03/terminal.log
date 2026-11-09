@@ -1,0 +1,19 @@
+[Dataset] name=CUHK03 role=test
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: processed
+split: test
+image_type: detected
+protocol: processed_partition
+split_id: None
+num images: 6732
+num identities: 700
+num cameras: 2
+num query images: 1400
+num gallery images: 5332
+[MGN progress] {"phase": "features", "batch": 100, "batches": 211, "images": 3200, "elapsed_seconds": 16.229610899463296}
+[MGN progress] {"phase": "features", "batch": 200, "batches": 211, "images": 6400, "elapsed_seconds": 31.729960415512323}
+[MGN progress] {"phase": "distance_cpu"}
+[MGN progress] {"phase": "mAP_cpu"}
+[MGN progress] {"phase": "CMC_cpu"}
+[MGN progress] {"phase": "mINP_cpu"}
+Saved cross-domain result: /home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/results/mgn_selected_matrix/oneiros_20261106_attempt2/duke_to_cuhk03/cross_dataset.json

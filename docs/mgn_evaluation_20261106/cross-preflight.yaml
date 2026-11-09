@@ -1,0 +1,22 @@
+recorded_utc: '2026-11-07T02:01:34.803624+00:00'
+status: PASS
+target_evaluation_inventories_rechecked_before_phase18:
+- market1501
+- duke
+- cuhk03
+- msmt17
+target_inventory_check_method: Existing evaluation_identity on common test loaders;
+  exact full host inventory and metadata identity equality with active manifest; no
+  loader iteration. Observed all four PASS before GPU execution.
+pretrained_sha256: 19c8e3572231adff6824a2da93fd67b5986919a2e65f8b6007eab4edee220097
+pretrained_path: /home/addirakoze/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth
+pretrained_bytes: 102502400
+reconstruction_uses_trained_state_without_pretrained_initialization: true
+config_sha256:
+  market1501: 8bdb58cde1f29827bf8e6d35acfcab78d6eb83e6af36efef36321c5b2fddf8a6
+  duke: eddf3907418e8ade006c4b7bafa95110bac5be0a2762ee7a3f7f8685116649ee
+  cuhk03: 15c03873aa56266fd3d8215a39908ed7ab98132116e7c16b7a7e1f03ec52c115
+  msmt17: ef4fbaf2b45daf5622a3c853cf9dc843bde7030fc79a583e117a0a86e7dafe70
+manifest_sha256: 7df12e46a7a7be27bb85a463dc3aa4deb9b67de9bde2c3f1480fcabcf43ec01b
+checkpoint_guard: Full original selected-best SHA checked before and after every new
+  cell; parent admission records contain actual observations.

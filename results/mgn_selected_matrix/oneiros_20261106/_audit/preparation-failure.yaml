@@ -1,0 +1,5 @@
+status: PREPARATION_FAILED_BEFORE_EVALUATION
+reason: PyYAML cannot serialize torch.torch_version.TorchVersion in environment metadata
+training_launched: false
+evaluation_launched: false
+correction: Convert receipt values through JSON-compatible primitives before YAML serialization; use a fresh attempt2 suite namespace and preserve this attempt.
