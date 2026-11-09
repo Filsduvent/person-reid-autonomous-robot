@@ -1,0 +1,11 @@
+# Phase21 execution scope
+
+The user requested launching Phase21 and leaving official training for their own terminal invocation (2026-11-09). This authorizes the previously prepared eight-case matrix on the existing Oneiros RTX A4000 UUID GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2, subject to fresh idle/ownership checks. No official trainer or benchmark campaign is launched by this qualification.
+
+`tests/mgn_lodo_qualification.py` supervises fresh immutable cases, a600-second deadline per worker and a durable optimizer-entry ledger shared by all children of a case. Forward cases use3 calls. Recovery cases use2 calls in the uninterrupted child and1 restored replay call in a fresh child, stopping before any third accepted update. Recovery uses declared one-batch fixture epochs and the original real source PK loader, transforms, model, loss, optimizer and common orchestration. Production validation rejects fixture budgets/namespaces before test-local substitutions. No production admission guard is weakened.
+
+The recovery comparison covers model/BN tensors, SGD momentum, scheduler, RNG/PK generator state, source identity, checkpoint position, consumed indices, LR trace and source exposure. Timings are not compared bitwise. A bounded fixture boundary is not a real full-source epoch and does not certify long-run bitwise recovery. Qualification review must pair observed CUDA results with existing CPU/index/checkpoint tests and explicitly retain that limitation.
+
+Failures/OOM/timeouts are preserved without capacity retries, recipe changes, namespace reset or automatic fallback. Initial attempts only are scheduled here. GPU access is outside the filesystem/device sandbox after read-only host inventory; single UUID visibility and workspace configuration are supplied before Python starts.
+
+The separate `scripts/prepare_mgn_lodo_launch.py` prepares a pinned private YAML/receipt pair and prints a command. It never launches training. It requires a successful corresponding fold qualification matching actual committed code/science/runtime/data. Output/run identifiers are operational; training budgets and scientific presets remain unchanged. Qualification publication and launch files are withheld for failed folds.
