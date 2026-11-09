@@ -23,6 +23,23 @@ phase19_reconciliation:
   total_cases: 6
   legacy_vectors_assertions: 8
   frozen_config_identity_assertions: 8
+  actual_commands_and_retained_logs:
+  - command: timeout 90s env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+      PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:scripts:tests /home/addirakoze/environments/Reid/bin/python
+      -B -m pytest -p no:cacheprovider -q tests/test_lodo_config.py -k 'historical_scientific_identities
+      or rejects_execution_changing_flip'
+    result: 4 passed,209 deselected in0.85s
+    log: docs/mgn_lodo_phase20/test_logs/phase19-v1-regression.txt
+    original_log: docs/mgn_lodo_phase19/v1-regression.log
+    sha256: f68cc2699606544e2af21e9613dddb8b352164165f01e16b4209254ff1645053
+  - command: timeout 60s env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+      PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:scripts:tests /home/addirakoze/environments/Reid/bin/python
+      -B -m pytest -p no:cacheprovider -q tests/test_lodo_config.py -k 'common_contract_rejections
+      and mgn'
+    result: 2 passed,211 deselected in0.05s
+    log: docs/mgn_lodo_phase20/test_logs/phase19-v1-mgn-rejection.txt
+    original_log: docs/mgn_lodo_phase19/v1-mgn-rejection.log
+    sha256: 3ab471886a348bc229be8dae566ec3e4c2fd0b63433d9769013e8b98a4fb7dc3
 failed_attempts_disclosure:
 - Initial sandbox DataLoader regression attempt timed out124; rerun on host with CUDA
   hidden passed.
