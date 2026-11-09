@@ -37,3 +37,20 @@ def test_production_refuses_qualification_budget_and_namespace():
     cfg['train']['max_updates']=85200
     cfg['experiment']['output_dir']=str(case_path('phase21-cpu-test',1,'forward')/'run')
     with pytest.raises(ValueError):validate_lodo_config(cfg)
+
+
+def test_fixture_keeps_checkpoint_observed_loader_and_original_pk_sampler():
+    from reid.data.index_observation import ObservedTrainLoader
+    from test_lodo_updates import loader_for
+    from test_lodo_checkpoint import StochasticDataset
+    from reid.utils.lodo_checkpoint import loader_contract
+    loader=ObservedTrainLoader(loader_for(StochasticDataset(194),'pk',0),sampler_mode='pk')
+    original=loader.batch_sampler
+    loader._observer.original=OneBatchFixture(original)
+    assert loader_contract(loader)['P']==16
+    assert len(list(loader))==1 and loader.batch_sampler is original and not loader._active
+
+
+@pytest.mark.parametrize('attempt',[0,4,999])
+def test_attempt_bound_cannot_be_reset(attempt):
+    with pytest.raises(ValueError,match='correction'):case_path('phase21-test',1,'forward',attempt)

@@ -38,12 +38,17 @@ def enter_step(path):
     write(path, value)
 
 
-def case_path(campaign, fold, kind):
+def case_path(campaign, fold, kind, attempt=1):
     if not re.fullmatch(r'phase21-[A-Za-z0-9._-]+', campaign):
         raise ValueError('Invalid qualification campaign')
     if fold not in range(1, 5) or kind not in ('forward', 'rollback'):
         raise ValueError('Invalid fixed case')
-    path = BASE / campaign / f'LODO-{fold}' / kind
+    if attempt not in (1, 2, 3):
+        raise ValueError('Only initial plus two correction attempts allowed')
+    container = BASE / campaign
+    if attempt > 1:
+        container = container / f'attempt-{attempt}'
+    path = container / f'LODO-{fold}' / kind
     if path.resolve() != path:
         raise ValueError('Qualification path alias')
     return path
@@ -91,7 +96,7 @@ def worker(args):
     from reid.data import build as data_build
     from scripts import train
 
-    path = case_path(args.campaign, args.fold, args.kind)
+    path = case_path(args.campaign, args.fold, args.kind, args.attempt)
     cfg = load_config(str(ROOT / f'configs/lodo/mgn_lodo_v2/mgn_lodo-{args.fold}_seed42.yaml'))
     assert not torch.cuda.is_initialized()
     science.validate_lodo_config(cfg)
@@ -133,7 +138,10 @@ def worker(args):
         value, classes = original_loader(actual)
         assert classes == CLASSES[args.fold-1]
         objects['loader'] = value
-        return OneBatchFixture(value), classes
+        # Preserve the actual ObservedTrainLoader and its original public PK
+        # sampler. Bound only the fixture observer's underlying iterator.
+        value._observer.original = OneBatchFixture(value.batch_sampler)
+        return value, classes
 
     def model(actual, num_classes, **kwargs):
         value = original_model(actual, num_classes, **kwargs)
@@ -282,24 +290,32 @@ def parent(args):
     operational.validate_committed_sources(ROOT, operational.source_snapshot())
     audit_gpu(args.gpu_uuid)
     destination = BASE / args.campaign
+    previous = None
+    if args.attempt > 1:
+        previous = destination if args.attempt == 2 else destination / f'attempt-{args.attempt-1}'
+        previous = previous / 'campaign.json'
+        if not previous.is_file() or not args.correction_reason:
+            raise ValueError('Correction requires preserved preceding attempt and explicit implementation reason')
+        destination = destination / f'attempt-{args.attempt}'
     if destination.exists():
         raise ValueError('Campaign exists; preserve attempts, no reset/retry')
-    case_path(args.campaign, 1, 'forward')
+    case_path(args.campaign, 1, 'forward', args.attempt)
     destination.mkdir(parents=True)
     environment = dict(os.environ, CUDA_VISIBLE_DEVICES=args.gpu_uuid, LODO_AUTHORIZED_GPU_UUID=args.gpu_uuid,
         CUBLAS_WORKSPACE_CONFIG=':4096:8', PYTHONPATH='.:scripts:tests', OMP_NUM_THREADS='1', MKL_NUM_THREADS='1', PYTHONDONTWRITEBYTECODE='1')
     manifest = dict(status='RUNNING', approval_reference=args.approval_reference,
+        attempt=args.attempt, previous_attempt=None if previous is None else str(previous), correction_reason=args.correction_reason,
         release_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
         source_sha256=operational.source_snapshot(), harness_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         gpu_uuid=args.gpu_uuid, cases=[], bounds=dict(cases=8, optimizer_calls_per_case=3, worker_seconds=600, attempts=1))
     write(destination/'campaign.json',manifest)
     for fold in range(1,5):
         for kind in ('forward','rollback'):
-            path=case_path(args.campaign,fold,kind);path.mkdir(parents=True)
+            path=case_path(args.campaign,fold,kind,args.attempt);path.mkdir(parents=True)
             write(path/'optimizer-ledger.json',dict(optimizer_entries=0))
             status='PASS'
             for stage in (['fresh'] if kind=='forward' else ['continuous','replay']):
-                command=[sys.executable,str(Path(__file__).resolve()),'--campaign',args.campaign,'--fold',str(fold),'--kind',kind,'--stage',stage,'--worker']
+                command=[sys.executable,str(Path(__file__).resolve()),'--campaign',args.campaign,'--attempt',str(args.attempt),'--fold',str(fold),'--kind',kind,'--stage',stage,'--worker']
                 with (path/f'{stage}-stdout.txt').open('w') as log:
                     try:
                         result=subprocess.run(command,env=environment,cwd=ROOT,stdout=log,stderr=subprocess.STDOUT,timeout=600)
@@ -312,6 +328,10 @@ def parent(args):
                 print(f'LODO-{fold} {kind}/{stage}: exit={code} aggregate_calls={count}',flush=True)
                 if code:
                     status='FAIL';break
+            if status == 'FAIL':
+                manifest['status'] = 'FAIL_STOPPED_PRESERVE_FIRST_FAILURE'
+                write(destination/'campaign.json',manifest)
+                return 1
             if status=='PASS':
                 assert json.loads((path/'optimizer-ledger.json').read_text())['optimizer_entries']==3
     manifest['status']='PASS' if all(row['exit_code']==0 for row in manifest['cases']) and len(manifest['cases'])==12 else 'FAIL'
@@ -324,6 +344,8 @@ if __name__ == '__main__':
     parser.add_argument('--campaign',required=True)
     parser.add_argument('--gpu-uuid')
     parser.add_argument('--approval-reference')
+    parser.add_argument('--attempt',type=int,choices=[1,2,3],default=1)
+    parser.add_argument('--correction-reason')
     parser.add_argument('--worker',action='store_true')
     parser.add_argument('--fold',type=int)
     parser.add_argument('--kind',choices=['forward','rollback'])

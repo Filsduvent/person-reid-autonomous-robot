@@ -1,0 +1,24 @@
+LODO-1 forward/fresh: exit=1 aggregate_calls=0
+LODO-1 rollback/continuous: exit=1 aggregate_calls=0
+LODO-2 forward/fresh: exit=1 aggregate_calls=0
+Traceback (most recent call last):
+  File "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/mgn_lodo_qualification.py", line 337, in <module>
+    parser.add_argument('--stage',choices=['fresh','continuous','replay'])
+                 ^^^^^^^^^^^^
+  File "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/mgn_lodo_qualification.py", line 305, in parent
+    command=[sys.executable,str(Path(__file__).resolve()),'--campaign',args.campaign,'--fold',str(fold),'--kind',kind,'--stage',stage,'--worker']
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/addirakoze/.local/share/reid-migration/python3112/lib/python3.11/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/addirakoze/.local/share/reid-migration/python3112/lib/python3.11/subprocess.py", line 1207, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/addirakoze/.local/share/reid-migration/python3112/lib/python3.11/subprocess.py", line 2085, in _communicate
+    self.wait(timeout=self._remaining_time(endtime))
+  File "/home/addirakoze/.local/share/reid-migration/python3112/lib/python3.11/subprocess.py", line 1262, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/addirakoze/.local/share/reid-migration/python3112/lib/python3.11/subprocess.py", line 1991, in _wait
+    time.sleep(delay)
+KeyboardInterrupt
