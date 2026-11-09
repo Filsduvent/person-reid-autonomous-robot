@@ -1,0 +1,43 @@
+post_campaign_gpu:
+  timestamp_utc: '2026-11-09T19:17:55.524019+00:00'
+  uuid: GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+  physical_index: 0
+  name: NVIDIA RTX A4000
+  driver: 590.44.01
+  total_mib: 16376
+  free_mib: 15967
+  utilization_percent: 0
+  compute_mode: Default
+  mig_mode: '[N/A]'
+  processes: []
+qualification_environment:
+  python: 3.11.2
+  prefix: /home/addirakoze/environments/Reid
+  torch_build: 2.7.1+cu126
+  torchvision_build: 0.22.1+cu126
+  packages:
+    torch: 2.7.1+cu126
+    torchvision: 0.22.1+cu126
+    numpy: 2.1.3
+    Pillow: 11.2.1
+    PyYAML: 6.0.2
+    tensorboard: 2.19.0
+    matplotlib: 3.10.3
+    scikit-learn: 1.7.1
+  controls:
+    OMP_NUM_THREADS: '1'
+    MKL_NUM_THREADS: '1'
+    PYTORCH_CUDA_ALLOC_CONF: null
+    PYTORCH_ALLOC_CONF: null
+    CUBLAS_WORKSPACE_CONFIG: :4096:8
+    NVIDIA_TF32_OVERRIDE: null
+    CUDA_LAUNCH_BLOCKING: null
+  cuda_build: '12.6'
+  cudnn_version: 90501
+  gpu_runtime:
+    uuid: GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2
+    driver: 590.44.01
+    name: NVIDIA RTX A4000
+    compute_capability: '8.6'
+cuda_initialized: false
+official_training_launched: false

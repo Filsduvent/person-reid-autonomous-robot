@@ -1,0 +1,40 @@
+[Dataset] name=multi_source role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: virtual
+split: virtual_train
+num images: 54135
+num identities: 2510
+num cameras: unknown
+num query images: n/a
+num gallery images: n/a
+LODO-1: full index epochs 764/762; RNG restored, next index epoch identical
+[Dataset] name=multi_source role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: virtual
+split: virtual_train
+num images: 50549
+num identities: 2559
+num cameras: unknown
+num query images: n/a
+num gallery images: n/a
+LODO-2: full index epochs 716/716; RNG restored, next index epoch identical
+[Dataset] name=multi_source role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: virtual
+split: virtual_train
+num images: 59706
+num identities: 2494
+num cameras: unknown
+num query images: n/a
+num gallery images: n/a
+LODO-3: full index epochs 858/855; RNG restored, next index epoch identical
+[Dataset] name=multi_source role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: virtual
+split: virtual_train
+num images: 36823
+num identities: 2220
+num cameras: unknown
+num query images: n/a
+num gallery images: n/a
+LODO-4: full index epochs 505/506; RNG restored, next index epoch identical

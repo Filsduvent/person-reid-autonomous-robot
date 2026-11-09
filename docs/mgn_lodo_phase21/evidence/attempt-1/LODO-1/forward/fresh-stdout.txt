@@ -1,0 +1,21 @@
+[Dataset] name=multi_source role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: virtual
+split: virtual_train
+num images: 54135
+num identities: 2510
+num cameras: unknown
+num query images: n/a
+num gallery images: n/a
+{"status": "FAIL", "fold": "LODO-1", "kind": "forward", "stage": "fresh", "error": "Recovery requires the observed original sampler"}
+Traceback (most recent call last):
+  File "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/mgn_lodo_qualification.py", line 333, in <module>
+    worker(args)
+  File "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/tests/mgn_lodo_qualification.py", line 234, in worker
+    progress = train.run_lodo_training(cfg)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/scripts/train.py", line 407, in run_lodo_training
+    loader_contract(loader)
+  File "/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/reid/utils/lodo_checkpoint.py", line 48, in loader_contract
+    raise ValueError('Recovery requires the observed original sampler')
+ValueError: Recovery requires the observed original sampler

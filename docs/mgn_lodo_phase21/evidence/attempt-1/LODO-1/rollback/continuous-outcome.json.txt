@@ -1,0 +1,29 @@
+{
+  "actual_classes": 2510,
+  "admission": {
+    "compute_mode": "Default",
+    "driver": "590.44.01",
+    "free_mib": 15967,
+    "mig_mode": "[N/A]",
+    "name": "NVIDIA RTX A4000",
+    "physical_index": 0,
+    "processes": [],
+    "timestamp_utc": "2026-11-09T19:06:21.262481+00:00",
+    "total_mib": 16376,
+    "utilization_percent": 0,
+    "uuid": "GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2"
+  },
+  "elapsed_seconds": 9.633188083767891,
+  "error": "Recovery requires the observed original sampler",
+  "error_type": "ValueError",
+  "fixture_epoch_batches": 1,
+  "fold": "LODO-1",
+  "kind": "rollback",
+  "max_optimizer_calls_aggregate_all_children": 3,
+  "non_authoritative": true,
+  "preflight_sha256": "700b07c047dec4d18fbd8f073c3f023a755ed184a54953292cda0b4e1df20f2d",
+  "scientific_sha256": "07c58e20d53118a35b76ccd05803ab83664d1868bb5e54d8816e256af0e39dd4",
+  "stage": "continuous",
+  "status": "FAIL",
+  "target_images_read": 0
+}

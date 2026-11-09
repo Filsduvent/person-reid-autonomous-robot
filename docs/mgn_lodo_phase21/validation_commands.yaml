@@ -1,0 +1,37 @@
+schema_version: 1
+python: /home/addirakoze/environments/Reid/bin/python
+cpu_environment: CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:scripts:tests
+commands:
+- purpose: Initial harness and MGN contracts
+  command: /home/addirakoze/environments/Reid/bin/python -m pytest -q tests/test_mgn_lodo_qualification_contract.py tests/test_mgn_lodo_v2.py tests/test_mgn_lodo_admission.py tests/test_mgn_lodo_evaluation.py
+  result: 108 passed in10.64s
+  log: docs/mgn_lodo_phase21/harness_cpu_tests.txt
+- purpose: Corrected actual observed-PK fixture and attempt bounds
+  command: /home/addirakoze/environments/Reid/bin/python -m pytest -q tests/test_mgn_lodo_qualification_contract.py
+  result: 10 passed in1.89s
+  log: docs/mgn_lodo_phase21/harness_correction_cpu_tests.txt
+- purpose: Checkpoint corruption/fallback/recovery/terminal policy and MGN regressions
+  command: /home/addirakoze/environments/Reid/bin/python -m pytest -q tests/test_mgn_lodo_qualification_contract.py tests/test_mgn_lodo_v2.py tests/test_mgn_lodo_admission.py tests/test_mgn_lodo_evaluation.py tests/test_lodo_checkpoint.py tests/test_lodo_cuda_recovery.py tests/test_lodo_cuda_policy.py tests/test_lodo_cuda_policy_qualification.py
+  result: 282 passed in24.22s
+  log: docs/mgn_lodo_phase21/recovery_and_regression_cpu_tests.txt
+- purpose: Real source full metadata epoch RNG boundaries without image batches
+  command: /home/addirakoze/environments/Reid/bin/python docs/mgn_lodo_phase21/verify_real_index_rng.py
+  result: Four folds passed, zero model/image batches/CUDA contexts
+  log: docs/mgn_lodo_phase21/real_index_rng_stdout.txt
+  evidence: docs/mgn_lodo_phase21/real_index_rng.json
+- purpose: Official command wrapper syntax only; never execute training
+  command: bash -n docs/mgn_lodo_phase21/official_training_commands.sh
+  result: exit0
+supervised_gpu_execution:
+  environment: CUDA_VISIBLE_DEVICES=GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2 LODO_AUTHORIZED_GPU_UUID=GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2 CUBLAS_WORKSPACE_CONFIG=:4096:8 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=.:scripts:tests
+  initial_command: >-
+    /home/addirakoze/environments/Reid/bin/python tests/mgn_lodo_qualification.py --campaign phase21-oneiros-20261109-attempt1 --gpu-uuid GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2 --approval-reference 'User 2026-11-09: launch Phase21; official training launched by user only'
+  initial_log: docs/mgn_lodo_phase21/campaign_stdout.txt
+  initial_result: Preserved fixture loader-contract failures, zero optimizer entries; supervisor deliberately interrupted
+  correction_command: >-
+    /home/addirakoze/environments/Reid/bin/python tests/mgn_lodo_qualification.py --campaign phase21-oneiros-20261109-attempt1 --attempt 2 --correction-reason 'Preserve ObservedTrainLoader and original public PK sampler; bound only observer iterator; stop on first failure' --gpu-uuid GPU-202f74b9-f9fe-8896-5cd7-78332b0e49e2 --approval-reference 'User 2026-11-09: launch Phase21; official training launched by user only'
+  correction_log: docs/mgn_lodo_phase21/correction_attempt2_stdout.txt
+  actual_results: docs/mgn_lodo_phase21/qualification_results.yaml
+  max_worker_seconds: 600
+  max_optimizer_calls_aggregate_per_case_attempt: 3
+  automatic_capacity_retries: false

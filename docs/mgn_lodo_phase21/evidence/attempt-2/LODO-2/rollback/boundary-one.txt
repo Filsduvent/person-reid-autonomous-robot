@@ -1,0 +1,1 @@
+/home/addirakoze/nobackup/Projects/person-reid-autonomous-robot/exp/mgn_lodo_qualification/mgn_lodo_v2/phase21-oneiros-20261109-attempt1/attempt-2/LODO-2/rollback/run/checkpoints/ckpt_epoch_000001_u000000001_g29ddc58877f4.pth

@@ -1,0 +1,10 @@
+[Dataset] name=multi_source role=train
+root: /home/addirakoze/nobackup/Projects/Dataset
+format: virtual
+split: virtual_train
+num images: 54135
+num identities: 2510
+num cameras: unknown
+num query images: n/a
+num gallery images: n/a
+{"status": "PASS", "fold": "LODO-1", "kind": "forward", "stage": "fresh", "error": null}

@@ -1,0 +1,48 @@
+{
+  "status": "PASS_INDEX_ONLY_NOT_FULL_EPOCH_CUDA_RECOVERY",
+  "image_batches": 0,
+  "models": 0,
+  "cuda_initialized": false,
+  "folds": [
+    {
+      "fold": "LODO-1",
+      "classes": 2510,
+      "first_epoch_batches": 764,
+      "second_epoch_batches": 762,
+      "first_epoch_index_sha256": "19970aace37c5f10d504886efe9af0967649167eb0f3e52808855e379cf4a4e7",
+      "next_epoch_replay_sha256": "151e6ea8f9ac3191c72033c4ed9e7460a05f593b78d440154a2f6358fe848d01",
+      "next_full_metadata_epoch_exact": true,
+      "map_sha256": "e090e49fde838001a11fd7b41b8b23238bf38df34a36feeb601881082fcd312b"
+    },
+    {
+      "fold": "LODO-2",
+      "classes": 2559,
+      "first_epoch_batches": 716,
+      "second_epoch_batches": 716,
+      "first_epoch_index_sha256": "8741759934904d04a7194206c7d836e143e2d6d81b9991d2bd9e97a6b0c2ce3a",
+      "next_epoch_replay_sha256": "1a9a25df37d3055d3709f8dfb1b76005b16d534c138bc2b70fa3fdf4a8f6a886",
+      "next_full_metadata_epoch_exact": true,
+      "map_sha256": "13f82a58afe58a9df499126a53f6aa0ae48633c8bd036992f66fdc7c41ed2b15"
+    },
+    {
+      "fold": "LODO-3",
+      "classes": 2494,
+      "first_epoch_batches": 858,
+      "second_epoch_batches": 855,
+      "first_epoch_index_sha256": "0f6ca72aefd6542a1ec780b790fb2dd1ccf0f0409e8f0bb3380e7102d012d144",
+      "next_epoch_replay_sha256": "81985e9cd9a5aaec99c814f5396fde51ed00e9f1efffb5371932f3fea8ba57b3",
+      "next_full_metadata_epoch_exact": true,
+      "map_sha256": "5caf9706605d6626d557637713e794cf959f54cd2c8d9a6eebeb3c95a5b44970"
+    },
+    {
+      "fold": "LODO-4",
+      "classes": 2220,
+      "first_epoch_batches": 505,
+      "second_epoch_batches": 506,
+      "first_epoch_index_sha256": "a8c8f8bbc5c2712c62417dcd10099d282b5f1675c5a56fb961a29e89cd85baa8",
+      "next_epoch_replay_sha256": "692a135d97eb698136d06b43e0bab46fd5eb1d3db9c7394fbb0d48593ec679c9",
+      "next_full_metadata_epoch_exact": true,
+      "map_sha256": "332f999102894db105360a2765483b23a4653c52fec41443a7f5ff5a7b3618ff"
+    }
+  ]
+}
