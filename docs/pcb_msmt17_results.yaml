@@ -1,0 +1,227 @@
+registered_date: '2026-10-11'
+actual_commit: 3b015c964b99bfe8ad4b7842bd174d3bc58af607
+frozen_commit: 66ea88d06ba0f79c298b19abe1652ae892d69fdd
+config_matches_freeze: true
+final_best:
+  dataset: msmt17
+  split: test
+  model: pcb
+  epoch: 50
+  checkpoint: ckpt_best.pth
+  mAP: 0.4339965879917145
+  mINP: 0.06835141032934189
+  Rank1: 0.705635130405426
+  Rank5: 0.826228678226471
+  Rank10: 0.8670554757118225
+final_last:
+  dataset: msmt17
+  split: test
+  model: pcb
+  epoch: 120
+  checkpoint: ckpt_last.pth
+  mAP: 0.413950651884079
+  mINP: 0.061732854694128036
+  Rank1: 0.6896817684173584
+  Rank5: 0.8191954493522644
+  Rank10: 0.85950767993927
+periodic_evaluations:
+- dataset: msmt17
+  split: test
+  model: pcb
+  epoch: 10
+  checkpoint: ckpt_last.pth
+  mAP: 0.3417738378047943
+  mINP: 0.037117309868335724
+  Rank1: 0.6094862222671509
+  Rank5: 0.7524659037590027
+  Rank10: 0.8008405566215515
+- dataset: msmt17
+  split: test
+  model: pcb
+  epoch: 20
+  checkpoint: ckpt_last.pth
+  mAP: 0.40619540214538574
+  mINP: 0.05519326031208038
+  Rank1: 0.6792177557945251
+  Rank5: 0.8053864240646362
+  Rank10: 0.8487005829811096
+- dataset: msmt17
+  split: test
+  model: pcb
+  epoch: 30
+  checkpoint: ckpt_last.pth
+  mAP: 0.3889012038707733
+  mINP: 0.04799993336200714
+  Rank1: 0.6717557311058044
+  Rank5: 0.7977527976036072
+  Rank10: 0.8405523896217346
+- dataset: msmt17
+  split: test
+  model: pcb
+  epoch: 40
+  checkpoint: ckpt_last.pth
+  mAP: 0.4136294722557068
+  mINP: 0.05855241045355797
+  Rank1: 0.6891671419143677
+  Rank5: 0.8141350150108337
+  Rank10: 0.8569345474243164
+- dataset: msmt17
+  split: test
+  model: pcb
+  epoch: 50
+  checkpoint: ckpt_last.pth
+  mAP: 0.4339965879917145
+  mINP: 0.06835141032934189
+  Rank1: 0.705635130405426
+  Rank5: 0.826228678226471
+  Rank10: 0.8670554757118225
+- dataset: msmt17
+  split: test
+  model: pcb
+  epoch: 60
+  checkpoint: ckpt_last.pth
+  mAP: 0.43102267384529114
+  mINP: 0.067814402282238
+  Rank1: 0.7024616003036499
+  Rank5: 0.8258855938911438
+  Rank10: 0.8656831383705139
+- dataset: msmt17
+  split: test
+  model: pcb
+  epoch: 70
+  checkpoint: ckpt_last.pth
+  mAP: 0.42708447575569153
+  mINP: 0.06654935330152512
+  Rank1: 0.7025473713874817
+  Rank5: 0.8252851963043213
+  Rank10: 0.8656831383705139
+- dataset: msmt17
+  split: test
+  model: pcb
+  epoch: 80
+  checkpoint: ckpt_last.pth
+  mAP: 0.4269319474697113
+  mINP: 0.06621510535478592
+  Rank1: 0.7023758292198181
+  Rank5: 0.8256282806396484
+  Rank10: 0.865254282951355
+- dataset: msmt17
+  split: test
+  model: pcb
+  epoch: 90
+  checkpoint: ckpt_last.pth
+  mAP: 0.4229419529438019
+  mINP: 0.06525475531816483
+  Rank1: 0.6992023587226868
+  Rank5: 0.8232266902923584
+  Rank10: 0.8633673787117004
+- dataset: msmt17
+  split: test
+  model: pcb
+  epoch: 100
+  checkpoint: ckpt_last.pth
+  mAP: 0.4197623133659363
+  mINP: 0.0635775774717331
+  Rank1: 0.6963719129562378
+  Rank5: 0.8201389312744141
+  Rank10: 0.8615661859512329
+- dataset: msmt17
+  split: test
+  model: pcb
+  epoch: 110
+  checkpoint: ckpt_last.pth
+  mAP: 0.4170818030834198
+  mINP: 0.06315765529870987
+  Rank1: 0.6935414671897888
+  Rank5: 0.8191096782684326
+  Rank10: 0.8606227040290833
+- dataset: msmt17
+  split: test
+  model: pcb
+  epoch: 120
+  checkpoint: ckpt_last.pth
+  mAP: 0.413950651884079
+  mINP: 0.061732854694128036
+  Rank1: 0.6896817684173584
+  Rank5: 0.8191954493522644
+  Rank10: 0.85950767993927
+checkpoints:
+  best:
+    sha256: 5657281a3750b63f1335d63e1bdde387a82c6d8bc5708c60d9ef20a81efc6914
+    bytes: 226571403
+    epoch: 50
+    scheduler_updates: 23600
+    metadata:
+      schema_version: 1
+      output_contract_version: 1
+      model_name: pcb
+      variant: independent_part_reduction
+      num_classes: 1041
+      embedding_dim: 1536
+    optimizer_state_tensors: 195
+  last:
+    sha256: d9ce09debf72e99072d7e9a15d1f68e70c13ac39ba0bdaa8f1f6232ab27cda91
+    bytes: 226571403
+    epoch: 120
+    scheduler_updates: 56640
+    metadata:
+      schema_version: 1
+      output_contract_version: 1
+      model_name: pcb
+      variant: independent_part_reduction
+      num_classes: 1041
+      embedding_dim: 1536
+    optimizer_state_tensors: 195
+logged_start: 2026-10-09 07:14:44,177
+logged_end: 2026-10-09 17:54:09,280
+code_diff:
+- docs/pcb_environment_freeze.txt
+- docs/pcb_experiment_manifest.yaml
+- docs/pcb_experiment_protocol.md
+- plan.md
+reference_metrics:
+  dataset: msmt17
+  split: test
+  model: resnet50_baseline
+  epoch: 120
+  checkpoint: ckpt_best.pth
+  mAP: 0.5237716436386108
+  mINP: 0.1169748529791832
+  Rank1: 0.755982518196106
+  Rank5: 0.8619950413703918
+  Rank10: 0.8947594165802002
+delta_percentage_points:
+  mAP: -8.977505564689636
+  mINP: -4.862344264984131
+  Rank1: -5.034738779067993
+  Rank5: -3.57663631439209
+  Rank10: -2.7703940868377686
+status: training_complete_artifacts_verified_commit_exception_pending_review
+source: msmt17
+protocol: MSMT17_V2 raw official lists; training list_train only, list_val excluded
+run_dir: /mnt/hd-data/addirakoze/Projects/person-reid-autonomous-robot/exp/pcb/msmt17
+command: scripts/train.py --config configs/pcb/msmt17.yaml
+config_path: configs/pcb/msmt17.yaml
+config_sha256: 3d618f16698e13192b485a6a1b9424db67e25e7e13e99b1f5d49fafc5598a8f8
+completion_checks:
+  epochs: 120
+  steps_per_epoch: 472
+  periodic_evaluations: 12
+  last_optimizer_updates: 56640
+  best_is_first_periodic_maximum: true
+  checkpoint_model_and_momentum_tensors_finite: true
+  logged_epoch_losses_finite: true
+  strict_config_matches_frozen_resolved_config: true
+  logged_gpu: NVIDIA TITAN Xp cuda:0
+  phase22_independent_evaluation_performed: false
+provenance_limitations:
+- All four recorded training commits are3b015c9; original freeze specified66ea88d. The committed-tree differences
+  are documentation-only, with identical production code/presets. Existing exception decision remains unresolved.
+- Two GPUs visible; logs confirm TITAN Xp cuda:0. Shell exports and launch-time dirty state were not captured.
+- Current MSMT preset, four official list hashes and historical weight match the freeze; no full image-content audit
+  repeated.
+- Periodic selection uses test query/gallery mAP rather than independent validation. Phase22 independent evaluation
+  is pending.
+- MSMT17 is a project extension, not reproduction of a Huang-reported MSMT17 experiment.
+- ResNet50 reference comparison is contextual, not an otherwise matched architecture-only ablation.
+elapsed_log_seconds: 38365.103

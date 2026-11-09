@@ -11,13 +11,116 @@ Date of consolidation: 2026-08-18
 
 ## Current Experimental Stage
 
-The project is currently entering the `MSMT17` recipe-selection phase.
+All four PCB source trainings (Market-1501, DukeMTMC-ReID, CUHK03 detected/new protocol and MSMT17) completed120 epochs and are registered below. All record commit3b015c9; the original exact-commit freeze exception remains under review. Independent evaluation is complete and registered: all16 source-target pairs are verified (four diagonals and twelve cross-domain cells). Previous ResNet50 records remain below as historical context.
 
-The intended order remains:
+## PCB selected-checkpoint evaluation matrix
 
-1. establish the MSMT17 strong-baseline reference
-2. run the selected controlled MSMT17 ablations
-3. consolidate the cross-dataset recipe conclusions
+All four source rows are complete and verified: **16/16 cells**, including4/4 independent self-evaluations and12/12 cross-domain evaluations. See [the evaluation matrix](pcb_evaluation_matrix.md) and [full-precision CSV](../results/pcb_selected_matrix/matrix.csv). Market, Duke and MSMT17 use their epoch50 selected checkpoints; CUHK03 detected/new uses epoch80. Every source uses the same checkpoint across its row, without target-dependent selection.
+
+MSMT17 mAP on Market/Duke/CUHK03/MSMT17 is0.26933884620666504/0.3446248173713684/0.11661786586046219/0.43399664759635925. Its independent diagonal differs from training by only5.960464477539063e-8 mAP; mINP and ranks match exactly. All five metrics, result-file hashes and source checkpoint hashes are preserved in the matrix and source-row verification YAMLs. Final checks confirmed16 unique cells, unchanged earlier result files, and all diagonals within2e-6 fractional units of their training evaluations. Registration followed the user's source-by-source order. The original commit-provenance exception remains documented; phase acceptance and Phase24 comparison are separate from this completed registration.
+
+## PCB Market-1501 — Phase 21A completed training (registered 2026-10-08)
+
+Experiment `pcb_market1501`, artifacts `exp/pcb/market1501/`. The user reported completion and requested result registration. Read-only verification confirms 120 epochs, 202 updates/epoch (24240 total), all12 periodic evaluations at epochs10–120, finite logged losses and checkpoint model/momentum tensors, and final selected-best evaluation. The complete hash/metric receipt is [pcb_market1501_results.yaml](pcb_market1501_results.yaml). At training registration, independent Phase22 evaluation had not yet been run; it is now registered in the completed matrix above.
+
+| State | Artifact | Epoch | mAP | mINP | Rank-1 | Rank-5 | Rank-10 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Selected best | `exp/pcb/market1501/metrics/final_test.json` | 50 | 0.79541075 | 0.42386705 | 0.91923988 | 0.97209024 | 0.98277909 |
+| Final training state | `exp/pcb/market1501/metrics/final_epoch_test.json` | 120 | 0.78556681 | 0.41416246 | 0.92072445 | 0.97001189 | 0.98099762 |
+
+Metrics above are fractions. Epoch50 is the first and unique highest periodic mAP (0.7954107522964478); its saved score equals `val_epoch_050.json` and selected-best `final_test.json`. Epoch120's last checkpoint agrees with `latest_val.json`, `val_epoch_120.json` and `final_epoch_test.json`. Use **epoch50 `ckpt_best.pth`** for later within/cross-domain evaluation, not the epoch120 checkpoint.
+
+- `exp/pcb/market1501/checkpoints/ckpt_best.pth`: epoch50, SHA256 `8ad7c820a31bb8adc9cebafb48d5e25cb6c042401d44fdbe8084ee587317fd38`, 222,993,291 bytes; scheduler at 10100 updates.
+- `exp/pcb/market1501/checkpoints/ckpt_last.pth`: epoch120, SHA256 `c82b325b7a7d5f0735b45da0c2d374f4cbd1b92cc8c8e01f42705b2ee1d0b9d6`, 222,993,291 bytes; scheduler at 24240 updates.
+
+Command recorded: `scripts/train.py --config configs/pcb/market1501.yaml` (no overrides, resume empty). Saved config exactly matches the Phase20 resolved configuration: independent-part PCB, C=751,1536-D embedding, historical ImageNet initialization,384×128, random batch64, FP32, seed42, six summed unsmoothed identity losses, SGD, backbone/new-layer rates0.01/0.1 then0.001/0.01 after epoch40,120 epochs. Logs confirm the LR boundary and TITAN Xp cuda:0. Start/end log timestamps are `2026-10-07 16:41:38,704` / `2026-10-07 19:52:55,338`, elapsed3h11m16.634s; timezone is not recorded in these log lines.
+
+**Commit exception pending review:** saved `git_commit.txt` records `3b015c964b99bfe8ad4b7842bd174d3bc58af607`, whereas Phase20 froze `66ea88d06ba0f79c298b19abe1652ae892d69fdd`. Git comparison shows only the three Phase20 documents and `plan.md` differ; committed production code and presets are identical. Do not rewrite the actual run provenance or claim exact-SHA compliance. The saved environment also lists both CUDA devices, rather than UUID-only visibility; actual training device is confirmed by the log. Shell exports and launch-time dirty state are not recorded. A requested decision on documenting this exception and using3b015c9 for the remaining sources is pending; no next training was launched by the registration agent.
+
+**Contextual comparison, not a matched architecture ablation:** re-read `exp/baseline_r50_triplet_market1501/metrics/final_test.json` (selected best epoch110): mAP0.85789943, mINP0.59063596, Rank-1 0.94388360, Rank-5 0.98248219, Rank-10 0.98871732. PCB differs by −6.249 percentage points mAP, −16.677 mINP and −2.464 Rank-1. Both use the processed Market trainval/test protocol, but the reference uses256×128, PK sampling, augmentation including erasing, ID+triplet with label smoothing, BNNeck and Adam. This comparison does not isolate architecture. These freshly read values take precedence for this comparison over older rounded anchor rows elsewhere in this registry. No exactly matched ResNet50 control is established here.
+
+Retain the common methodological limitation: periodic model selection uses the test query/gallery protocol. The measured decline after epoch50 supports preserving the selected checkpoint; it does not justify changing the frozen recipe mid-campaign. At Market registration, Duke was the next dataset and its output was absent; Duke has since completed and is registered below. The exact manual command remains in the experiment protocol, but commit-exception review and a clean published documentation state are needed before following the guarded handoff. No training/evaluation was executed for this registration.
+
+## PCB DukeMTMC-ReID — Phase 21B completed training (registered 2026-10-08)
+
+Experiment `pcb_duke`, artifacts `exp/pcb/duke/`. User reported completion and requested registration. Read-only verification confirms all 120 epochs, 258 updates/epoch (30960 total), all 12 periodic evaluations at epochs 10–120, finite logged epoch losses and checkpoint model/momentum tensors, and the final selected-best evaluation. Complete metrics, periodic history, hashes and provenance: [pcb_duke_results.yaml](pcb_duke_results.yaml). At training registration, independent Phase22 evaluation was pending; it is now registered in the completed matrix above.
+
+| State | Artifact | Epoch | mAP | mINP | Rank-1 | Rank-5 | Rank-10 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Selected best | `exp/pcb/duke/metrics/final_test.json` | 50 | 0.70122021 | 0.29280707 | 0.84739679 | 0.92010772 | 0.93940753 |
+| Final training state | `exp/pcb/duke/metrics/final_epoch_test.json` | 120 | 0.69410342 | 0.28643936 | 0.84201080 | 0.91876119 | 0.93895870 |
+
+Metrics are fractions. Epoch50 is the earliest maximum of the 12 periodic mAP values; checkpoint scores, `val_epoch_050.json` and `final_test.json` agree exactly. Epoch120 checkpoint scores match `val_epoch_120.json`, `latest_val.json` and `final_epoch_test.json`. Use **epoch50 `ckpt_best.pth`** for subsequent within-domain and cross-domain evaluation, retaining the final-state checkpoint separately.
+
+- `exp/pcb/duke/checkpoints/ckpt_best.pth`: epoch 50, SHA256 `53df33756029ad8a0213852de53afb28758322657d2781083cb43731249e57c3`, 222,388,875 bytes; scheduler at 12900 updates.
+- `exp/pcb/duke/checkpoints/ckpt_last.pth`: epoch 120, SHA256 `b040a2decba55d99d538d1a6e0a772bcaf912a5c3ff5383db31db17c073750f0`, 222,388,875 bytes; scheduler at 30960 updates.
+
+Recorded command: `scripts/train.py --config configs/pcb/duke.yaml`; no overrides, empty resume. Saved config exactly matches the frozen resolved config: independent-part PCB, six classifiers with C=702,1536-D retrieval,384×128 input, random batch64, FP32, seed42, historical ImageNet initialization, six summed unsmoothed identity losses and SGD. Logs confirm backbone/new-layer LR0.01/0.1 through epoch40 and0.001/0.01 from epoch41; actual execution on TITAN Xp cuda:0. Recorded start/end: `2026-10-08 15:04:05,714` / `2026-10-08 19:02:38,545`; elapsed3h58m32.831s. The log does not record a timezone. No training, forward evaluation or independent Phase22 evaluation was performed during registration.
+
+**Provenance:** actual saved commit is `3b015c964b99bfe8ad4b7842bd174d3bc58af607`, the same as Market. Original frozen commit remains `66ea88d06ba0f79c298b19abe1652ae892d69fdd`. The committed-tree difference is confined to Phase20 documents and `plan.md`; production code and presets are identical. The previously requested exception decision remains unresolved; reporting completion does not silently revise the freeze. Two GPUs were visible, while the log confirms TITAN Xp cuda:0 was used. Shell exports and launch-time dirty state were not captured. Current Duke and CUHK preset/data-provenance hashes and historical initialization hash match the freeze. This does not certify the historical contents of every image.
+
+**Contextual comparison:** freshly read `exp/baseline_r50_triplet_duke/metrics/final_test.json`, best epoch120: mAP0.76968551, mINP0.41036296, Rank-1 0.86983842, Rank-5 0.94524235, Rank-10 0.96588868. PCB is lower by6.847 percentage points mAP,11.756 mINP and2.244 Rank-1. The dataset uses the same processed trainval/test protocol, but reference training differs in resolution (256×128), PK sampling, padding/crop/erasing, ID+triplet with label smoothing, BNNeck, Adam and schedule. This is not a matched architecture-only comparison; no causal architecture conclusion follows.
+
+Checkpoint selection still uses test query/gallery mAP rather than independent validation. Preserve the selected-best model and common recipe. At Duke registration, the next source was **CUHK03 detected/new protocol** and its output was absent; CUHK03 has since completed and is registered below. For historical launch instructions, the existing guarded command is in [the protocol](pcb_experiment_protocol.md#cuhk03--detectednew-protocol), subject to resolving the documented commit choice and committing pending records so its clean-checkout guard can pass. No next run was started.
+
+## PCB CUHK03 detected/new protocol — Phase 21C completed training (registered 2026-10-09)
+
+Experiment `pcb_cuhk03`, artifacts `exp/pcb/cuhk03/`. User reported completion and requested registration. Read-only verification confirms 120 epochs,115 updates/epoch (13800 total), all12 periodic evaluations at epochs10–120, finite logged epoch losses and checkpoint model/momentum tensors, and final selected-best evaluation. Full metrics, periodic history, hashes and provenance: [pcb_cuhk03_results.yaml](pcb_cuhk03_results.yaml). At training registration, independent Phase22 evaluation was pending; it is now registered in the completed matrix above.
+
+| State | Artifact | Epoch | mAP | mINP | Rank-1 | Rank-5 | Rank-10 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Selected best | `exp/pcb/cuhk03/metrics/final_test.json` | 80 | 0.59661323 | 0.46582380 | 0.63357145 | 0.78642857 | 0.85285717 |
+| Final training state | `exp/pcb/cuhk03/metrics/final_epoch_test.json` | 120 | 0.59481984 | 0.46014640 | 0.64285713 | 0.78214288 | 0.84928572 |
+
+Metrics are fractions. Epoch80 is the earliest maximum of the12 periodic mAP values. Its checkpoint scores equal `val_epoch_080.json` and `final_test.json`; epoch120 scores equal `val_epoch_120.json`, `latest_val.json` and `final_epoch_test.json`. Use **epoch80 `ckpt_best.pth`** for subsequent within/cross-domain evaluation. Epoch120 has higher Rank-1 but lower mAP; selection remains by the frozen mAP rule.
+
+- `exp/pcb/cuhk03/checkpoints/ckpt_best.pth`: epoch80, SHA256 `05d33f32793568313ce22d404b213620009b72a17ed0025fb34222173186078a`, 223,190,859 bytes; scheduler at 9200 updates.
+- `exp/pcb/cuhk03/checkpoints/ckpt_last.pth`: epoch120, SHA256 `2ceb172362dc8ee671689f4ba0409c6a24cd29e6455da3c4fdd97921c94d311a`, 223,190,859 bytes; scheduler at 13800 updates.
+
+Recorded command: `scripts/train.py --config configs/pcb/cuhk03.yaml`, no overrides, resume empty. Saved config exactly matches the Phase20 resolved config. Protocol is **detected images, new protocol**, using the processed_partition parser and null split_id. Phase16 provenance (MAT, split pickle, JSON, detected source data) remains the scientific identity; relevant metadata hashes were refreshed, without repeating the full image audit. Counts from the accepted freeze:767 train IDs/7365 train images,1400 query/5332 gallery.
+
+Independent-part PCB, six C=767 classifiers,1536-D embedding, historical ImageNet initialization,384×128, random batch64, FP32, seed42, summed unsmoothed identity loss and SGD are unchanged. Logs verify backbone/new-layer LR0.01/0.1 through epoch40 and0.001/0.01 from epoch41; actual TITAN Xp cuda:0. Recorded start/end: `2026-10-08 21:59:53,821` / `2026-10-08 23:45:12,627`, elapsed1h45m18.806s; timezone is not in the log. No training or independent evaluation was run during registration.
+
+**Provenance:** saved commit `3b015c964b99bfe8ad4b7842bd174d3bc58af607` matches Market/Duke; original freeze specifies `66ea88d06ba0f79c298b19abe1652ae892d69fdd`. Git comparison confirms documentation-only differences, with identical committed production code/presets. Existing exception decision remains unresolved; the freeze was not silently revised. Saved environment lists two visible GPUs, actual TITAN Xp is confirmed in the log; launch-time dirty state and shell exports cannot be retrospectively certified. Current CUHK/MSMT preset/provenance hashes and historical weight hash match.
+
+**Contextual comparison:** freshly read `exp/baseline_r50_triplet_cuhk03_detected/metrics/final_test.json`, selected best epoch120: mAP0.56104255, mINP0.43791610, Rank-1 0.57571429, Rank-5 0.76928574, Rank-10 0.84714288. PCB improves by3.557 percentage points mAP,2.791 mINP and5.786 Rank-1 relative to this registry anchor. The reference shares the detected processed protocol but differs in resolution, PK sampling, padding/crop/erasing, ID+triplet/label smoothing, BNNeck, Adam and schedule. This is not an otherwise matched architecture ablation or a claim to outperform all ResNet50 variants.
+
+Retain the methodological limitation: periodic checkpoint selection uses the test query/gallery protocol. Preserve selected-best and final-state checkpoints separately. At CUHK03 registration, MSMT17 was the remaining source: its existing log had reached epoch2, with no final metrics then. MSMT17 has since completed and is registered below. This is evidence of a started run, not certified completion or process liveness; do not launch another fresh run into that directory. Monitor using `tail -F exp/pcb/msmt17/train.log`; register its results after completion. No MSMT17 restart, resume or training was executed here.
+
+## PCB MSMT17 — Phase 21D completed training (registered 2026-10-11)
+
+Experiment `pcb_msmt17`, artifacts `exp/pcb/msmt17/`. User reported completion and requested registration. Read-only verification confirms all120 epochs,472 updates/epoch (56640 total), all12 periodic evaluations at epochs10–120, finite logged epoch losses and checkpoint model/momentum tensors, and final selected-best evaluation. Complete metrics, periodic history, hashes and provenance: [pcb_msmt17_results.yaml](pcb_msmt17_results.yaml). At training registration, independent Phase22 evaluation was pending; it is now registered in the completed matrix above.
+
+| State | Artifact | Epoch | mAP | mINP | Rank-1 | Rank-5 | Rank-10 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Selected best | `exp/pcb/msmt17/metrics/final_test.json` | 50 | 0.43399659 | 0.06835141 | 0.70563513 | 0.82622868 | 0.86705548 |
+| Final training state | `exp/pcb/msmt17/metrics/final_epoch_test.json` | 120 | 0.41395065 | 0.06173285 | 0.68968177 | 0.81919545 | 0.85950768 |
+
+Metrics are fractions. Epoch50 is the earliest maximum of the12 periodic mAP values. Its checkpoint scores equal `val_epoch_050.json` and `final_test.json`. Epoch120 scores equal `val_epoch_120.json`, `latest_val.json` and `final_epoch_test.json`. Use **epoch50 `ckpt_best.pth`** for later within/cross-domain evaluation; retain `ckpt_last.pth` separately as the final training state.
+
+- `exp/pcb/msmt17/checkpoints/ckpt_best.pth`: epoch50, SHA256 `5657281a3750b63f1335d63e1bdde387a82c6d8bc5708c60d9ef20a81efc6914`, 226,571,403 bytes; scheduler at 23600 updates.
+- `exp/pcb/msmt17/checkpoints/ckpt_last.pth`: epoch120, SHA256 `d9ce09debf72e99072d7e9a15d1f68e70c13ac39ba0bdaa8f1f6232ab27cda91`, 226,571,403 bytes; scheduler at 56640 updates.
+
+Recorded command: `scripts/train.py --config configs/pcb/msmt17.yaml`, no overrides, resume empty. Saved configuration exactly matches the Phase20 resolved config. MSMT17_V2 uses raw official `list_train.txt` only; `list_val.txt` is excluded. Frozen counts:1041 train IDs/30248 train images,11659 query/82161 gallery. The current preset, all four official list hashes and historical ImageNet weight hash match the freeze. This is a **project extension of the selected Huang recipe**, not reproduction of a Huang-reported MSMT17 experiment.
+
+Independent-part PCB, six C=1041 classifiers,1536-D embedding,384×128 input, random batch64, FP32, seed42, summed unsmoothed identity loss and SGD are unchanged. Logs confirm backbone/new-layer LR0.01/0.1 through epoch40 and0.001/0.01 from epoch41; actual TITAN Xp cuda:0. Recorded start/end: `2026-10-09 07:14:44,177` / `2026-10-09 17:54:09,280`, elapsed10h39m25.103s; log timezone unspecified. No training or independent evaluation was performed during registration.
+
+**Provenance:** saved commit `3b015c964b99bfe8ad4b7842bd174d3bc58af607` now matches all four runs. Original freeze specifies `66ea88d06ba0f79c298b19abe1652ae892d69fdd`; only Phase20 documentation and plan differ between committed trees, with production code/presets identical. The previously documented exception remains unresolved; four matching actual commits do not retrospectively change the original freeze. Environment records two visible GPUs; the log confirms TITAN Xp cuda:0, but shell exports and launch-time dirty state were not captured. No full image-content audit was repeated.
+
+**Contextual comparison:** freshly read `exp/baseline_r50_triplet_msmt17/metrics/final_test.json`, selected best epoch120: mAP0.52377164, mINP0.11697485, Rank-1 0.75598252, Rank-5 0.86199504, Rank-10 0.89475942. PCB is lower by8.978 percentage points mAP,4.862 mINP and5.035 Rank-1. Both configurations use raw MSMT17 train/test and120 epochs, but the reference differs in256×128 resolution, PK sampling, augmentation, ID+triplet/label smoothing, BNNeck, Adam and schedule. This is not an otherwise matched architecture-only comparison; no causal architecture conclusion follows.
+
+Periodic checkpoint selection uses test query/gallery mAP, not independent validation. All four source trainings are now registered; the next planned step is Phase22 independent selected-best evaluation after review and resolution of the recorded provenance exception. No further training, evaluation, commit or push was executed here.
+
+## PCB source-training summary
+
+These are trainer-produced selected-best evaluations, not the independently rerun Phase22 results. All four runs completed120 epochs and recorded commit3b015c9; selected epochs differ. Values are fractions.
+
+| Source | Best epoch | mAP | mINP | Rank-1 | Rank-5 | Rank-10 | Receipt |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| Market-1501 | 50 | 0.79541075 | 0.42386705 | 0.91923988 | 0.97209024 | 0.98277909 | [receipt](pcb_market1501_results.yaml) |
+| DukeMTMC-ReID | 50 | 0.70122021 | 0.29280707 | 0.84739679 | 0.92010772 | 0.93940753 | [receipt](pcb_duke_results.yaml) |
+| CUHK03 detected/new | 80 | 0.59661323 | 0.46582380 | 0.63357145 | 0.78642857 | 0.85285717 | [receipt](pcb_cuhk03_results.yaml) |
+| MSMT17 | 50 | 0.43399659 | 0.06835141 | 0.70563513 | 0.82622868 | 0.86705548 | [receipt](pcb_msmt17_results.yaml) |
 
 ## Cross-Dataset Baseline Anchors
 
@@ -173,3 +276,32 @@ After each new experiment finishes, append:
 - Rank-10
 - rerank metrics if applicable
 - one short interpretation note
+
+
+## MGN within-domain training registration — 2026-11-05
+
+All four official MGN source trainings are **complete through epoch120 and trainer-side final evaluation**, verified from both checkpoints, scheduler states, all120 epoch-completion log markers per source, final/periodic metrics, resolved configuration and launch provenance. No training process remained active. This is registration of existing trainer-produced results; no independent evaluation was executed. Existing PCB/ResNet50/history above is preserved. See [MGN training report](mgn_training_results.md), [full-precision verification receipt](mgn_training_results.yaml) and [selected/final CSV](../results/mgn_training_results.csv).
+
+### Selected-best source-test results (percentages)
+
+| Dataset | Checkpoint epoch | Rank-1 | Rank-5 | Rank-10 | mAP | mINP |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Market1501 | 70 | 88.18 | 94.83 | 96.64 | 71.00 | 35.00 |
+| DukeMTMC-ReID | 40 | 81.64 | 90.75 | 93.18 | 66.87 | 27.26 |
+| CUHK03 detected / processed_partition | 120 | 46.07 | 66.00 | 75.43 | 45.86 | 34.45 |
+| MSMT17 | 70 | 43.13 | 59.40 | 66.34 | 19.67 | 1.66 |
+
+### Final-epoch120 results (percentages)
+
+| Dataset | Checkpoint epoch | Rank-1 | Rank-5 | Rank-10 | mAP | mINP |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Market1501 | 120 | 88.03 | 94.74 | 96.56 | 70.74 | 34.70 |
+| DukeMTMC-ReID | 120 | 81.37 | 90.35 | 93.00 | 66.03 | 25.95 |
+| CUHK03 detected / processed_partition | 120 | 46.07 | 66.00 | 75.43 | 45.86 | 34.45 |
+| MSMT17 | 120 | 42.49 | 58.86 | 66.09 | 19.21 | 1.62 |
+
+All runs record commit9ac343ff3a36fcd858f270ef0688233bb2b4ffc0 and the frozen MGN FP32/SGD120 recipe, with exact epoch60/90 decays, P16/K4, original/flip mean before L2, Euclidean distance and no reranking. Best is selected by periodic source-test mAP, not an independent validation split. Exact YAMLs/commands, eight checkpoint hashes, data/config/environment evidence, full48 periodic metrics and final log times are in the linked receipt.
+
+Market1501 resumed from completed epoch86 at epoch87 after a partial interrupted epoch; its original23 archived files/checkpoints were reverified, best epoch70 is preserved, and uninterrupted sampler/RNG recovery or exact total update parity is not claimed. CUHK03 remains detected processed_partition with semantic new/classic correspondence unverified. MSMT17 uses list_train.txt only; its final average loss1.4026 and last running Triplet term1.1919 are recorded without diagnosing or changing the recipe. Different datasets have different optimization exposure under120 epochs.
+
+No existing checkpoint, experiment artifact, frozen configuration, qualification receipt or historical record was modified. Cross-domain and LODO results are separate and are not fabricated here. No further training/evaluation was launched; stop and await the user.

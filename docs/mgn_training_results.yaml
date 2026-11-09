@@ -1,0 +1,1496 @@
+schema_version: 1
+registered_date: '2026-11-05'
+status: FOUR_TRAININGS_COMPLETE_ARTIFACT_VERIFIED
+setting: within-domain; trainer-produced source-test evaluation
+metrics_units: fractions in YAML; percentages in Markdown/CSV
+current_checkout_commit: 9ac343ff3a36fcd858f270ef0688233bb2b4ffc0
+frozen_manifest:
+  path: docs/mgn_experiment_manifest.json
+  bytes: 136533
+  sha256: b289ea8a1ee1ee03d2a2b41267e0286168241dcda3b07817d864df0f1d8f286e
+protocol_id: mgn_offline_v1_fp32_sgd120
+freeze_revision: 20261027_automatic_preflight_v1
+implementation_commit: 569e8d533c1a3b863c2681ad5898160c546364bc
+training_process_status: No common scripts/train.py process found in the separate
+  host process inspection during this registration.
+runtime_hashes_verified: 57
+qualification_receipt_hashes_verified: 6
+tolerance_fraction: 1.0e-05
+sources:
+  market1501:
+    status: COMPLETE_ARTIFACT_VERIFIED
+    experiment: mgn_market1501
+    run_directory: exp/mgn/market1501
+    train_dataset:
+      name: market1501
+      split: trainval
+      format: processed
+    test_dataset:
+      name: market1501
+      split: test
+      format: processed
+    source_identities: 751
+    training_images: 12936
+    train_configuration:
+      path: configs/mgn/market1501.yaml
+      bytes: 2872
+      sha256: 8bdb58cde1f29827bf8e6d35acfcab78d6eb83e6af36efef36321c5b2fddf8a6
+    launch_code_commit: 9ac343ff3a36fcd858f270ef0688233bb2b4ffc0
+    launch_command: scripts/train.py --config configs/mgn/market1501.yaml --opts train.save.resume=exp/mgn/market1501/checkpoints/ckpt_last.pth
+    launch_preflight_status: READY_TO_RESUME
+    launch_preflight_gpu_uuid: GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c
+    launches_observed: 2
+    launch_log_times:
+    - 2026-10-27 20:37:42,698
+    - 2026-10-28 11:46:12,490
+    completed_epochs: 120
+    periodic_evaluations:
+    - dataset: market1501
+      split: test
+      model: mgn
+      epoch: 10
+      checkpoint: ckpt_last.pth
+      mAP: 0.5830416083335876
+      mINP: 0.21168075501918793
+      Rank1: 0.7948337197303772
+      Rank5: 0.9014251828193665
+      Rank10: 0.9287410974502563
+    - dataset: market1501
+      split: test
+      model: mgn
+      epoch: 20
+      checkpoint: ckpt_last.pth
+      mAP: 0.665713369846344
+      mINP: 0.29376447200775146
+      Rank1: 0.8488717079162598
+      Rank5: 0.9331947565078735
+      Rank10: 0.9569477438926697
+    - dataset: market1501
+      split: test
+      model: mgn
+      epoch: 30
+      checkpoint: ckpt_last.pth
+      mAP: 0.6980494260787964
+      mINP: 0.3273347318172455
+      Rank1: 0.8711401224136353
+      Rank5: 0.9429928660392761
+      Rank10: 0.9628859758377075
+    - dataset: market1501
+      split: test
+      model: mgn
+      epoch: 40
+      checkpoint: ckpt_last.pth
+      mAP: 0.7047195434570312
+      mINP: 0.33483436703681946
+      Rank1: 0.8729215860366821
+      Rank5: 0.9474465847015381
+      Rank10: 0.9667458534240723
+    - dataset: market1501
+      split: test
+      model: mgn
+      epoch: 50
+      checkpoint: ckpt_last.pth
+      mAP: 0.7093914151191711
+      mINP: 0.34743574261665344
+      Rank1: 0.8839073777198792
+      Rank5: 0.9444774389266968
+      Rank10: 0.964073657989502
+    - dataset: market1501
+      split: test
+      model: mgn
+      epoch: 60
+      checkpoint: ckpt_last.pth
+      mAP: 0.698790967464447
+      mINP: 0.3391796946525574
+      Rank1: 0.8723278045654297
+      Rank5: 0.9441805481910706
+      Rank10: 0.9634798169136047
+    - dataset: market1501
+      split: test
+      model: mgn
+      epoch: 70
+      checkpoint: ckpt_last.pth
+      mAP: 0.7100086212158203
+      mINP: 0.3499583303928375
+      Rank1: 0.8818289637565613
+      Rank5: 0.9483373165130615
+      Rank10: 0.9664489030838013
+    - dataset: market1501
+      split: test
+      model: mgn
+      epoch: 80
+      checkpoint: ckpt_last.pth
+      mAP: 0.7077050805091858
+      mINP: 0.3486865758895874
+      Rank1: 0.8812351822853088
+      Rank5: 0.948931097984314
+      Rank10: 0.964073657989502
+    - dataset: market1501
+      split: test
+      model: mgn
+      epoch: 90
+      checkpoint: ckpt_last.pth
+      mAP: 0.7070192694664001
+      mINP: 0.34757646918296814
+      Rank1: 0.8758907318115234
+      Rank5: 0.9462589025497437
+      Rank10: 0.9628859758377075
+    - dataset: market1501
+      split: test
+      model: mgn
+      epoch: 100
+      checkpoint: ckpt_last.pth
+      mAP: 0.7073137164115906
+      mINP: 0.3480043411254883
+      Rank1: 0.8845011591911316
+      Rank5: 0.9477434754371643
+      Rank10: 0.9646674394607544
+    - dataset: market1501
+      split: test
+      model: mgn
+      epoch: 110
+      checkpoint: ckpt_last.pth
+      mAP: 0.7068608999252319
+      mINP: 0.3464697599411011
+      Rank1: 0.8818289637565613
+      Rank5: 0.9486342072486877
+      Rank10: 0.963776707649231
+    - dataset: market1501
+      split: test
+      model: mgn
+      epoch: 120
+      checkpoint: ckpt_last.pth
+      mAP: 0.7074141502380371
+      mINP: 0.3470458388328552
+      Rank1: 0.8803443908691406
+      Rank5: 0.9474465847015381
+      Rank10: 0.9655581712722778
+    final_best:
+      dataset: market1501
+      split: test
+      model: mgn
+      epoch: 70
+      checkpoint: ckpt_best.pth
+      mAP: 0.7100086212158203
+      mINP: 0.34995803236961365
+      Rank1: 0.8818289637565613
+      Rank5: 0.9483373165130615
+      Rank10: 0.9664489030838013
+    final_last:
+      dataset: market1501
+      split: test
+      model: mgn
+      epoch: 120
+      checkpoint: ckpt_last.pth
+      mAP: 0.7074141502380371
+      mINP: 0.3470458388328552
+      Rank1: 0.8803443908691406
+      Rank5: 0.9474465847015381
+      Rank10: 0.9655581712722778
+    checkpoints:
+      ckpt_best.pth:
+        path: exp/mgn/market1501/checkpoints/ckpt_best.pth
+        bytes: 596011610
+        sha256: 5067cb70fb2e3fe7609ca7338487c44f62699596088852abe060c9672ebe8024
+        epoch: 70
+        scheduler_completed_epochs: 70
+        selection_state:
+          schema_version: 1
+          metric: mAP
+          best_score: 0.7100086212158203
+          best_epoch: 70
+        reconstruction:
+          schema_version: 1
+          output_contract_version: 1
+          model_name: mgn
+          variant: paper_v3_global2048_independent_v1
+          num_classes: 751
+          embedding_dim: 2048
+        optimizer_state_present: true
+        configuration_matches_freeze_except_operational_output_and_resume: true
+      ckpt_last.pth:
+        path: exp/mgn/market1501/checkpoints/ckpt_last.pth
+        bytes: 596026010
+        sha256: f6d1a766ed51cb69ce668cee49b68f4bb9cf5c05896dce7204401fc5e3810343
+        epoch: 120
+        scheduler_completed_epochs: 120
+        selection_state:
+          schema_version: 1
+          metric: mAP
+          best_score: 0.7100086212158203
+          best_epoch: 70
+        reconstruction:
+          schema_version: 1
+          output_contract_version: 1
+          model_name: mgn
+          variant: paper_v3_global2048_independent_v1
+          num_classes: 751
+          embedding_dim: 2048
+        optimizer_state_present: true
+        configuration_matches_freeze_except_operational_output_and_resume: true
+    completion_log_time_sao_paulo: 2026-10-28 13:32:42,238
+    final_epoch_avg_loss: 0.1124
+    maximum_metric_difference_fraction: 2.980232238769531e-07
+    resume:
+      archive_manifest:
+        path: exp/mgn/market1501/artifacts/resume_archive/20261028T141741Z/archive_manifest.json
+        bytes: 3852
+        sha256: b381db99807bf11cec21622d3d17fa7816008a76997b04f1ff6fa466ca09f25f
+      last_preserved_epoch: 86
+      resume_start_epoch: 87
+      interrupted_epoch: 87
+      last_logged_iteration_before_interruption: 100
+      interrupted_batch_count: 182
+      archive_files_verified: 23
+      stochastic_trajectory_restored: false
+      exact_total_updates: NOT_VERIFIED; ordinary checkpoints do not contain a successful-update
+        counter, and epoch87 was partially repeated.
+    artifact_sha256:
+      exp/mgn/market1501/metrics/val_epoch_010.json:
+        path: exp/mgn/market1501/metrics/val_epoch_010.json
+        bytes: 268
+        sha256: 10e760b9ce0b655934d330d390ccd1c84f04b86a46ab19343dcda9d805561d1c
+      exp/mgn/market1501/metrics/val_epoch_020.json:
+        path: exp/mgn/market1501/metrics/val_epoch_020.json
+        bytes: 267
+        sha256: 3d6f67db7f2587ce9595eda40919cab16defdf5b5f9101ef2fd2d30c8ada54d8
+      exp/mgn/market1501/metrics/val_epoch_030.json:
+        path: exp/mgn/market1501/metrics/val_epoch_030.json
+        bytes: 267
+        sha256: ab1e8d251866a8c1712f95c9bc3425df50a5f1a33f5e7e68a9a0799f51a87681
+      exp/mgn/market1501/metrics/val_epoch_040.json:
+        path: exp/mgn/market1501/metrics/val_epoch_040.json
+        bytes: 268
+        sha256: f91ab3c864b5f6d0e4b21a18dcf9bd171dbcb4de92591e058ca1503b3f767258
+      exp/mgn/market1501/metrics/val_epoch_050.json:
+        path: exp/mgn/market1501/metrics/val_epoch_050.json
+        bytes: 267
+        sha256: 5a2cebea6fefef78bdd5c15081e724d7b329e67719bc9536fd32ab6833abf3cb
+      exp/mgn/market1501/metrics/val_epoch_060.json:
+        path: exp/mgn/market1501/metrics/val_epoch_060.json
+        bytes: 266
+        sha256: 8fa962d01fcc3be16555bc83b9af01afc5ff73ec9c13a64ae1550763c8cfee19
+      exp/mgn/market1501/metrics/val_epoch_070.json:
+        path: exp/mgn/market1501/metrics/val_epoch_070.json
+        bytes: 267
+        sha256: ac5e638a5ecb943a8dcd5c84549c8c5332c167de5e1f7db551255be1323d491b
+      exp/mgn/market1501/metrics/val_epoch_080.json:
+        path: exp/mgn/market1501/metrics/val_epoch_080.json
+        bytes: 265
+        sha256: 9f87263e46e4af9838a1c5da67f3d925b432ccd215940a40fa66fc535b7cc96d
+      exp/mgn/market1501/metrics/val_epoch_090.json:
+        path: exp/mgn/market1501/metrics/val_epoch_090.json
+        bytes: 268
+        sha256: aae95f816784b11e500acc49dd0fe27c42166f8f3e4b77a1b9f6d95539b0c9c1
+      exp/mgn/market1501/metrics/val_epoch_100.json:
+        path: exp/mgn/market1501/metrics/val_epoch_100.json
+        bytes: 268
+        sha256: 0dfa13ab837276ec7816ad0cfa6567b1b33ef828c4da6d9827550f346597c08e
+      exp/mgn/market1501/metrics/val_epoch_110.json:
+        path: exp/mgn/market1501/metrics/val_epoch_110.json
+        bytes: 267
+        sha256: dc4d77bf0df199073ec860e85bc077265923d3bde300de063f0c56501d3c5855
+      exp/mgn/market1501/metrics/val_epoch_120.json:
+        path: exp/mgn/market1501/metrics/val_epoch_120.json
+        bytes: 268
+        sha256: 0f8e631e17c507df9410152d499022197a504821a13d16fc90c763e446b01d01
+      exp/mgn/market1501/metrics/final_test.json:
+        path: exp/mgn/market1501/metrics/final_test.json
+        bytes: 268
+        sha256: 2aecb5ec0976e84739be1e82ce50c6fd5ffc133f30d3062f099a1a4dfea1590a
+      exp/mgn/market1501/metrics/final_epoch_test.json:
+        path: exp/mgn/market1501/metrics/final_epoch_test.json
+        bytes: 268
+        sha256: 0f8e631e17c507df9410152d499022197a504821a13d16fc90c763e446b01d01
+      exp/mgn/market1501/metrics/latest_val.json:
+        path: exp/mgn/market1501/metrics/latest_val.json
+        bytes: 268
+        sha256: 0f8e631e17c507df9410152d499022197a504821a13d16fc90c763e446b01d01
+      exp/mgn/market1501/config.resolved.yaml:
+        path: exp/mgn/market1501/config.resolved.yaml
+        bytes: 2895
+        sha256: 8dd04d3c6042954a25eff0060a2b79f0afa061060a04fe89da0899b722531829
+      exp/mgn/market1501/config.yaml:
+        path: exp/mgn/market1501/config.yaml
+        bytes: 2895
+        sha256: 8dd04d3c6042954a25eff0060a2b79f0afa061060a04fe89da0899b722531829
+      exp/mgn/market1501/train.log:
+        path: exp/mgn/market1501/train.log
+        bytes: 282958
+        sha256: ed30a00d7efc667fa91ba4432c57531bdc6681dfaa7e26b566a977fe177cdf79
+      exp/mgn/market1501/artifacts/command.txt:
+        path: exp/mgn/market1501/artifacts/command.txt
+        bytes: 124
+        sha256: 231dc18d7e9dd01ffeae7a10250941b462a1259efedfb4ebcd7dabdd03bdbe4f
+      exp/mgn/market1501/artifacts/environment.txt:
+        path: exp/mgn/market1501/artifacts/environment.txt
+        bytes: 368
+        sha256: 566ca591a9c29ba22c18260c1488c4d44411ffed84bdd39b977821cd5115da23
+      exp/mgn/market1501/artifacts/git_commit.txt:
+        path: exp/mgn/market1501/artifacts/git_commit.txt
+        bytes: 41
+        sha256: 6b1793afd7ce827061cda876c201f478f041aaeb2b0c32dd1611aae10ec8ef76
+      exp/mgn/market1501/artifacts/training_preflight.json:
+        path: exp/mgn/market1501/artifacts/training_preflight.json
+        bytes: 2260
+        sha256: 6fedd95be61c3659f7c44484c0f9f80f3a5ecddd7827aaa58d28e8e16e41c885
+      exp/mgn/market1501/logs/stdout.txt:
+        path: exp/mgn/market1501/logs/stdout.txt
+        bytes: 283830
+        sha256: 01bc14e73da9ef2ddd8133c2b3fe3ff4dd3822295683154c9d7a1df5e26428cc
+      exp/mgn/market1501/logs/stderr.txt:
+        path: exp/mgn/market1501/logs/stderr.txt
+        bytes: 0
+        sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      exp/mgn/market1501/artifacts/resume_archive/20261028T141741Z/archive_manifest.json:
+        path: exp/mgn/market1501/artifacts/resume_archive/20261028T141741Z/archive_manifest.json
+        bytes: 3852
+        sha256: b381db99807bf11cec21622d3d17fa7816008a76997b04f1ff6fa466ca09f25f
+    training_data_provenance:
+      source: market1501
+      descriptor:
+        name: market1501
+        split: trainval
+        format: processed
+      image_directory: /mnt/hd-data/addirakoze/Projects/Dataset/market1501/images
+      images: 12936
+      num_classes: 751
+      records_sha256: 0ef4f954090f6f569f941b426b1d9ae0011b9a973c69eb955f728b2e53283ab2
+      identity_map_sha256: b2561ff1f8b6fd40a9f4cb05dc5c0d46c55545b0d2ea0f9158637881e2a53113
+      file_inventory_sha256: 95b138ac2f499576bbbd4bf81c316fab0165302e277f7818f92c985c31434160
+      metadata_sha256:
+        /mnt/hd-data/addirakoze/Projects/Dataset/market1501/partitions.pkl: 3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab
+      image_content_hash_policy: Only actually consumed smoke images are byte-hashed;
+        full corpus is not byte-hashed.
+      cuhk03_semantic_protocol_verification: null
+      identity_sha256: a074c14ac50ff687e0835cc548d1d7084054d689aeef167c8fde6bfffd77b91e
+    evaluation_data_provenance:
+      images: 31969
+      query: 3368
+      gallery: 15913
+      records_sha256: f458afab5af6f59f8a9a533ece6dc60e3f1bc02f4f1f9d911b9bdf34e58f9752
+      file_inventory_sha256: 69b243d4fcf8a229aaeedcea0fb9ca0ee83e5bad1c4c46ac8d2bf6cac5178818
+      metadata_sha256:
+        /mnt/hd-data/addirakoze/Projects/Dataset/market1501/partitions.pkl: 3853cfdc9be6814d0193b9aad8025b61133d7f7b9ef8449b5d0f2964811a53ab
+      image_content_hash_policy: File inventory/metadata only; full evaluation image
+        bytes are not hashed or decoded.
+    checks:
+      all_120_epoch_completion_markers_present: true
+      twelve_periodic_evaluations_present: true
+      first_maximum_source_test_map_selects_best: true
+      last_epoch_and_scheduler_120: true
+      final_metric_jsons_match_checkpoint_scores_within_tolerance: true
+      checkpoint_and_resolved_configs_match_freeze: true
+      launch_reported_code_runtime_hashes_match_freeze: true
+      model_source_classes_match: true
+      metric_values_finite_in_range: true
+      final_eval_log_present: true
+      formal_process_exit_receipt_available: false
+  duke:
+    status: COMPLETE_ARTIFACT_VERIFIED
+    experiment: mgn_duke
+    run_directory: exp/mgn/duke
+    train_dataset:
+      name: duke
+      split: trainval
+      format: processed
+    test_dataset:
+      name: duke
+      split: test
+      format: processed
+    source_identities: 702
+    training_images: 16522
+    train_configuration:
+      path: configs/mgn/duke.yaml
+      bytes: 2848
+      sha256: eddf3907418e8ade006c4b7bafa95110bac5be0a2762ee7a3f7f8685116649ee
+    launch_code_commit: 9ac343ff3a36fcd858f270ef0688233bb2b4ffc0
+    launch_command: scripts/train.py --config configs/mgn/duke.yaml
+    launch_preflight_status: READY_FRESH
+    launch_preflight_gpu_uuid: GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c
+    launches_observed: 1
+    launch_log_times:
+    - 2026-10-28 15:14:29,747
+    completed_epochs: 120
+    periodic_evaluations:
+    - dataset: duke
+      split: test
+      model: mgn
+      epoch: 10
+      checkpoint: ckpt_last.pth
+      mAP: 0.5882972478866577
+      mINP: 0.1877618134021759
+      Rank1: 0.7652603387832642
+      Rank5: 0.8590664267539978
+      Rank10: 0.8904847502708435
+    - dataset: duke
+      split: test
+      model: mgn
+      epoch: 20
+      checkpoint: ckpt_last.pth
+      mAP: 0.6451643109321594
+      mINP: 0.2397840917110443
+      Rank1: 0.8034111261367798
+      Rank5: 0.8909335732460022
+      Rank10: 0.9183123707771301
+    - dataset: duke
+      split: test
+      model: mgn
+      epoch: 30
+      checkpoint: ckpt_last.pth
+      mAP: 0.6665970683097839
+      mINP: 0.26549196243286133
+      Rank1: 0.8177737593650818
+      Rank5: 0.9043985605239868
+      Rank10: 0.9308797121047974
+    - dataset: duke
+      split: test
+      model: mgn
+      epoch: 40
+      checkpoint: ckpt_last.pth
+      mAP: 0.6686996221542358
+      mINP: 0.27260202169418335
+      Rank1: 0.8164272904396057
+      Rank5: 0.9075403809547424
+      Rank10: 0.9317773580551147
+    - dataset: duke
+      split: test
+      model: mgn
+      epoch: 50
+      checkpoint: ckpt_last.pth
+      mAP: 0.6643056273460388
+      mINP: 0.26420995593070984
+      Rank1: 0.8173249363899231
+      Rank5: 0.9075403809547424
+      Rank10: 0.9290843605995178
+    - dataset: duke
+      split: test
+      model: mgn
+      epoch: 60
+      checkpoint: ckpt_last.pth
+      mAP: 0.6575826406478882
+      mINP: 0.2543606758117676
+      Rank1: 0.8078994750976562
+      Rank5: 0.899012565612793
+      Rank10: 0.9245960712432861
+    - dataset: duke
+      split: test
+      model: mgn
+      epoch: 70
+      checkpoint: ckpt_last.pth
+      mAP: 0.6626017093658447
+      mINP: 0.2629338502883911
+      Rank1: 0.82001793384552
+      Rank5: 0.906642735004425
+      Rank10: 0.9295332431793213
+    - dataset: duke
+      split: test
+      model: mgn
+      epoch: 80
+      checkpoint: ckpt_last.pth
+      mAP: 0.6624451279640198
+      mINP: 0.26299259066581726
+      Rank1: 0.8195691108703613
+      Rank5: 0.9048473834991455
+      Rank10: 0.9286355376243591
+    - dataset: duke
+      split: test
+      model: mgn
+      epoch: 90
+      checkpoint: ckpt_last.pth
+      mAP: 0.6624603271484375
+      mINP: 0.26396504044532776
+      Rank1: 0.8177737593650818
+      Rank5: 0.9026032090187073
+      Rank10: 0.92998206615448
+    - dataset: duke
+      split: test
+      model: mgn
+      epoch: 100
+      checkpoint: ckpt_last.pth
+      mAP: 0.6615004539489746
+      mINP: 0.26144206523895264
+      Rank1: 0.815978467464447
+      Rank5: 0.9052962064743042
+      Rank10: 0.9290843605995178
+    - dataset: duke
+      split: test
+      model: mgn
+      epoch: 110
+      checkpoint: ckpt_last.pth
+      mAP: 0.6622248888015747
+      mINP: 0.2620380222797394
+      Rank1: 0.8177737593650818
+      Rank5: 0.9057450890541077
+      Rank10: 0.9295332431793213
+    - dataset: duke
+      split: test
+      model: mgn
+      epoch: 120
+      checkpoint: ckpt_last.pth
+      mAP: 0.660284698009491
+      mINP: 0.25945165753364563
+      Rank1: 0.8137342929840088
+      Rank5: 0.9035009145736694
+      Rank10: 0.92998206615448
+    final_best:
+      dataset: duke
+      split: test
+      model: mgn
+      epoch: 40
+      checkpoint: ckpt_best.pth
+      mAP: 0.6686996221542358
+      mINP: 0.27260202169418335
+      Rank1: 0.8164272904396057
+      Rank5: 0.9075403809547424
+      Rank10: 0.9317773580551147
+    final_last:
+      dataset: duke
+      split: test
+      model: mgn
+      epoch: 120
+      checkpoint: ckpt_last.pth
+      mAP: 0.660284698009491
+      mINP: 0.25945165753364563
+      Rank1: 0.8137342929840088
+      Rank5: 0.9035009145736694
+      Rank10: 0.92998206615448
+    checkpoints:
+      ckpt_best.pth:
+        path: exp/mgn/duke/checkpoints/ckpt_best.pth
+        bytes: 593101338
+        sha256: 97b7b674d85806f32f14d76d1a3136b05b7083bc4833eb3579db453139df1641
+        epoch: 40
+        scheduler_completed_epochs: 40
+        selection_state:
+          schema_version: 1
+          metric: mAP
+          best_score: 0.6686996221542358
+          best_epoch: 40
+        reconstruction:
+          schema_version: 1
+          output_contract_version: 1
+          model_name: mgn
+          variant: paper_v3_global2048_independent_v1
+          num_classes: 702
+          embedding_dim: 2048
+        optimizer_state_present: true
+        configuration_matches_freeze_except_operational_output_and_resume: true
+      ckpt_last.pth:
+        path: exp/mgn/duke/checkpoints/ckpt_last.pth
+        bytes: 593101338
+        sha256: 58f1abca506ae273b7e067ee0775c556f9929b61129fe3a19b3656bbcea9b090
+        epoch: 120
+        scheduler_completed_epochs: 120
+        selection_state:
+          schema_version: 1
+          metric: mAP
+          best_score: 0.6686996221542358
+          best_epoch: 40
+        reconstruction:
+          schema_version: 1
+          output_contract_version: 1
+          model_name: mgn
+          variant: paper_v3_global2048_independent_v1
+          num_classes: 702
+          embedding_dim: 2048
+        optimizer_state_present: true
+        configuration_matches_freeze_except_operational_output_and_resume: true
+    completion_log_time_sao_paulo: 2026-10-28 21:50:09,725
+    final_epoch_avg_loss: 0.0911
+    maximum_metric_difference_fraction: 0.0
+    resume: null
+    artifact_sha256:
+      exp/mgn/duke/metrics/val_epoch_010.json:
+        path: exp/mgn/duke/metrics/val_epoch_010.json
+        bytes: 261
+        sha256: 88ecd306421baecc3a6dea4ed772af283fda1dea1cf6b073c4fc7820d2b47336
+      exp/mgn/duke/metrics/val_epoch_020.json:
+        path: exp/mgn/duke/metrics/val_epoch_020.json
+        bytes: 261
+        sha256: bca56c66dc0dbfdbdbc5a1262bdb22200f02a293ec4f537db479237327c3c647
+      exp/mgn/duke/metrics/val_epoch_030.json:
+        path: exp/mgn/duke/metrics/val_epoch_030.json
+        bytes: 262
+        sha256: 8341aa6a83135523efe7af4874b4ad368c055bc078af472fd5ff4a4a0133d2a9
+      exp/mgn/duke/metrics/val_epoch_040.json:
+        path: exp/mgn/duke/metrics/val_epoch_040.json
+        bytes: 262
+        sha256: e217aaaefc928fef785444478de39244deea54b4144c579ab8b7195410edf281
+      exp/mgn/duke/metrics/val_epoch_050.json:
+        path: exp/mgn/duke/metrics/val_epoch_050.json
+        bytes: 262
+        sha256: 97a8a87cc775039ba74a02b13e0de7ab0b74bc5d7fb5552061dcae01aa913e75
+      exp/mgn/duke/metrics/val_epoch_060.json:
+        path: exp/mgn/duke/metrics/val_epoch_060.json
+        bytes: 260
+        sha256: c172f29a1041062b2910e1aea2c9d4135f795a14c821c3a556c6ec4a62eb5269
+      exp/mgn/duke/metrics/val_epoch_070.json:
+        path: exp/mgn/duke/metrics/val_epoch_070.json
+        bytes: 258
+        sha256: 5398a0e5c2b70a2e55582e7a1f43d06faedd29441bd4dbd0a7073c1719bbd2fb
+      exp/mgn/duke/metrics/val_epoch_080.json:
+        path: exp/mgn/duke/metrics/val_epoch_080.json
+        bytes: 262
+        sha256: ec25d75af1106d573966275a695fbdd10006e5b03fe42b9c61e1c156296d22d9
+      exp/mgn/duke/metrics/val_epoch_090.json:
+        path: exp/mgn/duke/metrics/val_epoch_090.json
+        bytes: 260
+        sha256: 59900b47d2cafef9bd4581c28e715e6b0085e09d004dca211763251f52d51094
+      exp/mgn/duke/metrics/val_epoch_100.json:
+        path: exp/mgn/duke/metrics/val_epoch_100.json
+        bytes: 262
+        sha256: e2b2e56275e19438cbb645f62a2896f4348231e8c601f4abfd76b77d860ca685
+      exp/mgn/duke/metrics/val_epoch_110.json:
+        path: exp/mgn/duke/metrics/val_epoch_110.json
+        bytes: 262
+        sha256: dbe2f53d9cdf85992ebd8b460d16074c565c2c4a417d922a7168e24e395f4746
+      exp/mgn/duke/metrics/val_epoch_120.json:
+        path: exp/mgn/duke/metrics/val_epoch_120.json
+        bytes: 260
+        sha256: 774f03c1ae7025aecd548ca1ca5c5232f1648e0ebff43ec22d34374e0c2b64bd
+      exp/mgn/duke/metrics/final_test.json:
+        path: exp/mgn/duke/metrics/final_test.json
+        bytes: 262
+        sha256: 7630e140a8e18daf48932a9a5321107af5913d118f4f2c559dbc9e7a57b3bb1d
+      exp/mgn/duke/metrics/final_epoch_test.json:
+        path: exp/mgn/duke/metrics/final_epoch_test.json
+        bytes: 260
+        sha256: 774f03c1ae7025aecd548ca1ca5c5232f1648e0ebff43ec22d34374e0c2b64bd
+      exp/mgn/duke/metrics/latest_val.json:
+        path: exp/mgn/duke/metrics/latest_val.json
+        bytes: 260
+        sha256: 774f03c1ae7025aecd548ca1ca5c5232f1648e0ebff43ec22d34374e0c2b64bd
+      exp/mgn/duke/config.resolved.yaml:
+        path: exp/mgn/duke/config.resolved.yaml
+        bytes: 2829
+        sha256: b02ed1966004769d6c97bb2dcd57baf9cd7a0f75d1b3cdca0758dfdb6b91c628
+      exp/mgn/duke/config.yaml:
+        path: exp/mgn/duke/config.yaml
+        bytes: 2829
+        sha256: b02ed1966004769d6c97bb2dcd57baf9cd7a0f75d1b3cdca0758dfdb6b91c628
+      exp/mgn/duke/train.log:
+        path: exp/mgn/duke/train.log
+        bytes: 335351
+        sha256: 1dc535b6c41dfd4b29a7783589e1f150bed92fa4695408a0292bc2100ad5f82f
+      exp/mgn/duke/artifacts/command.txt:
+        path: exp/mgn/duke/artifacts/command.txt
+        bytes: 48
+        sha256: bc653fedb26b605700925a4b3c5aa069430d18386a63910c34ebc0791a7edc49
+      exp/mgn/duke/artifacts/environment.txt:
+        path: exp/mgn/duke/artifacts/environment.txt
+        bytes: 368
+        sha256: 566ca591a9c29ba22c18260c1488c4d44411ffed84bdd39b977821cd5115da23
+      exp/mgn/duke/artifacts/git_commit.txt:
+        path: exp/mgn/duke/artifacts/git_commit.txt
+        bytes: 41
+        sha256: 6b1793afd7ce827061cda876c201f478f041aaeb2b0c32dd1611aae10ec8ef76
+      exp/mgn/duke/artifacts/training_preflight.json:
+        path: exp/mgn/duke/artifacts/training_preflight.json
+        bytes: 1687
+        sha256: 700018c6d774fe4b2c73af10d9029888ed4559a2c2be2a43283ae100b848bf01
+      exp/mgn/duke/logs/stdout.txt:
+        path: exp/mgn/duke/logs/stdout.txt
+        bytes: 335794
+        sha256: 92669d24e953cdf2247a5602bb6f94cf750535a25fd8c415c31eea7476672c6b
+      exp/mgn/duke/logs/stderr.txt:
+        path: exp/mgn/duke/logs/stderr.txt
+        bytes: 0
+        sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    training_data_provenance:
+      source: duke
+      descriptor:
+        name: duke
+        split: trainval
+        format: processed
+      image_directory: /mnt/hd-data/addirakoze/Projects/Dataset/duke/images
+      images: 16522
+      num_classes: 702
+      records_sha256: 01c0e9610ea0e20fe070200446c947e3f94c85b038f1db69fdb485f9710d981d
+      identity_map_sha256: e123245328f4a8f418274b8e8170ee416b4ff6f13a4bf839fa3902d22c5c8fd4
+      file_inventory_sha256: 0be61acb6fb7187323a40a568b19e306ead2a54a8782b5449a418ea0bf3a8190
+      metadata_sha256:
+        /mnt/hd-data/addirakoze/Projects/Dataset/duke/partitions.pkl: 25929417e0a8780548924d4f58f4f644ee18098e957df41a571650eb05e6b638
+      image_content_hash_policy: Only actually consumed smoke images are byte-hashed;
+        full corpus is not byte-hashed.
+      cuhk03_semantic_protocol_verification: null
+      identity_sha256: dda7bc8c6d838ac2577d8edac606983460e510722f714913f015cde42fab7a20
+    evaluation_data_provenance:
+      images: 19889
+      query: 2228
+      gallery: 17661
+      records_sha256: 3c2d7f21a949ff9be335549567274452d7956e3638c4ff62cef709cd21096570
+      file_inventory_sha256: 53cbd32c08faebcebeab78cfc84461d1660bc57c46dce11e7d10bde76601a5dd
+      metadata_sha256:
+        /mnt/hd-data/addirakoze/Projects/Dataset/duke/partitions.pkl: 25929417e0a8780548924d4f58f4f644ee18098e957df41a571650eb05e6b638
+      image_content_hash_policy: File inventory/metadata only; full evaluation image
+        bytes are not hashed or decoded.
+    checks:
+      all_120_epoch_completion_markers_present: true
+      twelve_periodic_evaluations_present: true
+      first_maximum_source_test_map_selects_best: true
+      last_epoch_and_scheduler_120: true
+      final_metric_jsons_match_checkpoint_scores_within_tolerance: true
+      checkpoint_and_resolved_configs_match_freeze: true
+      launch_reported_code_runtime_hashes_match_freeze: true
+      model_source_classes_match: true
+      metric_values_finite_in_range: true
+      final_eval_log_present: true
+      formal_process_exit_receipt_available: false
+  cuhk03:
+    status: COMPLETE_ARTIFACT_VERIFIED
+    experiment: mgn_cuhk03
+    run_directory: exp/mgn/cuhk03
+    train_dataset:
+      name: cuhk03
+      split: trainval
+      format: processed
+      image_type: detected
+      protocol: processed_partition
+      split_id: null
+    test_dataset:
+      name: cuhk03
+      split: test
+      format: processed
+      image_type: detected
+      protocol: processed_partition
+      split_id: null
+    source_identities: 767
+    training_images: 7365
+    train_configuration:
+      path: configs/mgn/cuhk03.yaml
+      bytes: 3024
+      sha256: 15c03873aa56266fd3d8215a39908ed7ab98132116e7c16b7a7e1f03ec52c115
+    launch_code_commit: 9ac343ff3a36fcd858f270ef0688233bb2b4ffc0
+    launch_command: scripts/train.py --config configs/mgn/cuhk03.yaml
+    launch_preflight_status: READY_FRESH
+    launch_preflight_gpu_uuid: GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c
+    launches_observed: 1
+    launch_log_times:
+    - 2026-10-28 21:55:43,538
+    completed_epochs: 120
+    periodic_evaluations:
+    - dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 10
+      checkpoint: ckpt_last.pth
+      mAP: 0.27833059430122375
+      mINP: 0.18709023296833038
+      Rank1: 0.2742857038974762
+      Rank5: 0.46642857789993286
+      Rank10: 0.5699999928474426
+    - dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 20
+      checkpoint: ckpt_last.pth
+      mAP: 0.3733207881450653
+      mINP: 0.26487573981285095
+      Rank1: 0.375
+      Rank5: 0.5785714387893677
+      Rank10: 0.6735714077949524
+    - dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 30
+      checkpoint: ckpt_last.pth
+      mAP: 0.41171032190322876
+      mINP: 0.30446264147758484
+      Rank1: 0.4178571403026581
+      Rank5: 0.6121428608894348
+      Rank10: 0.6942856907844543
+    - dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 40
+      checkpoint: ckpt_last.pth
+      mAP: 0.42753592133522034
+      mINP: 0.3175221085548401
+      Rank1: 0.4407142996788025
+      Rank5: 0.625
+      Rank10: 0.7200000286102295
+    - dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 50
+      checkpoint: ckpt_last.pth
+      mAP: 0.43860548734664917
+      mINP: 0.32784798741340637
+      Rank1: 0.4414285719394684
+      Rank5: 0.6449999809265137
+      Rank10: 0.7335714101791382
+    - dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 60
+      checkpoint: ckpt_last.pth
+      mAP: 0.4351824223995209
+      mINP: 0.3233955502510071
+      Rank1: 0.4392857253551483
+      Rank5: 0.6414285898208618
+      Rank10: 0.720714271068573
+    - dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 70
+      checkpoint: ckpt_last.pth
+      mAP: 0.4553663730621338
+      mINP: 0.343344509601593
+      Rank1: 0.45642855763435364
+      Rank5: 0.6592857241630554
+      Rank10: 0.7514285445213318
+    - dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 80
+      checkpoint: ckpt_last.pth
+      mAP: 0.4584248661994934
+      mINP: 0.342107355594635
+      Rank1: 0.4635714292526245
+      Rank5: 0.6650000214576721
+      Rank10: 0.7507143020629883
+    - dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 90
+      checkpoint: ckpt_last.pth
+      mAP: 0.4578370153903961
+      mINP: 0.34310033917427063
+      Rank1: 0.4628571569919586
+      Rank5: 0.6642857193946838
+      Rank10: 0.7514285445213318
+    - dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 100
+      checkpoint: ckpt_last.pth
+      mAP: 0.4571499228477478
+      mINP: 0.34257692098617554
+      Rank1: 0.46142858266830444
+      Rank5: 0.6592857241630554
+      Rank10: 0.7549999952316284
+    - dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 110
+      checkpoint: ckpt_last.pth
+      mAP: 0.4566815197467804
+      mINP: 0.34240466356277466
+      Rank1: 0.459285706281662
+      Rank5: 0.6578571200370789
+      Rank10: 0.7507143020629883
+    - dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 120
+      checkpoint: ckpt_last.pth
+      mAP: 0.4585919976234436
+      mINP: 0.3445298969745636
+      Rank1: 0.46071428060531616
+      Rank5: 0.6600000262260437
+      Rank10: 0.7542856931686401
+    final_best:
+      dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 120
+      checkpoint: ckpt_best.pth
+      mAP: 0.4585919976234436
+      mINP: 0.3445298969745636
+      Rank1: 0.46071428060531616
+      Rank5: 0.6600000262260437
+      Rank10: 0.7542856931686401
+    final_last:
+      dataset: cuhk03
+      split: test
+      model: mgn
+      epoch: 120
+      checkpoint: ckpt_last.pth
+      mAP: 0.4585919976234436
+      mINP: 0.3445298969745636
+      Rank1: 0.46071428060531616
+      Rank5: 0.6600000262260437
+      Rank10: 0.7542856931686401
+    checkpoints:
+      ckpt_best.pth:
+        path: exp/mgn/cuhk03/checkpoints/ckpt_best.pth
+        bytes: 596962074
+        sha256: a936f3c48224225aa76a3216c0a2cc2c13609c0a51c14e12ad5893c44ad9b23a
+        epoch: 120
+        scheduler_completed_epochs: 120
+        selection_state:
+          schema_version: 1
+          metric: mAP
+          best_score: 0.4585919976234436
+          best_epoch: 120
+        reconstruction:
+          schema_version: 1
+          output_contract_version: 1
+          model_name: mgn
+          variant: paper_v3_global2048_independent_v1
+          num_classes: 767
+          embedding_dim: 2048
+        optimizer_state_present: true
+        configuration_matches_freeze_except_operational_output_and_resume: true
+      ckpt_last.pth:
+        path: exp/mgn/cuhk03/checkpoints/ckpt_last.pth
+        bytes: 596962074
+        sha256: 8167c18ce5f3ddc2ab19e04d8cbc83b0c676261dcd5bd54327f63c8768f1e8bf
+        epoch: 120
+        scheduler_completed_epochs: 120
+        selection_state:
+          schema_version: 1
+          metric: mAP
+          best_score: 0.4585919976234436
+          best_epoch: 120
+        reconstruction:
+          schema_version: 1
+          output_contract_version: 1
+          model_name: mgn
+          variant: paper_v3_global2048_independent_v1
+          num_classes: 767
+          embedding_dim: 2048
+        optimizer_state_present: true
+        configuration_matches_freeze_except_operational_output_and_resume: true
+    completion_log_time_sao_paulo: 2026-10-29 00:39:41,560
+    final_epoch_avg_loss: 0.3028
+    maximum_metric_difference_fraction: 0.0
+    resume: null
+    artifact_sha256:
+      exp/mgn/cuhk03/metrics/val_epoch_010.json:
+        path: exp/mgn/cuhk03/metrics/val_epoch_010.json
+        bytes: 266
+        sha256: 702badd6033e2db41fa6f986bb63b4a3c113825b0ba377c488291734a5f4aad3
+      exp/mgn/cuhk03/metrics/val_epoch_020.json:
+        path: exp/mgn/cuhk03/metrics/val_epoch_020.json
+        bytes: 251
+        sha256: 3a2973d6a8759760e78596280fe10cde7ad9c9364d3be24ab399a0ed44e30464
+      exp/mgn/cuhk03/metrics/val_epoch_030.json:
+        path: exp/mgn/cuhk03/metrics/val_epoch_030.json
+        bytes: 265
+        sha256: 301523ffe5e6f1e193555418bf14b5c5d96ada0984543f042d590163647754c3
+      exp/mgn/cuhk03/metrics/val_epoch_040.json:
+        path: exp/mgn/cuhk03/metrics/val_epoch_040.json
+        bytes: 251
+        sha256: 76bb0e627daf1ccfc95a7125189f771f6b4c00a34d31c56cf4268193041cd6e7
+      exp/mgn/cuhk03/metrics/val_epoch_050.json:
+        path: exp/mgn/cuhk03/metrics/val_epoch_050.json
+        bytes: 265
+        sha256: a0abafd1f15cc47f43ecfb62e0bc3fa4ef3b996929620f3d7746ed3a2142eac9
+      exp/mgn/cuhk03/metrics/val_epoch_060.json:
+        path: exp/mgn/cuhk03/metrics/val_epoch_060.json
+        bytes: 262
+        sha256: c6dfd60478f2f2fd2ea7afd8b73f8a9b3b99f0239ebb1e83a5cf849067810a05
+      exp/mgn/cuhk03/metrics/val_epoch_070.json:
+        path: exp/mgn/cuhk03/metrics/val_epoch_070.json
+        bytes: 263
+        sha256: 284310a1258699b6d2dc4977eb0b726e83d696624ef17e011c245194cae6e685
+      exp/mgn/cuhk03/metrics/val_epoch_080.json:
+        path: exp/mgn/cuhk03/metrics/val_epoch_080.json
+        bytes: 262
+        sha256: a71e8e63cb9e35a19db6c10a81167f6191d50579a5e10e4af719f98061d26fab
+      exp/mgn/cuhk03/metrics/val_epoch_090.json:
+        path: exp/mgn/cuhk03/metrics/val_epoch_090.json
+        bytes: 264
+        sha256: 7d2073baf7f050117a3ad87333c85fed1b5db59dee592e1af952703ba6f0efca
+      exp/mgn/cuhk03/metrics/val_epoch_100.json:
+        path: exp/mgn/cuhk03/metrics/val_epoch_100.json
+        bytes: 266
+        sha256: d9cd5a0af59f6804b0e45ff5da5a7094b0e402e6bac25783a6f07560918c034d
+      exp/mgn/cuhk03/metrics/val_epoch_110.json:
+        path: exp/mgn/cuhk03/metrics/val_epoch_110.json
+        bytes: 264
+        sha256: 5087f6479f42658343085cce1016cb77adecf648c0f6aef9e482df1bf2852150
+      exp/mgn/cuhk03/metrics/val_epoch_120.json:
+        path: exp/mgn/cuhk03/metrics/val_epoch_120.json
+        bytes: 265
+        sha256: 86a154274e022408e3c380085e5c7e919892ede429814e3216111d23cb197df3
+      exp/mgn/cuhk03/metrics/final_test.json:
+        path: exp/mgn/cuhk03/metrics/final_test.json
+        bytes: 265
+        sha256: 0bf8c461df490ada4ed57acca6f7d0f441cf72db5bc118feacd965ad7930b5eb
+      exp/mgn/cuhk03/metrics/final_epoch_test.json:
+        path: exp/mgn/cuhk03/metrics/final_epoch_test.json
+        bytes: 265
+        sha256: 86a154274e022408e3c380085e5c7e919892ede429814e3216111d23cb197df3
+      exp/mgn/cuhk03/metrics/latest_val.json:
+        path: exp/mgn/cuhk03/metrics/latest_val.json
+        bytes: 265
+        sha256: 86a154274e022408e3c380085e5c7e919892ede429814e3216111d23cb197df3
+      exp/mgn/cuhk03/config.resolved.yaml:
+        path: exp/mgn/cuhk03/config.resolved.yaml
+        bytes: 3005
+        sha256: 978fa31329806320fb5db7ba422ebcb35a89b8a528b4be815881840a27c87023
+      exp/mgn/cuhk03/config.yaml:
+        path: exp/mgn/cuhk03/config.yaml
+        bytes: 3005
+        sha256: 978fa31329806320fb5db7ba422ebcb35a89b8a528b4be815881840a27c87023
+      exp/mgn/cuhk03/train.log:
+        path: exp/mgn/cuhk03/train.log
+        bytes: 133882
+        sha256: 585da2dd0fff84d20300432add840e9df9ed368a03edc9ff7892a7cd951878fd
+      exp/mgn/cuhk03/artifacts/command.txt:
+        path: exp/mgn/cuhk03/artifacts/command.txt
+        bytes: 50
+        sha256: bdbc379ec383c5b1084d5bde35c4a69f3d89530ad3dd8fa6950cc1b1f5e10a20
+      exp/mgn/cuhk03/artifacts/environment.txt:
+        path: exp/mgn/cuhk03/artifacts/environment.txt
+        bytes: 368
+        sha256: 566ca591a9c29ba22c18260c1488c4d44411ffed84bdd39b977821cd5115da23
+      exp/mgn/cuhk03/artifacts/git_commit.txt:
+        path: exp/mgn/cuhk03/artifacts/git_commit.txt
+        bytes: 41
+        sha256: 6b1793afd7ce827061cda876c201f478f041aaeb2b0c32dd1611aae10ec8ef76
+      exp/mgn/cuhk03/artifacts/training_preflight.json:
+        path: exp/mgn/cuhk03/artifacts/training_preflight.json
+        bytes: 1692
+        sha256: cbf32b1d00c0d6ffe63e7a58a972fc643e4f9619268e62063f35b5261a4a3060
+      exp/mgn/cuhk03/logs/stdout.txt:
+        path: exp/mgn/cuhk03/logs/stdout.txt
+        bytes: 134439
+        sha256: 17e17591406e2cb173a5d4042acff591298f4081fc6539996c527b7ae44383c1
+      exp/mgn/cuhk03/logs/stderr.txt:
+        path: exp/mgn/cuhk03/logs/stderr.txt
+        bytes: 0
+        sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    training_data_provenance:
+      source: cuhk03
+      descriptor:
+        name: cuhk03
+        split: trainval
+        format: processed
+        image_type: detected
+        protocol: processed_partition
+        split_id: null
+      image_directory: /mnt/hd-data/addirakoze/Projects/Dataset/cuhk03/detected/images
+      images: 7365
+      num_classes: 767
+      records_sha256: 06a37539d39406b95eaca4f52e3ab38b3dd0eab0bd1b91e22fbb19705bdaab56
+      identity_map_sha256: c3760cf6f7b5d5fef1c925170b6c5ffba0f3dfcbb8e923f3c8371a3fbed07d6c
+      file_inventory_sha256: e675f5b5ef0ed7f9bbe8206208a80b39316a8f9fd983731841fb4a4937202042
+      metadata_sha256:
+        /mnt/hd-data/addirakoze/Projects/Dataset/cuhk03/detected/partitions.pkl: a1fd9a06748dd217325820b2ed5c5814de364a6b5e91cb7a93e1924915034f97
+      image_content_hash_policy: Only actually consumed smoke images are byte-hashed;
+        full corpus is not byte-hashed.
+      cuhk03_semantic_protocol_verification: unverified; processed_partition is the
+        actual loader protocol
+      identity_sha256: 417a7f7ed6f28e105965295c8aea176934e92caad2c1903a2915456c542f21da
+    evaluation_data_provenance:
+      images: 6732
+      query: 1400
+      gallery: 5332
+      records_sha256: 46dfb20da2ebeb23ae7b1039927b8acc18cbdc956d24aa122beb09970b87a0e9
+      file_inventory_sha256: ec23d0c2d64ea3f16e6f79f35208c5b906cd156c01f316488321d1ed2950d55c
+      metadata_sha256:
+        /mnt/hd-data/addirakoze/Projects/Dataset/cuhk03/detected/partitions.pkl: a1fd9a06748dd217325820b2ed5c5814de364a6b5e91cb7a93e1924915034f97
+      image_content_hash_policy: File inventory/metadata only; full evaluation image
+        bytes are not hashed or decoded.
+    checks:
+      all_120_epoch_completion_markers_present: true
+      twelve_periodic_evaluations_present: true
+      first_maximum_source_test_map_selects_best: true
+      last_epoch_and_scheduler_120: true
+      final_metric_jsons_match_checkpoint_scores_within_tolerance: true
+      checkpoint_and_resolved_configs_match_freeze: true
+      launch_reported_code_runtime_hashes_match_freeze: true
+      model_source_classes_match: true
+      metric_values_finite_in_range: true
+      final_eval_log_present: true
+      formal_process_exit_receipt_available: false
+  msmt17:
+    status: COMPLETE_ARTIFACT_VERIFIED
+    experiment: mgn_msmt17
+    run_directory: exp/mgn/msmt17
+    train_dataset:
+      name: msmt17
+      split: train
+      format: raw
+    test_dataset:
+      name: msmt17
+      split: test
+      format: raw
+    source_identities: 1041
+    training_images: 30248
+    train_configuration:
+      path: configs/mgn/msmt17.yaml
+      bytes: 2841
+      sha256: ef4fbaf2b45daf5622a3c853cf9dc843bde7030fc79a583e117a0a86e7dafe70
+    launch_code_commit: 9ac343ff3a36fcd858f270ef0688233bb2b4ffc0
+    launch_command: scripts/train.py --config configs/mgn/msmt17.yaml
+    launch_preflight_status: READY_FRESH
+    launch_preflight_gpu_uuid: GPU-bb0efb3f-f2ea-d40d-8769-e4e989bab10c
+    launches_observed: 1
+    launch_log_times:
+    - 2026-10-29 07:52:35,043
+    completed_epochs: 120
+    periodic_evaluations:
+    - dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 10
+      checkpoint: ckpt_last.pth
+      mAP: 0.03426995128393173
+      mINP: 0.0017940630204975605
+      Rank1: 0.10198130458593369
+      Rank5: 0.17600136995315552
+      Rank10: 0.21914400160312653
+    - dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 20
+      checkpoint: ckpt_last.pth
+      mAP: 0.09099134802818298
+      mINP: 0.004929875954985619
+      Rank1: 0.24238786101341248
+      Rank5: 0.36263829469680786
+      Rank10: 0.42482203245162964
+    - dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 30
+      checkpoint: ckpt_last.pth
+      mAP: 0.13126219809055328
+      mINP: 0.00806020013988018
+      Rank1: 0.32095375657081604
+      Rank5: 0.45921605825424194
+      Rank10: 0.5228579044342041
+    - dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 40
+      checkpoint: ckpt_last.pth
+      mAP: 0.14698846638202667
+      mINP: 0.00955075304955244
+      Rank1: 0.35251736640930176
+      Rank5: 0.4964405298233032
+      Rank10: 0.5612831115722656
+    - dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 50
+      checkpoint: ckpt_last.pth
+      mAP: 0.12439616769552231
+      mINP: 0.007408009842038155
+      Rank1: 0.31006088852882385
+      Rank5: 0.45244017243385315
+      Rank10: 0.5198559165000916
+    - dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 60
+      checkpoint: ckpt_last.pth
+      mAP: 0.15414443612098694
+      mINP: 0.00989662017673254
+      Rank1: 0.3692426383495331
+      Rank5: 0.5218286514282227
+      Rank10: 0.5936186909675598
+    - dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 70
+      checkpoint: ckpt_last.pth
+      mAP: 0.19671525061130524
+      mINP: 0.016596253961324692
+      Rank1: 0.43134060502052307
+      Rank5: 0.5940475463867188
+      Rank10: 0.6634359955787659
+    - dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 80
+      checkpoint: ckpt_last.pth
+      mAP: 0.19244647026062012
+      mINP: 0.016236811876296997
+      Rank1: 0.4276524484157562
+      Rank5: 0.588300883769989
+      Rank10: 0.6579466462135315
+    - dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 90
+      checkpoint: ckpt_last.pth
+      mAP: 0.18975470960140228
+      mINP: 0.015754733234643936
+      Rank1: 0.42405009269714355
+      Rank5: 0.5872716307640076
+      Rank10: 0.6594905257225037
+    - dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 100
+      checkpoint: ckpt_last.pth
+      mAP: 0.19233004748821259
+      mINP: 0.016081994399428368
+      Rank1: 0.4256797432899475
+      Rank5: 0.5912171006202698
+      Rank10: 0.661377489566803
+    - dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 110
+      checkpoint: ckpt_last.pth
+      mAP: 0.19142091274261475
+      mINP: 0.015855511650443077
+      Rank1: 0.42276352643966675
+      Rank5: 0.5888155102729797
+      Rank10: 0.6618921160697937
+    - dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 120
+      checkpoint: ckpt_last.pth
+      mAP: 0.1920560598373413
+      mINP: 0.016204150393605232
+      Rank1: 0.4249078035354614
+      Rank5: 0.5886439681053162
+      Rank10: 0.660948634147644
+    final_best:
+      dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 70
+      checkpoint: ckpt_best.pth
+      mAP: 0.19671523571014404
+      mINP: 0.01659625954926014
+      Rank1: 0.43134060502052307
+      Rank5: 0.5940475463867188
+      Rank10: 0.6634359955787659
+    final_last:
+      dataset: msmt17
+      split: test
+      model: mgn
+      epoch: 120
+      checkpoint: ckpt_last.pth
+      mAP: 0.1920560598373413
+      mINP: 0.016204150393605232
+      Rank1: 0.4249078035354614
+      Rank5: 0.5886439681053162
+      Rank10: 0.660948634147644
+    checkpoints:
+      ckpt_best.pth:
+        path: exp/mgn/msmt17/checkpoints/ckpt_best.pth
+        bytes: 613235226
+        sha256: 01c96982d0aff8ada9c2a1286d8177a534e1800a44b213f1a6c5eb57ef72a345
+        epoch: 70
+        scheduler_completed_epochs: 70
+        selection_state:
+          schema_version: 1
+          metric: mAP
+          best_score: 0.19671525061130524
+          best_epoch: 70
+        reconstruction:
+          schema_version: 1
+          output_contract_version: 1
+          model_name: mgn
+          variant: paper_v3_global2048_independent_v1
+          num_classes: 1041
+          embedding_dim: 2048
+        optimizer_state_present: true
+        configuration_matches_freeze_except_operational_output_and_resume: true
+      ckpt_last.pth:
+        path: exp/mgn/msmt17/checkpoints/ckpt_last.pth
+        bytes: 613235226
+        sha256: 00f5dd1c35720c549fa6cf3bcdd1b948cab7f3ab8f18b16392db1288c0608b8b
+        epoch: 120
+        scheduler_completed_epochs: 120
+        selection_state:
+          schema_version: 1
+          metric: mAP
+          best_score: 0.19671525061130524
+          best_epoch: 70
+        reconstruction:
+          schema_version: 1
+          output_contract_version: 1
+          model_name: mgn
+          variant: paper_v3_global2048_independent_v1
+          num_classes: 1041
+          embedding_dim: 2048
+        optimizer_state_present: true
+        configuration_matches_freeze_except_operational_output_and_resume: true
+    completion_log_time_sao_paulo: 2026-10-30 03:34:12,617
+    final_epoch_avg_loss: 1.4026
+    maximum_metric_difference_fraction: 1.4901161193847656e-08
+    resume: null
+    artifact_sha256:
+      exp/mgn/msmt17/metrics/val_epoch_010.json:
+        path: exp/mgn/msmt17/metrics/val_epoch_010.json
+        bytes: 270
+        sha256: e83cc2d4ec41369163bdda751b0fba6eb64d38e7d6fb5f6be3258925fb80b593
+      exp/mgn/msmt17/metrics/val_epoch_020.json:
+        path: exp/mgn/msmt17/metrics/val_epoch_020.json
+        bytes: 269
+        sha256: 784aac20e128cc59ea799e826e1dc5c239be689b21a457f9a818bd57147a22a5
+      exp/mgn/msmt17/metrics/val_epoch_030.json:
+        path: exp/mgn/msmt17/metrics/val_epoch_030.json
+        bytes: 267
+        sha256: af8e2c21e2d6c767d70f3ed45b26609add01bf09e4d477aadf596a5eb3366112
+      exp/mgn/msmt17/metrics/val_epoch_040.json:
+        path: exp/mgn/msmt17/metrics/val_epoch_040.json
+        bytes: 266
+        sha256: b94116afb040baca5b22be7739149cec343f3ed96adc9c30929f86e27d25157a
+      exp/mgn/msmt17/metrics/val_epoch_050.json:
+        path: exp/mgn/msmt17/metrics/val_epoch_050.json
+        bytes: 268
+        sha256: 4c348e99a47b972b397ee6682a05ea42fdcf597dfb41ad0adf84d939007570b2
+      exp/mgn/msmt17/metrics/val_epoch_060.json:
+        path: exp/mgn/msmt17/metrics/val_epoch_060.json
+        bytes: 265
+        sha256: afd174e8d9e92156baa1fc14e1d50a0e56bcc3aacfcf0a04f6ad1dc34bc869da
+      exp/mgn/msmt17/metrics/val_epoch_070.json:
+        path: exp/mgn/msmt17/metrics/val_epoch_070.json
+        bytes: 267
+        sha256: face9f142c0899c5e99b7da89f6afb38267d177fc5cad72fa6637aad8d0d8d7e
+      exp/mgn/msmt17/metrics/val_epoch_080.json:
+        path: exp/mgn/msmt17/metrics/val_epoch_080.json
+        bytes: 265
+        sha256: 179b53e50d1b602380b99d5265f5e9e5f6586e6f9cc061c31b0717a8d3d7cd76
+      exp/mgn/msmt17/metrics/val_epoch_090.json:
+        path: exp/mgn/msmt17/metrics/val_epoch_090.json
+        bytes: 267
+        sha256: cd19eb465d840a4fb190ee7f827bbde26e9481a6cfea387c35b7a9235009e0da
+      exp/mgn/msmt17/metrics/val_epoch_100.json:
+        path: exp/mgn/msmt17/metrics/val_epoch_100.json
+        bytes: 266
+        sha256: 08d2441f0271df2b91776b39d3f8abcd55fd0308e2fa9c55bccf15b79d9e3d3d
+      exp/mgn/msmt17/metrics/val_epoch_110.json:
+        path: exp/mgn/msmt17/metrics/val_epoch_110.json
+        bytes: 268
+        sha256: 5529636279673872020999f8937731d74e5839a0891221bc2ad94345bdea54c1
+      exp/mgn/msmt17/metrics/val_epoch_120.json:
+        path: exp/mgn/msmt17/metrics/val_epoch_120.json
+        bytes: 265
+        sha256: a3e67559ca45bdfd71401fd3ffba7885406303493d8f3a575d13a627e76bd56e
+      exp/mgn/msmt17/metrics/final_test.json:
+        path: exp/mgn/msmt17/metrics/final_test.json
+        bytes: 266
+        sha256: be94fd0505a154bd46c31aeebe5392ddbd1a4e994f395ce570288d2657b7a0b5
+      exp/mgn/msmt17/metrics/final_epoch_test.json:
+        path: exp/mgn/msmt17/metrics/final_epoch_test.json
+        bytes: 265
+        sha256: a3e67559ca45bdfd71401fd3ffba7885406303493d8f3a575d13a627e76bd56e
+      exp/mgn/msmt17/metrics/latest_val.json:
+        path: exp/mgn/msmt17/metrics/latest_val.json
+        bytes: 265
+        sha256: a3e67559ca45bdfd71401fd3ffba7885406303493d8f3a575d13a627e76bd56e
+      exp/mgn/msmt17/config.resolved.yaml:
+        path: exp/mgn/msmt17/config.resolved.yaml
+        bytes: 2822
+        sha256: 011b9804772c6caba914286b8c95e3c1f7e9ee6320374d4db7ca8bda5e28e808
+      exp/mgn/msmt17/config.yaml:
+        path: exp/mgn/msmt17/config.yaml
+        bytes: 2822
+        sha256: 011b9804772c6caba914286b8c95e3c1f7e9ee6320374d4db7ca8bda5e28e808
+      exp/mgn/msmt17/train.log:
+        path: exp/mgn/msmt17/train.log
+        bytes: 639587
+        sha256: f49ff69aceb8bca2b697823aa175b571afd922c11628fbf8297a781ce47fd760
+      exp/mgn/msmt17/artifacts/command.txt:
+        path: exp/mgn/msmt17/artifacts/command.txt
+        bytes: 50
+        sha256: 6e924360616a230a90adfb51f9582a928cf89f97efc4e726f87366590a1f0769
+      exp/mgn/msmt17/artifacts/environment.txt:
+        path: exp/mgn/msmt17/artifacts/environment.txt
+        bytes: 368
+        sha256: 566ca591a9c29ba22c18260c1488c4d44411ffed84bdd39b977821cd5115da23
+      exp/mgn/msmt17/artifacts/git_commit.txt:
+        path: exp/mgn/msmt17/artifacts/git_commit.txt
+        bytes: 41
+        sha256: 6b1793afd7ce827061cda876c201f478f041aaeb2b0c32dd1611aae10ec8ef76
+      exp/mgn/msmt17/artifacts/training_preflight.json:
+        path: exp/mgn/msmt17/artifacts/training_preflight.json
+        bytes: 1694
+        sha256: 7fb87f07c43ac22875f16c90779d0c63ce0774332b390914628c3d61600bf53a
+      exp/mgn/msmt17/logs/stdout.txt:
+        path: exp/mgn/msmt17/logs/stdout.txt
+        bytes: 640005
+        sha256: 254532f83258c5663465b330c7f0cf31d3df3251214580c389cbc087dec796e3
+      exp/mgn/msmt17/logs/stderr.txt:
+        path: exp/mgn/msmt17/logs/stderr.txt
+        bytes: 0
+        sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    training_data_provenance:
+      source: msmt17
+      descriptor:
+        name: msmt17
+        split: train
+        format: raw
+      image_directory: /mnt/hd-data/addirakoze/Projects/Dataset/msmt17/MSMT17_V2/train
+      images: 30248
+      num_classes: 1041
+      records_sha256: 535b598bdc4d39a6545d7eeb1d0b02994d4558495a53f7ba0b12a3f47f0168f0
+      identity_map_sha256: 60a09ceda406c56dfe55991600e93f142381bb25ebf51d0a9652017816878dec
+      file_inventory_sha256: 9a184a787b2c5e43621b24ee943f70bfb1b0a8173667a6a6368e6da968dd9441
+      metadata_sha256:
+        /mnt/hd-data/addirakoze/Projects/Dataset/msmt17/MSMT17_V2/list_train.txt: 00930d5911e66ec6ac4d9b177e61b49433658758cc091231bf7cfcb83c70d0bf
+      image_content_hash_policy: Only actually consumed smoke images are byte-hashed;
+        full corpus is not byte-hashed.
+      cuhk03_semantic_protocol_verification: null
+      identity_sha256: 2483eb24e9de1f0c12798e07bd6b18e7e7b566f38cf7809077945545199a13fd
+    evaluation_data_provenance:
+      images: 93820
+      query: 11659
+      gallery: 82161
+      records_sha256: dbca9269935bc1bd557935f3b837098595085156dce93f08dc3993140b827d40
+      file_inventory_sha256: e43f3702940293910dba9501a6ec0327b2255d6edb8ccaba1c6b8d2e34669aaf
+      metadata_sha256:
+        /mnt/hd-data/addirakoze/Projects/Dataset/msmt17/MSMT17_V2/list_query.txt: 46b568a56e6e7567175c3350f74362f522d3b898242e0c6d4f87e27ee71cab03
+        /mnt/hd-data/addirakoze/Projects/Dataset/msmt17/MSMT17_V2/list_gallery.txt: fccd30161c9185bc05f4ee5fa86af5768aab256799b526f87dc5f3a1900288fd
+      image_content_hash_policy: File inventory/metadata only; full evaluation image
+        bytes are not hashed or decoded.
+    checks:
+      all_120_epoch_completion_markers_present: true
+      twelve_periodic_evaluations_present: true
+      first_maximum_source_test_map_selects_best: true
+      last_epoch_and_scheduler_120: true
+      final_metric_jsons_match_checkpoint_scores_within_tolerance: true
+      checkpoint_and_resolved_configs_match_freeze: true
+      launch_reported_code_runtime_hashes_match_freeze: true
+      model_source_classes_match: true
+      metric_values_finite_in_range: true
+      final_eval_log_present: true
+      formal_process_exit_receipt_available: false
+limitations:
+- Observed training/evaluation completion is verified from final checkpoints, scheduler
+  states, all120 epoch markers, twelve periodic metrics and final-evaluation artifacts;
+  an independent shell exit-code receipt was not recorded.
+- Metrics are existing trainer-produced within-domain test results, not new independent
+  evaluations.
+- Best checkpoint is selected using source test mAP, without an independent validation
+  split.
+- One configured seed42 run per source; Market1501 additionally resumed at epoch87
+  and does not preserve an uninterrupted sampler/RNG trajectory.
+- CUHK03 is detected processed_partition; semantic new/classic correspondence remains
+  unverified.
+- MSMT17 training uses list_train.txt only, without silently adding list_val.txt.
+- The fixed120-epoch schedule gives different per-source optimization exposure; planned
+  sampler updates are not asserted as measured update counts.
+- Dataset identity is inherited from launch admission metadata/maps/file inventory/sampled-image
+  hashes; full image corpora were not rehashed or decoded during this registration.
+- Cross-domain and LODO results are outside this registration and remain separate
+  required offline work.
+- No training, model initialization, inference, ranking, GPU workload, experiment
+  modification, commit or push was executed during this registration.
+verification:
+  method: CPU-only mmap checkpoint deserialization, artifact hashes, configuration
+    normalization, all periodic/selected/final metric comparisons, logged epoch completion
+    and separate host process inspection. No model constructed or evaluated.
+  command: env CUDA_VISIBLE_DEVICES='' OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 PYTHONDONTWRITEBYTECODE=1
+    PYTHONPATH=. /home/addirakoze/environments/Reid/bin/python -B /tmp/verify_mgn_training_results_20261105.py
+  script_path: /tmp/verify_mgn_training_results_20261105.py
+  script_sha256: 017302fa32df172705df80cd8edbe0237b8dff4ae1695e42d6c200b936766d45
+  log_path: /tmp/mgn-training-verification-20261105.log
+  log_sha256: fd51c7f1d846dfa4cf2d3a4fecde48964fd7989e5c1e4d61b2eb7862b5556c97
+  runs: 4
+  checkpoints: 8
+  periodic_evaluations: 48
+  maximum_metric_difference_fraction: 2.980232238769531e-07
+  audit_helper_corrections:
+  - Initial local helper syntax error corrected before any run verification.
+  - Scheduler milestones are stored as a tuple; normalized container for comparison
+    with [60,90]. No artifact was changed.
+summary_csv:
+  path: results/mgn_training_results.csv
+  sha256: 6e0f2b54b31803eb3615e534881755f24f99fc324246531408f8ffee01b83459
+  rows: 8
+  units: percentages

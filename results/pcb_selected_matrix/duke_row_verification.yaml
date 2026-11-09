@@ -1,0 +1,49 @@
+evaluation_code_commit: 3b015c964b99bfe8ad4b7842bd174d3bc58af607
+source_checkpoint_epoch: 50
+source_checkpoint_sha256: 53df33756029ad8a0213852de53afb28758322657d2781083cb43731249e57c3
+cells:
+  market1501:
+    artifact: results/pcb_selected_matrix/duke_to_market1501/cross_dataset.json
+    artifact_sha256: 492548283bed019223c67e153857c24f59504dba028458f8ffa857d88d0826c3
+    timestamp_utc: '2026-10-26T20:41:57.976699+00:00'
+    mAP: 0.27539700269699097
+    mINP: 0.033737532794475555
+    Rank1: 0.559382438659668
+    Rank5: 0.7152612805366516
+    Rank10: 0.7865201830863953
+  duke:
+    artifact: results/pcb_selected_matrix/duke_to_duke/cross_dataset.json
+    artifact_sha256: f2c3402bdcdca1410c829e74c1f555c17257d8b4d1382f69147fac3822c4064d
+    timestamp_utc: '2026-10-26T20:39:42.004583+00:00'
+    mAP: 0.70121830701828
+    mINP: 0.2928077280521393
+    Rank1: 0.8473967909812927
+    Rank5: 0.9201077222824097
+    Rank10: 0.9394075274467468
+  cuhk03:
+    artifact: results/pcb_selected_matrix/duke_to_cuhk03/cross_dataset.json
+    artifact_sha256: 9501b612fd35c534d00139c4f08cd69a5cf232dd7e39056fc2e30624fe73bcc4
+    timestamp_utc: '2026-10-26T20:43:09.796910+00:00'
+    mAP: 0.06461353600025177
+    mINP: 0.026953544467687607
+    Rank1: 0.06357143074274063
+    Rank5: 0.15357142686843872
+    Rank10: 0.207857146859169
+  msmt17:
+    artifact: results/pcb_selected_matrix/duke_to_msmt17/cross_dataset.json
+    artifact_sha256: dd10b07405f35d4eb46b63bec544a567877053b880dc1495835ffd11416369f2
+    timestamp_utc: '2026-10-26T20:59:44.290080+00:00'
+    mAP: 0.05276067182421684
+    mINP: 0.001556207425892353
+    Rank1: 0.16845355927944183
+    Rank5: 0.27086371183395386
+    Rank10: 0.3211252987384796
+diagonal_difference_vs_training:
+  mAP: -1.9073486328125e-06
+  mINP: 6.556510925292969e-07
+  Rank1: 0.0
+  Rank5: 0.0
+  Rank10: 0.0
+provenance_note: Post-run checkpoint and supplied snapshot hashes verified; original
+  evaluator does not embed execution-time code/checkpoint hashes. Original training-commit
+  exception retained.
